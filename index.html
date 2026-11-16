@@ -4,722 +4,109 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<style>*,*::before,*::after{box-sizing:border-box}html,body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}</style>
-</head>
-<body>
-<title>加減法搶答對決</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<title>數學遊樂園</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
 <style>
-/* Layout: 平板平放，上下兩半是兩位玩家的按鍵區（上半部旋轉 180°）；正中間是加高的題目區，正反兩行題目分別貼在上緣與下緣；設定收在左側抽屜選單 */
+/* 遊樂園導覽地圖：固定比例的地圖畫布，小路串起各個設施，點設施進入小遊戲 */
+*,*::before,*::after{box-sizing:border-box}
 :root{
-  --bg:#eef3f1;
-  --ink:#1f2b33;
-  --muted:#66757d;
-  --p1:#2f6fdb; --p1-soft:#dbe7fb;
-  --p2:#e0772b; --p2-soft:#fbe6d6;
-  --good:#1f9d61; --bad:#d23c3c;
-  --key:#ffffff;
-  --band:#1f2b33; --band-ink:#f2f5f4; --band-line:#4b5a63; --band-soft:#34444e;
+  --ink:#1f2b33; --muted:#5d6b72;
+  --sky:#bfe6ff; --grass:#9fd67a; --grass-dark:#86c463; --path:#f3e3bf; --path-edge:#e2cc98;
+  --sign:#fffaf0; --lock:#9aa5ab;
   --num:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
   --text:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
   color-scheme:light;
 }
-html,body{height:100%}
-body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidden;
-  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-.board{height:100%;display:grid;grid-template-rows:minmax(0,1fr) minmax(0,1.15fr) minmax(0,1fr)}
-
-/* ---- 玩家區 ---- */
-.side{position:relative;display:grid;grid-template-rows:auto minmax(0,1fr);gap:clamp(6px,1.4vmin,14px);min-height:0;
-  padding-block:clamp(10px,2vmin,18px);
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.side.p1{--c:var(--p1);--soft:var(--p1-soft);background:linear-gradient(to top,var(--p1-soft),var(--bg))}
-.side.p2{--c:var(--p2);--soft:var(--p2-soft);background:linear-gradient(to top,var(--p2-soft),var(--bg));transform:rotate(180deg)}
-.head{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.name{font-weight:700;font-size:clamp(16px,2.6vmin,24px);color:var(--c);display:flex;align-items:center;gap:8px;white-space:nowrap}
-.name::before{content:"";width:.7em;height:.7em;border-radius:50%;background:var(--c)}
-.msg{flex:1;text-align:center;font-size:clamp(15px,2.6vmin,24px);font-weight:700;color:var(--muted);min-width:0}
-.msg.good{color:var(--good)} .msg.bad{color:var(--bad)}
-.score{font-family:var(--num);font-weight:800;font-size:clamp(22px,4vmin,40px);line-height:1;color:var(--c);
-  font-variant-numeric:tabular-nums;display:flex;align-items:baseline;gap:6px}
-.score small{font-family:var(--text);font-size:.45em;color:var(--muted);font-weight:600}
-.score.bump{animation:bump .4s}
-@keyframes bump{40%{transform:scale(1.35)}}
-.pad{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:clamp(6px,1.2vmin,12px);align-content:center;min-height:0}
-@media (orientation:landscape) and (min-width:700px){.pad{grid-template-columns:repeat(11,minmax(0,1fr))}}
-.key{font-family:var(--num);font-weight:800;font-size:clamp(24px,5.2vmin,54px);line-height:1;
-  min-height:44px;height:100%;max-height:min(110px,15vmin);border:0;border-radius:16px;background:var(--key);color:var(--ink);
-  box-shadow:0 4px 0 color-mix(in srgb,var(--c) 45%,#c9d2d6);cursor:pointer;touch-action:manipulation;transition:transform .06s,background .15s}
-.key:active{transform:translateY(3px);box-shadow:0 1px 0 color-mix(in srgb,var(--c) 45%,#c9d2d6)}
-.key:focus-visible{outline:3px solid var(--c);outline-offset:2px}
-.key.wrong{background:var(--bad);color:#fff;animation:shake .35s}
-.key.right{background:var(--good);color:#fff}
-@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-.side.locked .pad{opacity:.4;pointer-events:none}
-.overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
-  background:color-mix(in srgb,var(--bg) 90%,transparent);text-align:center;padding:16px}
-.overlay h2{margin:0;font-size:clamp(26px,6vmin,56px);color:var(--c);text-wrap:balance}
-.overlay p{margin:0;font-size:clamp(15px,2.6vmin,22px);color:var(--muted)}
-.final{display:flex;gap:clamp(10px,2.4vmin,24px);align-items:stretch}
-.final[hidden]{display:none}
-.card{min-width:clamp(96px,17vmin,170px);padding:clamp(8px,1.6vmin,14px) clamp(14px,2.6vmin,26px);border-radius:18px;
-  background:var(--k-soft);border:3px solid var(--k);display:flex;flex-direction:column;align-items:center;gap:4px}
-.card .who{font-weight:800;font-size:clamp(15px,2.6vmin,22px);color:var(--k);display:flex;align-items:center;gap:6px}
-.card .who::before{content:"";width:.7em;height:.7em;border-radius:50%;background:var(--k)}
-.card .pts{font-family:var(--num);font-weight:800;font-size:clamp(40px,9vmin,84px);line-height:1;color:var(--ink);
-  font-variant-numeric:tabular-nums}
-.card .pts small{font-family:var(--text);font-size:.32em;color:var(--muted);margin-left:4px}
-.card.k1{--k:var(--p1);--k-soft:var(--p1-soft)} .card.k2{--k:var(--p2);--k-soft:var(--p2-soft)}
-.card.win{box-shadow:0 0 0 5px color-mix(in srgb,var(--k) 25%,transparent)}
-.ready{font-family:var(--text);font-weight:800;font-size:clamp(20px,4vmin,36px);border:0;border-radius:999px;
-  padding:.5em 1.4em;background:var(--c);color:#fff;cursor:pointer;box-shadow:0 5px 0 color-mix(in srgb,var(--c) 60%,#000)}
-.ready:active{transform:translateY(3px);box-shadow:0 2px 0 color-mix(in srgb,var(--c) 60%,#000)}
-.ready.on{background:var(--good);box-shadow:0 5px 0 color-mix(in srgb,var(--good) 60%,#000)}
-
-/* ---- 中間題目區 ---- */
-.band{background:var(--band);color:var(--band-ink);display:flex;flex-direction:column;justify-content:space-between;align-items:center;
-  min-height:0;padding-block:clamp(10px,2.2vmin,22px);
-  padding-left:max(64px,env(safe-area-inset-left,0px));padding-right:max(64px,env(safe-area-inset-right,0px))}
-.q{font-family:var(--num);font-weight:800;line-height:1;font-size:clamp(56px,12.5vmin,150px);
-  display:flex;gap:.16em;align-items:center;justify-content:center;font-variant-numeric:tabular-nums;white-space:nowrap}
-.q .op{color:#9fb0b8;font-weight:600}
-.q .ans{min-width:1.15em;text-align:center;border-radius:.18em;padding:0 .1em;background:var(--band-soft);color:#ffd75e}
-.q .ans.ok{background:var(--good);color:#fff}
-.qwrap{display:flex;justify-content:center;width:100%;min-height:0}
-.qwrap.flip{transform:rotate(180deg)}
-.qwrap.pop{animation:pop .35s}
-.qwrap.flip.pop{animation:popflip .35s}
-.wq{display:none;flex-direction:column;align-items:center;gap:clamp(4px,.9vmin,10px);text-align:center;max-width:min(100%,34em)}
-.band.word .wq{display:flex}
-.band.word .q{display:none}
-.word-mode .board{grid-template-rows:minmax(0,1fr) minmax(0,1.7fr) minmax(0,1fr)}
-.sent{margin:0;font-weight:800;font-size:clamp(22px,4.2vmin,44px);line-height:1.5;text-wrap:balance}
-.wrow{display:flex;align-items:center;justify-content:center;gap:clamp(8px,2vmin,20px);flex-wrap:wrap}
-.pics{margin:0;font-size:clamp(18px,3.2vmin,34px);line-height:1.15;letter-spacing:.05em;word-break:break-all}
-/* 注音：每個字右邊一小排直式注音，聲調在右上（和聖誕單字遊戲同一種排法） */
-.zy{display:inline-flex;align-items:center;vertical-align:middle;line-height:1;margin-right:.08em}
-.zy .b{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;margin-left:.06em;
-  font-family:var(--text);font-weight:400;font-size:max(.38em,12px);line-height:1.02;letter-spacing:0;color:#cfe0e6}
-.zy .b>span{position:relative;display:block}
-.zy .t{position:absolute;left:92%;top:-.45em;font-size:1em}
-.zy .lt{line-height:.7}
-.band.nopics .pics{display:none}
-.wans{font-family:var(--num),var(--text);font-weight:800;font-size:clamp(18px,3.2vmin,32px);line-height:1.2;
-  border-radius:999px;padding:.1em .8em;background:var(--band-soft);color:#ffd75e;font-variant-numeric:tabular-nums}
-.wans.ok{background:var(--good);color:#fff}
-@keyframes pop{from{transform:scale(.8);opacity:.3}}
-@keyframes popflip{from{transform:rotate(180deg) scale(.8);opacity:.3}}
-.mid{display:flex;align-items:center;gap:12px;width:100%;color:#9fb0b8}
-.mid::before,.mid::after{content:"";flex:1;height:1px;background:var(--band-line)}
-.round{font-family:var(--num);font-weight:800;font-size:clamp(14px,2.4vmin,22px);font-variant-numeric:tabular-nums;
-  border:1px solid var(--band-line);border-radius:999px;padding:2px 14px;white-space:nowrap}
-
-/* ---- 左側選單 ---- */
-.menu-btn{position:fixed;z-index:20;left:calc(env(safe-area-inset-left,0px) + 10px);top:50%;transform:translateY(-50%);
-  width:44px;height:44px;border-radius:12px;border:1px solid var(--band-line);background:var(--band-soft);color:var(--band-ink);
-  font-size:22px;line-height:1;cursor:pointer;display:grid;place-items:center}
-.menu-btn:focus-visible{outline:2px solid #fff;outline-offset:2px}
-/* 新手導覽：指向左側選單按鈕的提示卡 */
-.menu-btn.pulse{animation:pulse 1.4s ease-out infinite}
-@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,200,60,.85)}100%{box-shadow:0 0 0 16px rgba(255,200,60,0)}}
-.tour{position:fixed;z-index:25;left:calc(env(safe-area-inset-left,0px) + 70px);top:50%;transform:translateY(-50%);
-  width:min(320px,calc(100vw - 96px));background:#fff;color:var(--ink);border-radius:16px;padding:16px 18px;
-  box-shadow:0 10px 30px rgba(0,0,0,.25);display:flex;flex-direction:column;gap:10px}
-.tour[hidden]{display:none}
-.tour::before{content:"";position:absolute;left:-10px;top:50%;transform:translateY(-50%);
-  border:10px solid transparent;border-left:0;border-right-color:#fff}
-.tour h3{margin:0;font-size:18px}
-.tour p{margin:0;font-size:15px;line-height:1.5;color:var(--muted)}
-.tour .row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.tour label{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);cursor:pointer}
-.tour input{width:20px;height:20px;margin:0;accent-color:var(--ink)}
-.tour .ok{font-family:var(--text);font-weight:800;font-size:16px;border:0;border-radius:999px;padding:.45em 1.2em;
-  background:var(--ink);color:#fff;cursor:pointer}
-.scrim{position:fixed;inset:0;z-index:29;background:rgba(15,22,27,.35)}
-.drawer{position:fixed;z-index:30;top:0;bottom:0;left:0;width:min(300px,82vw);background:#fff;color:var(--ink);
-  box-shadow:4px 0 24px rgba(0,0,0,.18);transform:translateX(-105%);transition:transform .22s ease;
-  display:flex;flex-direction:column;gap:22px;overflow-y:auto;
-  padding-top:calc(env(safe-area-inset-top,0px) + 20px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 20px);
-  padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:20px}
-.drawer.open{transform:none}
-.drawer header{display:flex;align-items:center;justify-content:space-between}
-.drawer h2{margin:0;font-size:20px}
-.drawer .x{border:0;background:transparent;font-size:26px;line-height:1;cursor:pointer;color:var(--muted);padding:4px 8px}
-.group{display:flex;flex-direction:column;gap:10px}
-.group .lbl{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.04em}
-.group .note{font-size:13px;color:var(--muted)}
-.seg{display:flex;gap:8px;flex-wrap:wrap}
-.drawer button.opt{font:inherit;font-size:16px;font-weight:700;border:1.5px solid #cfd8dc;background:#fff;color:var(--ink);
-  border-radius:12px;padding:10px 16px;cursor:pointer;min-width:56px}
-.drawer button.opt[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
-.drawer button.opt:disabled{opacity:.45;cursor:not-allowed}
-.drawer button.wide{width:100%;text-align:left}
-.chk{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;border:1.5px solid #cfd8dc;border-radius:12px;
-  padding:10px 14px;cursor:pointer;background:#fff;color:var(--ink)}
-.chk input{width:22px;height:22px;margin:0;accent-color:var(--ink)}
-.chk:has(input:checked){border-color:var(--ink);background:#eef3f1}
-.chk:has(input:disabled){opacity:.45;cursor:not-allowed}
-.pics .gone{position:relative;display:inline-block;opacity:.4}
-.pics .gone::after{content:"✕";position:absolute;inset:0;display:grid;place-items:center;color:#ff6b6b;font-weight:800;opacity:1}
-.lbl2{font-size:14px;font-weight:700;color:var(--ink);margin-top:4px}
-.sel{font:inherit;font-size:16px;width:100%;padding:10px 12px;border-radius:12px;border:1.5px solid #cfd8dc;background:#fff;color:var(--ink)}
-.sel:focus-visible{outline:3px solid var(--p1);outline-offset:2px}
-.drawer button:focus-visible{outline:3px solid var(--p1);outline-offset:2px}
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+html,body{margin:0;height:100%}
+body{background:linear-gradient(var(--sky) 0 22%,var(--grass) 22%);color:var(--ink);font-family:var(--text);
+  overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(6px,1.5vmin,14px);
+  padding:max(12px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+h1{margin:0;font-size:clamp(28px,6vmin,58px);font-weight:800;letter-spacing:.06em;color:#fff;
+  text-shadow:0 3px 0 #e0772b,0 6px 14px rgba(0,0,0,.18);display:flex;align-items:center;gap:.3em}
+.sub{margin:0;font-size:clamp(14px,2.4vmin,20px);color:var(--ink);font-weight:700;opacity:.75}
+/* 地圖畫布：橫向 16:10，直拿平板時縮小到寬度剛好 */
+.map{position:relative;width:min(100%,calc((100dvh - 180px) * 1.6));aspect-ratio:16/10;
+  background:radial-gradient(circle at 20% 30%,var(--grass-dark) 0 6%,transparent 6.5%),
+             radial-gradient(circle at 75% 80%,var(--grass-dark) 0 5%,transparent 5.5%),var(--grass);
+  border-radius:28px;box-shadow:inset 0 0 0 6px rgba(255,255,255,.55),0 10px 30px rgba(0,0,0,.15);overflow:hidden}
+.map svg{position:absolute;inset:0;width:100%;height:100%}
+.deco{position:absolute;font-size:clamp(18px,4vmin,40px);transform:translate(-50%,-50%);pointer-events:none}
+/* 設施 */
+.spot{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:4px;
+  border:0;background:none;padding:0;cursor:pointer;font:inherit;color:inherit;text-decoration:none;touch-action:manipulation}
+.spot .icon{width:clamp(70px,14vmin,140px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;
+  font-size:clamp(40px,8.5vmin,84px);background:#fff;box-shadow:0 6px 0 var(--c),0 10px 20px rgba(0,0,0,.18);
+  border:5px solid var(--c);transition:transform .12s}
+.spot:active .icon{transform:translateY(4px) scale(.97);box-shadow:0 2px 0 var(--c),0 6px 12px rgba(0,0,0,.18)}
+.spot:focus-visible .icon{outline:4px solid #fff;outline-offset:3px}
+.spot .name{background:var(--sign);border:2px solid var(--c);border-radius:12px;padding:3px 12px;
+  font-weight:800;font-size:clamp(14px,2.6vmin,24px);white-space:nowrap;box-shadow:0 3px 0 rgba(0,0,0,.08)}
+.spot .tag{font-size:clamp(11px,1.8vmin,15px);font-weight:700;color:#fff;background:var(--c);border-radius:999px;padding:1px 10px}
+.spot.open .icon{animation:bob 2.4s ease-in-out infinite}
+.spot.open:nth-of-type(2) .icon{animation-delay:-1.2s}
+@keyframes bob{50%{transform:translateY(-6px)}}
+.spot.locked{--c:var(--lock)}
+.spot.locked .icon{filter:grayscale(1);opacity:.6}
+.spot.locked .tag::before{content:"🚧 "}
+.spot.locked .tag{background:#f2b705;color:var(--ink)}
+.spot.locked .icon::after{content:"🚧";position:absolute;right:-6px;bottom:-4px;font-size:.5em}
+.spot .icon{position:relative}
+.toast{position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);
+  background:var(--ink);color:#fff;padding:10px 20px;border-radius:999px;font-size:17px;font-weight:700;
+  box-shadow:0 6px 20px rgba(0,0,0,.25);transition:opacity .25s;white-space:nowrap}
+.toast[hidden]{display:block;opacity:0;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.spot.open .icon{animation:none}}
 </style>
+</head>
+<body>
+<h1>🎪 數學遊樂園</h1>
+<p class="sub">點一個設施開始玩</p>
 
-<div class="board">
-  <section class="side p2" data-p="1" aria-label="玩家 2"></section>
-  <div class="band">
-    <div class="qwrap flip" aria-hidden="true">
-      <div class="q"><span class="qa">?</span><span class="op qop">+</span><span class="qb">?</span><span class="op">=</span><span class="ans">?</span></div>
-      <div class="wq"><p class="sent"></p><div class="wrow"><p class="pics"></p><span class="wans">答案：？</span></div></div>
-    </div>
-    <div class="mid"><span class="round" id="round">共 10 題</span></div>
-    <div class="qwrap" aria-live="polite">
-      <div class="q"><span class="qa">?</span><span class="op qop">+</span><span class="qb">?</span><span class="op">=</span><span class="ans">?</span></div>
-      <div class="wq"><p class="sent"></p><div class="wrow"><p class="pics"></p><span class="wans">答案：？</span></div></div>
-    </div>
-  </div>
-  <section class="side p1" data-p="0" aria-label="玩家 1"></section>
-</div>
+<div class="map" role="navigation" aria-label="遊樂園地圖">
+  <svg viewBox="0 0 160 100" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M80 104 C80 88 24 86 24 66 C24 46 58 52 80 38 C102 24 136 46 136 66 C136 84 104 84 92 78"
+      fill="none" stroke="var(--path-edge)" stroke-width="9" stroke-linecap="round"/>
+    <path d="M80 104 C80 88 24 86 24 66 C24 46 58 52 80 38 C102 24 136 46 136 66 C136 84 104 84 92 78"
+      fill="none" stroke="var(--path)" stroke-width="7" stroke-linecap="round"/>
+    <path d="M80 38 C80 26 80 18 80 12" fill="none" stroke="var(--path-edge)" stroke-width="9" stroke-linecap="round"/>
+    <path d="M80 38 C80 26 80 18 80 12" fill="none" stroke="var(--path)" stroke-width="7" stroke-linecap="round"/>
+  </svg>
+  <span class="deco" style="left:6%;top:14%">🌳</span>
+  <span class="deco" style="left:44%;top:84%">🌳</span>
+  <span class="deco" style="left:95%;top:22%">🌲</span>
+  <span class="deco" style="left:58%;top:62%">🌷</span>
+  <span class="deco" style="left:8%;top:88%">🌼</span>
+  <span class="deco" style="left:96%;top:90%">🎈</span>
+  <span class="deco" style="left:40%;top:14%">☁️</span>
 
-<button type="button" class="menu-btn" id="menuBtn" aria-label="開啟設定選單" aria-controls="drawer" aria-expanded="false">☰</button>
-<div class="tour" id="tour" role="dialog" aria-labelledby="tourTitle" hidden>
-  <h3 id="tourTitle">👈 設定在這裡</h3>
-  <p>點左邊的 ☰ 可以選擇加法／減法、數字題或應用題、題數、語音和背景音樂。</p>
-  <div class="row">
-    <label><input type="checkbox" id="tourOff"> 不要再顯示</label>
-    <button type="button" class="ok" id="tourOk">知道了</button>
-  </div>
+  <a class="spot open" href="duel.html" style="--c:#2f6fdb;left:15%;top:58%">
+    <span class="icon">🎪</span><span class="name">搶答對決</span><span class="tag">2 人・加減法</span>
+  </a>
+  <a class="spot open" href="balloon.html" style="--c:#e0477b;left:85%;top:58%">
+    <span class="icon">🎈</span><span class="name">射氣球</span><span class="tag">1 人・加減法</span>
+  </a>
+  <button type="button" class="spot locked" data-name="旋轉木馬" style="left:50%;top:22%">
+    <span class="icon">🎠</span><span class="name">旋轉木馬</span><span class="tag">建造中</span>
+  </button>
+  <button type="button" class="spot locked" data-name="摩天輪" style="left:32%;top:36%">
+    <span class="icon">🎡</span><span class="name">摩天輪</span><span class="tag">建造中</span>
+  </button>
+  <button type="button" class="spot locked" data-name="雲霄飛車" style="left:62%;top:80%">
+    <span class="icon">🎢</span><span class="name">雲霄飛車</span><span class="tag">建造中</span>
+  </button>
 </div>
-<div class="scrim" id="scrim" hidden></div>
-<aside class="drawer" id="drawer" aria-label="設定" aria-hidden="true">
-  <header><h2>設定</h2><button type="button" class="x" id="closeMenu" aria-label="關閉選單">×</button></header>
-  <div class="group">
-    <span class="lbl">運算（可複選）</span>
-    <div class="seg lockable">
-      <label class="chk"><input type="checkbox" id="opAdd" checked> 加法 ＋</label>
-      <label class="chk"><input type="checkbox" id="opSub"> 減法 −</label>
-    </div>
-    <span class="note" id="opNote">兩個都勾就是加減混合出題。</span>
-  </div>
-  <div class="group">
-    <span class="lbl">題型</span>
-    <div class="seg lockable" id="modes">
-      <button type="button" class="opt" data-mode="num" aria-pressed="true">數字題</button>
-      <button type="button" class="opt" data-mode="word" aria-pressed="false">應用題（進階）</button>
-    </div>
-    <div class="seg"><button type="button" class="opt" id="pics" aria-pressed="true">應用題圖案提示：開</button></div>
-  </div>
-  <div class="group">
-    <span class="lbl">題數</span>
-    <div class="seg lockable" id="opts">
-      <button type="button" class="opt" data-n="5" aria-pressed="false">5 題</button>
-      <button type="button" class="opt" data-n="10" aria-pressed="true">10 題</button>
-      <button type="button" class="opt" data-n="15" aria-pressed="false">15 題</button>
-    </div>
-    <span class="note" id="optsNote">遊戲進行中不能改題型和題數，按「重新開始」後再改。</span>
-  </div>
-  <div class="group" id="voiceGroup">
-    <span class="lbl">語音</span>
-    <div class="seg"><button type="button" class="opt" id="voice" aria-pressed="true">語音朗讀：開</button></div>
-    <button type="button" class="opt wide" id="say">🔊 再念一次題目</button>
-    <label class="lbl2" for="voiceSel">聲音</label>
-    <select id="voiceSel" class="sel"></select>
-    <label class="lbl2" for="rateSel">語速</label>
-    <select id="rateSel" class="sel">
-      <option value="0.7">慢</option>
-      <option value="0.9" selected>正常</option>
-      <option value="1.05">快</option>
-    </select>
-    <button type="button" class="opt wide" id="tryVoice">▶ 試聽</button>
-    <span class="note" id="voiceNote"></span>
-  </div>
-  <div class="group">
-    <span class="lbl">背景音樂</span>
-    <div class="seg"><button type="button" class="opt" id="music" aria-pressed="true">輕音樂：開</button></div>
-    <label class="lbl2" for="musicVol">音樂音量</label>
-    <select id="musicVol" class="sel">
-      <option value="s">小</option>
-      <option value="m" selected>中</option>
-      <option value="l">大</option>
-    </select>
-  </div>
-  <div class="group">
-    <span class="lbl">遊戲</span>
-    <button type="button" class="opt wide" id="restart">↺ 重新開始</button>
-    <label class="chk"><input type="checkbox" id="tourShow" checked> 開啟時顯示新手導覽</label>
-  </div>
-</aside>
+<div class="toast" id="toast" role="status" hidden></div>
 
 <script>
-(function(){
-  const NAMES=["玩家 1","玩家 2"];
-  const S={total:10,round:0,score:[0,0],phase:"ready",ready:[false,false],locked:[false,false],q:null,last:"",lastT:-1,voice:true,mode:"num",pics:true,ops:{add:true,sub:false}};
-
-  // ---- 應用題題庫：兩樣東西相加 ----
-  const CN=["零","一","兩","三","四","五","六","七","八","九","十"];
-  const TPL=[
-    {t:(a,b)=>`農場裡有${a}隻小雞和${b}隻小鴨，總共有幾隻動物？`,ea:"🐥",eb:"🦆"},
-    {t:(a,b)=>`樹上有${a}隻小鳥，又飛來了${b}隻，現在樹上有幾隻小鳥？`,ea:"🐦",eb:"🐦"},
-    {t:(a,b)=>`籃子裡有${a}顆蘋果和${b}顆橘子，總共有幾顆水果？`,ea:"🍎",eb:"🍊"},
-    {t:(a,b)=>`花園裡開了${a}朵紅花和${b}朵黃花，總共有幾朵花？`,ea:"🌹",eb:"🌼"},
-    {t:(a,b)=>`池塘裡有${a}隻青蛙，又跳來了${b}隻，現在有幾隻青蛙？`,ea:"🐸",eb:"🐸"},
-    {t:(a,b)=>`小明有${a}枝鉛筆，媽媽又給他${b}枝，小明現在有幾枝鉛筆？`,ea:"✏️",eb:"✏️"},
-    {t:(a,b)=>`盤子上有${a}塊餅乾和${b}塊蛋糕，總共有幾塊點心？`,ea:"🍪",eb:"🍰"},
-    {t:(a,b)=>`停車場有${a}輛汽車和${b}輛公車，總共有幾輛車？`,ea:"🚗",eb:"🚌"},
-    {t:(a,b)=>`書架上有${a}本故事書和${b}本圖畫書，總共有幾本書？`,ea:"📕",eb:"📗"},
-    {t:(a,b)=>`天上有${a}顆星星，又出現了${b}顆，現在有幾顆星星？`,ea:"⭐",eb:"⭐"},
-    {t:(a,b)=>`魚缸裡有${a}條紅魚和${b}條黃魚，總共有幾條魚？`,ea:"🐟",eb:"🐠"},
-    {t:(a,b)=>`小美先吃了${a}顆草莓，又吃了${b}顆，總共吃了幾顆草莓？`,ea:"🍓",eb:"🍓"},
-    {t:(a,b)=>`公園裡有${a}隻小狗和${b}隻小貓，總共有幾隻動物？`,ea:"🐶",eb:"🐱"},
-    {t:(a,b)=>`桌上有${a}個紅氣球和${b}個藍氣球，總共有幾個氣球？`,ea:"🎈",eb:"🔵"}
-  ];
-  // 減法應用題：拿走、飛走、吃掉……還剩下幾個
-  const TPL_SUB=[
-    {t:(a,b)=>`樹上有${a}隻小鳥，飛走了${b}隻，還剩下幾隻小鳥？`,e:"🐦"},
-    {t:(a,b)=>`籃子裡有${a}顆蘋果，吃掉了${b}顆，還剩下幾顆蘋果？`,e:"🍎"},
-    {t:(a,b)=>`盤子上有${a}塊餅乾，小明吃了${b}塊，還剩下幾塊餅乾？`,e:"🍪"},
-    {t:(a,b)=>`池塘裡有${a}隻青蛙，跳走了${b}隻，還剩下幾隻青蛙？`,e:"🐸"},
-    {t:(a,b)=>`桌上有${a}個氣球，破了${b}個，還剩下幾個氣球？`,e:"🎈"},
-    {t:(a,b)=>`花園裡開了${a}朵花，媽媽摘了${b}朵，還剩下幾朵花？`,e:"🌼"},
-    {t:(a,b)=>`停車場有${a}輛汽車，開走了${b}輛，還剩下幾輛汽車？`,e:"🚗"},
-    {t:(a,b)=>`小美有${a}枝鉛筆，送給弟弟${b}枝，還剩下幾枝鉛筆？`,e:"✏️"},
-    {t:(a,b)=>`書架上有${a}本書，借走了${b}本，還剩下幾本書？`,e:"📕"},
-    {t:(a,b)=>`農場裡有${a}隻小雞，跑走了${b}隻，還剩下幾隻小雞？`,e:"🐥"},
-    {t:(a,b)=>`小狗有${a}根骨頭，吃掉了${b}根，還剩下幾根骨頭？`,e:"🦴"},
-    {t:(a,b)=>`小明有${a}顆草莓，分給媽媽${b}顆，還剩下幾顆草莓？`,e:"🍓"}
-  ];
-  const cn=n=>n===2?"兩":CN[n];
-
-  // ---- 注音 ----
-  const ZHUYIN={
-    零:"ㄌㄧㄥˊ",一:"ㄧ",兩:"ㄌㄧㄤˇ",三:"ㄙㄢ",四:"ㄙˋ",五:"ㄨˇ",六:"ㄌㄧㄡˋ",七:"ㄑㄧ",八:"ㄅㄚ",九:"ㄐㄧㄡˇ",十:"ㄕˊ",
-    農:"ㄋㄨㄥˊ",場:"ㄔㄤˇ",裡:"ㄌㄧˇ",有:"ㄧㄡˇ",隻:"ㄓ",小:"ㄒㄧㄠˇ",雞:"ㄐㄧ",和:"ㄏㄜˊ",鴨:"ㄧㄚ",總:"ㄗㄨㄥˇ",
-    共:"ㄍㄨㄥˋ",幾:"ㄐㄧˇ",動:"ㄉㄨㄥˋ",物:"ㄨˋ",樹:"ㄕㄨˋ",上:"ㄕㄤˋ",鳥:"ㄋㄧㄠˇ",又:"ㄧㄡˋ",飛:"ㄈㄟ",來:"ㄌㄞˊ",
-    了:"˙ㄌㄜ",現:"ㄒㄧㄢˋ",在:"ㄗㄞˋ",籃:"ㄌㄢˊ",子:"˙ㄗ",顆:"ㄎㄜ",蘋:"ㄆㄧㄥˊ",果:"ㄍㄨㄛˇ",橘:"ㄐㄩˊ",水:"ㄕㄨㄟˇ",
-    花:"ㄏㄨㄚ",園:"ㄩㄢˊ",開:"ㄎㄞ",朵:"ㄉㄨㄛˇ",紅:"ㄏㄨㄥˊ",黃:"ㄏㄨㄤˊ",池:"ㄔˊ",塘:"ㄊㄤˊ",青:"ㄑㄧㄥ",蛙:"ㄨㄚ",
-    跳:"ㄊㄧㄠˋ",明:"ㄇㄧㄥˊ",枝:"ㄓ",鉛:"ㄑㄧㄢ",筆:"ㄅㄧˇ",媽:"ㄇㄚ",給:"ㄍㄟˇ",他:"ㄊㄚ",盤:"ㄆㄢˊ",塊:"ㄎㄨㄞˋ",
-    餅:"ㄅㄧㄥˇ",乾:"ㄍㄢ",蛋:"ㄉㄢˋ",糕:"ㄍㄠ",點:"ㄉㄧㄢˇ",心:"ㄒㄧㄣ",停:"ㄊㄧㄥˊ",車:"ㄔㄜ",輛:"ㄌㄧㄤˋ",汽:"ㄑㄧˋ",
-    公:"ㄍㄨㄥ",書:"ㄕㄨ",架:"ㄐㄧㄚˋ",本:"ㄅㄣˇ",故:"ㄍㄨˋ",事:"ㄕˋ",圖:"ㄊㄨˊ",畫:"ㄏㄨㄚˋ",天:"ㄊㄧㄢ",星:"ㄒㄧㄥ",
-    出:"ㄔㄨ",魚:"ㄩˊ",缸:"ㄍㄤ",條:"ㄊㄧㄠˊ",美:"ㄇㄟˇ",先:"ㄒㄧㄢ",吃:"ㄔ",草:"ㄘㄠˇ",莓:"ㄇㄟˊ",狗:"ㄍㄡˇ",
-    貓:"ㄇㄠ",桌:"ㄓㄨㄛ",個:"ㄍㄜˋ",氣:"ㄑㄧˋ",球:"ㄑㄧㄡˊ",藍:"ㄌㄢˊ",
-    走:"ㄗㄡˇ",還:"ㄏㄞˊ",剩:"ㄕㄥˋ",下:"ㄒㄧㄚˋ",掉:"ㄉㄧㄠˋ",破:"ㄆㄛˋ",摘:"ㄓㄞ",送:"ㄙㄨㄥˋ",弟:"ㄉㄧˋ",
-    借:"ㄐㄧㄝˋ",跑:"ㄆㄠˇ",根:"ㄍㄣ",骨:"ㄍㄨˇ",頭:"ㄊㄡˊ",分:"ㄈㄣ"
-  };
-  const ZY_WORDS={"媽媽":["ㄇㄚ","˙ㄇㄚ"],"弟弟":["ㄉㄧˋ","˙ㄉㄧ"],"骨頭":["ㄍㄨˇ","˙ㄊㄡ"]};   // 詞語裡要念輕聲的字
-  const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-  function zyChar(ch,z){
-    if(!z)return esc(ch);
-    const light=z[0]==="˙";
-    const syms=[...(light?z.slice(1):z)];
-    const tone=/[ˊˇˋ]/.test(syms[syms.length-1])?syms.pop():"";
-    const col=syms.map((s,k)=>`<span>${s}${k===syms.length-1&&tone?`<span class="t">${tone}</span>`:""}</span>`).join("");
-    return `<span class="zy"><span class="h">${ch}</span><span class="b" aria-hidden="true">${light?'<span class="lt">˙</span>':""}${col}</span></span>`;
-  }
-  function zy(text){
-    const chars=[...String(text)],out=[];
-    for(let i=0;i<chars.length;){
-      const w=Object.keys(ZY_WORDS).find(k=>chars.slice(i,i+[...k].length).join("")===k);
-      if(w){[...w].forEach((ch,j)=>out.push(zyChar(ch,ZY_WORDS[w][j])));i+=[...w].length;continue}
-      out.push(zyChar(chars[i],ZHUYIN[chars[i]]));i++;
-    }
-    return out.join("");
-  }
-  const $=id=>document.getElementById(id);
-  const all=sel=>[...document.querySelectorAll(sel)];
-  const $round=$("round"),$opts=$("opts"),$optsNote=$("optsNote");
-  const band=document.querySelector(".band");
-  const wrapEls=all(".band .qwrap"),aEls=all(".band .qa"),bEls=all(".band .qb"),ansEls=all(".band .ans");
-  const sentEls=all(".band .sent"),picEls=all(".band .pics"),wansEls=all(".band .wans");
-  const sides=all(".side").sort((a,b)=>a.dataset.p-b.dataset.p);
-  const ui=[];
-
-  sides.forEach((el,p)=>{
-    el.innerHTML=`
-      <div class="head"><span class="name">${NAMES[p]}</span><span class="msg"></span><span class="score"><b>0</b><small>分</small></span></div>
-      <div class="pad">${Array.from({length:11},(_,n)=>`<button type="button" class="key" data-v="${n}" aria-label="${n}">${n}</button>`).join("")}</div>
-      <div class="overlay"><h2></h2><p></p><div class="final" hidden></div><button type="button" class="ready">準備好了</button></div>`;
-    const u={el,msg:el.querySelector(".msg"),score:el.querySelector(".score"),scoreB:el.querySelector(".score b"),
-      keys:[...el.querySelectorAll(".key")],ov:el.querySelector(".overlay"),ovH:el.querySelector(".overlay h2"),
-      ovP:el.querySelector(".overlay p"),final:el.querySelector(".final"),readyBtn:el.querySelector(".ready")};
-    ui[p]=u;
-    const tap=(node,fn)=>{node.addEventListener("pointerdown",e=>{e.preventDefault();fn()});
-      node.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();fn()}})};
-    u.keys.forEach(k=>tap(k,()=>answer(p,+k.dataset.v,k)));
-    // 「準備好了」用 click（手指放開時觸發），平板才會允許之後的語音
-    u.readyBtn.addEventListener("click",()=>toggleReady(p));
-  });
-
-  // ---- 語音 ----
-  const synth=window.speechSynthesis;
-  let zhVoice=null,zhVoices=[];
-  const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
-  S.rate=+(pref("duel-rate")||.9)||.9;
-  const voiceKey=v=>v.voiceURI||v.name;
-  // iPad 會把同一個聲音依音質各列一次，也會列出趣味聲音：分辨出來
-  function voiceQuality(v){
-    const u=v.voiceURI||"";
-    if(/eloquence|speech\.synthesis\.voice/i.test(u))return 0;   // 趣味聲音
-    if(/\.premium\./i.test(u))return 3;                           // 進階版
-    if(/enhanced|-premium/i.test(u))return 2;                      // 增強版
-    return 1;                                                      // 標準版
-  }
-  const QUALITY_ZH=["趣味聲音","標準版","增強版","進階版"];
-  const accentOf=lang=>/TW|Hant/i.test(lang)?0:/HK|yue/i.test(lang)?1:2;
-  const ACCENT_ZH=["台灣","香港","大陸"];
-  function pickVoice(){
-    if(!synth)return;
-    const vs=synth.getVoices().filter(v=>/^(zh|cmn|yue)/i.test(v.lang));
-    zhVoices=vs.sort((a,b)=>accentOf(a.lang)-accentOf(b.lang)||voiceQuality(b)-voiceQuality(a)||a.name.localeCompare(b.name));
-    // 預設：台灣口音、音質最好、像老師的聲音優先（iPad 美佳、Windows Yating/Hanhan、Chrome Google）
-    const usual=v=>/Mei-?Jia|美佳|Yating|Hanhan|Google/i.test(v.name)?1:0;
-    const best=zhVoices.filter(v=>accentOf(v.lang)===0&&voiceQuality(v)>0).sort((a,b)=>voiceQuality(b)-voiceQuality(a)||usual(b)-usual(a))[0]
-      ||zhVoices.find(v=>voiceQuality(v)>0)||zhVoices[0]||null;
-    const want=pref("duel-voice");
-    zhVoice=(want&&zhVoices.find(v=>voiceKey(v)===want))||best;
-    fillVoiceSel(best,want);
-  }
-  function fillVoiceSel(best,want){
-    const sel=document.getElementById("voiceSel"),note=document.getElementById("voiceNote");
-    if(!sel)return;
-    const opts=[`<option value="">自動（${best?esc(best.name):"平板預設"}）</option>`]
-      .concat(zhVoices.map(v=>`<option value="${esc(voiceKey(v))}">${esc(v.name)}（${ACCENT_ZH[accentOf(v.lang)]}・${QUALITY_ZH[voiceQuality(v)]}）</option>`));
-    sel.innerHTML=opts.join("");
-    sel.value=(want&&zhVoices.some(v=>voiceKey(v)===want))?want:"";
-    note.textContent=zhVoices.length
-      ?"想要更自然的聲音：iPad 到「設定 → 輔助使用 → 朗讀內容 → 聲音 → 中文」下載「增強版」或「進階版」，再回來這裡選。"
-      :"這台平板目前沒有中文語音，請到平板的語音設定下載中文（台灣）語音。";
-  }
-  if(synth){pickVoice();try{synth.addEventListener("voiceschanged",pickVoice)}catch(e){}}
-  function say(text){
-    if(!S.voice||!synth)return;
-    try{
-      const u=new SpeechSynthesisUtterance(text);
-      u.lang=zhVoice?zhVoice.lang.replace("_","-"):"zh-TW";if(zhVoice)u.voice=zhVoice;
-      u.rate=S.rate;u.pitch=1.1;u.volume=1;
-      u.onstart=()=>duck(true);u.onend=u.onerror=()=>duck(false);
-      // iPad / Safari：cancel 之後立刻 speak 有時會被吞掉，所以稍等一下再念
-      if(synth.speaking||synth.pending){synth.cancel();setTimeout(()=>{try{synth.speak(u)}catch(e){}},90)}
-      else synth.speak(u);
-    }catch(e){}
-  }
-  // 平板只允許在「手指離開螢幕」時解鎖聲音：前幾次碰觸時解鎖語音與音效
-  let unlockTries=0;
-  function unlockAudio(){
-    if(unlockTries>=4)return;unlockTries++;
-    try{
-      ac=ac||new (window.AudioContext||window.webkitAudioContext)();
-      if(ac.state!=="running")ac.resume();
-      const buf=ac.createBuffer(1,1,22050),src=ac.createBufferSource();
-      src.buffer=buf;src.connect(ac.destination);src.start(0);
-    }catch(e){}
-    try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}
-    if(M.on)musicStart();
-  }
-  ["touchend","pointerup","click","keydown"].forEach(ev=>document.addEventListener(ev,unlockAudio,{capture:true,passive:true}));
-  const readQ=()=>{if(S.q)say(S.q.text||`${S.q.a} ${S.q.word} ${S.q.b}，等於多少？`)};
-
-  // ---- 音效 ----
-  let ac=null;
-  function tone(freqs,dur=.12,type="triangle"){
-    try{
-      ac=ac||new (window.AudioContext||window.webkitAudioContext)();
-      if(ac.state==="suspended")ac.resume();
-      freqs.forEach((f,i)=>{
-        const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*dur;
-        o.type=type;o.frequency.value=f;g.gain.setValueAtTime(.15,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);
-        o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7);
-      });
-    }catch(e){}
-  }
-  const sfx={good:()=>tone([660,880,1100]),bad:()=>tone([220,180],.15,"square"),tick:()=>tone([520],.1),go:()=>tone([880],.25),win:()=>tone([523,659,784,1047],.16)};
-  async function wake(){try{await navigator.wakeLock?.request("screen")}catch(e){}}
-
-  // ---- 背景音樂盒：WebAudio 即時產生的原創 8 小節小曲，固定循環、每個音一樣大聲，不需要音樂檔 ----
-  const M={on:pref("duel-music")!=="off",vol:pref("duel-music-vol")||"m",gain:null,bus:null,timer:null,next:0,step:0};
-  const MVOL={s:.07,m:.12,l:.19};
-  // 每小節的和弦（分解和弦用）與兩個旋律音（第 1、3 拍）
-  const BARS=[
-    {ch:[72,76,79],mel:[88,84]},   // C
-    {ch:[69,72,76],mel:[84,81]},   // Am
-    {ch:[65,69,72],mel:[81,84]},   // F
-    {ch:[67,71,74],mel:[83,79]},   // G
-    {ch:[72,76,79],mel:[88,91]},   // C
-    {ch:[69,72,76],mel:[88,84]},   // Am
-    {ch:[65,69,72],mel:[86,81]},   // F
-    {ch:[67,71,74],mel:[86,83]}    // G
-  ];
-  const ARP=[0,2,1,2,0,2,1,2];      // 分解和弦的順序：根、五、三、五……
-  const STEP=60/70/2;               // 每分鐘 70 拍的八分音符（慢一點）
-  const hz=m=>440*Math.pow(2,(m-69)/12);
-  // 音樂盒的「叮」：基音 + 一個高泛音，瞬間起音、慢慢消失
-  function bell(m,t,vel,len){
-    const f=hz(m);
-    [[f,vel,len],[f*4.2,vel*.18,len*.35]].forEach(([fr,v,d])=>{
-      const o=ac.createOscillator(),g=ac.createGain();
-      o.type="sine";o.frequency.value=fr;
-      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+d);
-      o.connect(g).connect(M.bus);o.start(t);o.stop(t+d+.05);
-    });
-  }
-  function mSchedule(){
-    if(!ac||ac.state!=="running")return;
-    if(M.next<ac.currentTime)M.next=ac.currentTime+.05;
-    while(M.next<ac.currentTime+.3){
-      const t=M.next,s=M.step%8,bar=BARS[Math.floor(M.step/8)%BARS.length];
-      bell(bar.ch[ARP[s]],t,.16,1.4);
-      if(s===0)bell(bar.mel[0],t,.26,2.2);
-      if(s===4)bell(bar.mel[1],t,.26,2.2);
-      M.next+=STEP;M.step++;
-    }
-  }
-  function musicStart(){
-    if(!M.on||M.timer)return;
-    try{
-      ac=ac||new (window.AudioContext||window.webkitAudioContext)();
-      if(ac.state!=="running")ac.resume();
-      if(!M.gain){
-        M.gain=ac.createGain();M.gain.connect(ac.destination);
-        // 壓縮器把音量拉平，避免忽大忽小
-        M.bus=ac.createDynamicsCompressor();
-        M.bus.threshold.value=-26;M.bus.knee.value=12;M.bus.ratio.value=4;M.bus.attack.value=.003;M.bus.release.value=.25;
-        M.bus.connect(M.gain);
-      }
-      M.gain.gain.cancelScheduledValues(ac.currentTime);
-      M.gain.gain.setValueAtTime(0,ac.currentTime);M.gain.gain.linearRampToValueAtTime(MVOL[M.vol],ac.currentTime+1.5);
-      M.next=ac.currentTime+.1;M.timer=setInterval(mSchedule,100);
-    }catch(e){}
-  }
-  function musicStop(){
-    clearInterval(M.timer);M.timer=null;
-    try{if(M.gain){M.gain.gain.cancelScheduledValues(ac.currentTime);M.gain.gain.setTargetAtTime(0,ac.currentTime,.2)}}catch(e){}
-  }
-  // 念題目時音樂轉小聲
-  // 念題目時音樂稍微轉小，慢慢降、慢慢回來，聽起來比較順
-  let duckTimer=null;
-  function duck(on){
-    clearTimeout(duckTimer);
-    const apply=()=>{try{if(M.gain&&M.timer)M.gain.gain.setTargetAtTime(MVOL[M.vol]*(on?.55:1),ac.currentTime,.45)}catch(e){}};
-    if(on)apply();else duckTimer=setTimeout(apply,400);   // 念完稍等一下再回來，避免題目之間一大一小
-  }
-  document.addEventListener("visibilitychange",()=>{if(document.hidden)musicStop();else if(M.on&&ac)musicStart()});
-
-  // ---- 題目顯示（正反兩行同步） ----
-  const pop=()=>wrapEls.forEach(e=>{e.classList.remove("pop");void e.offsetWidth;e.classList.add("pop")});
-  const qopEls=all(".band .qop");
-  function showQ(a,b,ans,sym="+"){
-    band.classList.remove("word");
-    qopEls.forEach(e=>e.textContent=sym);
-    aEls.forEach(e=>e.textContent=a);bEls.forEach(e=>e.textContent=b);ansEls.forEach(e=>{e.textContent=ans;e.classList.remove("ok")});
-    pop();
-  }
-  function showWord(){
-    band.classList.add("word");
-    sentEls.forEach(e=>{e.innerHTML=zy(S.q.text);e.setAttribute("aria-label",S.q.text)});picEls.forEach(e=>e.innerHTML=S.q.pics);
-    wansEls.forEach(e=>{e.textContent="答案：？";e.classList.remove("ok")});
-    pop();
-  }
-  function reveal(){
-    ansEls.forEach(e=>{e.textContent=S.q.sum;e.classList.add("ok")});
-    wansEls.forEach(e=>{e.textContent=`${S.q.a} ${S.q.sym} ${S.q.b} = ${S.q.sum}`;e.classList.add("ok")});
-  }
-
-  // ---- 遊戲流程 ----
-  const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
-  function newQuestion(){
-    const ops=[S.ops.add&&"+",S.ops.sub&&"-"].filter(Boolean);
-    let a,b,op,k;
-    do{
-      op=ops[rnd(0,ops.length-1)];
-      if(op==="+"){a=rnd(1,9);b=rnd(1,10-a)}   // 和不超過 10
-      else{a=rnd(2,10);b=rnd(1,a-1)}           // 10 以內，答案至少 1
-      k=a+op+b;
-    }while(k===S.last);
-    const add=op==="+";
-    S.last=k;S.q={a,b,op,sum:add?a+b:a-b,sym:add?"+":"−",word:add?"加":"減"};
-    if(S.mode==="word"){
-      const list=add?TPL:TPL_SUB;
-      let ti;do{ti=rnd(0,list.length-1)}while(op+ti===S.lastT&&list.length>1);
-      S.lastT=op+ti;const tp=list[ti];
-      S.q.text=tp.t(cn(a),cn(b));
-      S.q.pics=add?tp.ea.repeat(a)+" ＋ "+tp.eb.repeat(b)
-        :Array.from({length:a},(_,i)=>i<a-b?`<span>${tp.e}</span>`:`<span class="gone">${tp.e}</span>`).join("");
-    }
-  }
-  function setMsg(p,t,cls=""){ui[p].msg.textContent=t;ui[p].msg.className="msg "+cls}
-  function updateRound(){$round.textContent=S.phase==="ready"?`共 ${S.total} 題`:`${Math.min(S.round,S.total)} / ${S.total}`}
-  function updateScore(p,bump){ui[p].scoreB.textContent=S.score[p];
-    if(bump){ui[p].score.classList.remove("bump");void ui[p].score.offsetWidth;ui[p].score.classList.add("bump")}}
-  function syncOpts(){
-    const lock=S.phase!=="ready";
-    all(".drawer .lockable button, .drawer .lockable input").forEach(b=>b.disabled=lock);
-    $optsNote.hidden=!lock;
-  }
-
-  let timer=null;
-  function showReadyScreen(){
-    clearTimeout(timer);try{synth&&synth.cancel()}catch(e){}
-    S.phase="ready";S.ready=[false,false];S.round=0;S.score=[0,0];S.q=null;
-    ui.forEach((u,p)=>{
-      updateScore(p);u.ov.hidden=false;u.ovH.textContent=NAMES[p];u.ovP.hidden=false;u.final.hidden=true;
-      const opName=S.ops.add&&S.ops.sub?"加減混合":S.ops.sub?"減法":"加法";
-      u.ovP.textContent=`${opName}・${S.mode==="word"?"應用題":"數字題"}：題目會出現在中間並念出來，先按對的人得分。共 ${S.total} 題。`;
-      u.readyBtn.textContent="準備好了";u.readyBtn.classList.remove("on");
-      setMsg(p,"");u.el.classList.remove("locked");u.keys.forEach(k=>k.classList.remove("wrong","right"));
-    });
-    showQ("?","?","?");updateRound();syncOpts();
-  }
-  function toggleReady(p){
-    hideTour();
-    if(S.phase==="over"){showReadyScreen();return}
-    if(S.phase!=="ready")return;
-    S.ready[p]=!S.ready[p];
-    const b=ui[p].readyBtn;b.classList.toggle("on",S.ready[p]);b.textContent=S.ready[p]?"等待對手…":"準備好了";
-    sfx.tick();
-    if(S.ready[0]&&S.ready[1])countdown();
-  }
-  function countdown(){
-    S.phase="countdown";syncOpts();closeMenu();wake();
-    ui.forEach((u,p)=>{u.ov.hidden=true;setMsg(p,"準備…")});
-    say("準備，開始囉");
-    let n=3;
-    const step=()=>{
-      if(S.phase!=="countdown")return;
-      if(n>0){showQ("",n,"");ansEls.forEach(e=>e.textContent="");sfx.tick();n--;timer=setTimeout(step,800)}
-      else{sfx.go();nextRound()}
-    };
-    timer=setTimeout(step,600);
-  }
-  function nextRound(){
-    clearTimeout(timer);
-    if(S.round>=S.total){finish();return}
-    S.round++;S.phase="play";S.locked=[false,false];newQuestion();
-    if(S.mode==="word")showWord();else showQ(S.q.a,S.q.b,"?",S.q.sym);
-    updateRound();
-    ui.forEach((u,p)=>{u.el.classList.remove("locked");setMsg(p,"快搶答！");u.keys.forEach(k=>k.classList.remove("wrong","right"))});
-    readQ();
-  }
-  function answer(p,v,keyEl){
-    if(S.phase!=="play"||S.locked[p])return;
-    if(v===S.q.sum){
-      S.phase="reveal";S.score[p]++;updateScore(p,true);sfx.good();keyEl.classList.add("right");reveal();
-      ui.forEach((u,i)=>setMsg(i,i===p?"答對了！+1 分":`${NAMES[p]} 搶先答對`,i===p?"good":""));
-      say(`${S.q.a} ${S.q.word} ${S.q.b} 等於 ${S.q.sum}`);
-      timer=setTimeout(nextRound,2800);
-    }else{
-      S.locked[p]=true;sfx.bad();keyEl.classList.add("wrong");ui[p].el.classList.add("locked");
-      setMsg(p,"答錯了，這題換對手","bad");
-      if(S.locked[0]&&S.locked[1]){
-        S.phase="reveal";reveal();
-        ui.forEach((u,i)=>setMsg(i,`都答錯了，答案是 ${S.q.sum}`,"bad"));
-        say(`都答錯了，${S.q.a} ${S.q.word} ${S.q.b} 等於 ${S.q.sum}`);
-        timer=setTimeout(nextRound,3000);
-      }
-    }
-  }
-  function finish(){
-    S.phase="over";sfx.win();updateRound();syncOpts();
-    const [a,b]=S.score;
-    ui.forEach((u,p)=>{
-      const me=S.score[p],op=S.score[1-p];
-      u.ov.hidden=false;
-      u.ovH.textContent=me>op?"你贏了！🏆":me<op?"再接再厲！":"平手！";
-      u.ovP.hidden=true;
-      const card=(who,k,n,win)=>`<div class="card k${k}${win?" win":""}"><span class="who">${who}</span><span class="pts">${n}<small>分</small></span></div>`;
-      u.final.innerHTML=card("你",p+1,me,me>op)+card("對手",2-p,op,op>me);
-      u.final.hidden=false;
-      u.readyBtn.classList.remove("on");u.readyBtn.textContent="再玩一次";
-    });
-    say(a===b?`平手！${a} 比 ${b}`:`${a>b?"藍色":"橘色"}這邊獲勝！${Math.max(a,b)} 比 ${Math.min(a,b)}`);
-  }
-
-  // ---- 左側選單 ----
-  const drawer=$("drawer"),scrim=$("scrim"),menuBtn=$("menuBtn");
-  function openMenu(){drawer.classList.add("open");drawer.setAttribute("aria-hidden","false");scrim.hidden=false;menuBtn.setAttribute("aria-expanded","true");$("closeMenu").focus()}
-  function closeMenu(){drawer.classList.remove("open");drawer.setAttribute("aria-hidden","true");scrim.hidden=true;menuBtn.setAttribute("aria-expanded","false")}
-  menuBtn.addEventListener("click",()=>{hideTour();drawer.classList.contains("open")?closeMenu():openMenu()});
-  // 新手導覽：每次開啟都提示選單位置，除非勾了「不要再顯示」
-  const tour=$("tour"),tourOff=$("tourOff"),tourShow=$("tourShow");
-  function hideTour(){
-    if(tour.hidden)return;
-    tour.hidden=true;menuBtn.classList.remove("pulse");
-    if(tourOff.checked){pref("duel-tour","off");tourShow.checked=false}
-  }
-  $("tourOk").addEventListener("click",hideTour);
-  tourShow.checked=pref("duel-tour")!=="off";
-  tourShow.addEventListener("change",()=>{pref("duel-tour",tourShow.checked?"on":"off");tourOff.checked=!tourShow.checked});
-  if(tourShow.checked){tour.hidden=false;menuBtn.classList.add("pulse")}
-  $("closeMenu").addEventListener("click",closeMenu);
-  scrim.addEventListener("click",closeMenu);
-  document.addEventListener("keydown",e=>{if(e.key==="Escape")closeMenu()});
-
-  $opts.querySelectorAll("button").forEach(btn=>btn.addEventListener("click",()=>{
-    if(S.phase!=="ready")return;
-    S.total=+btn.dataset.n;
-    $opts.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b===btn));
-    showReadyScreen();
+(()=>{
+  const toast=document.getElementById("toast");let t=null;
+  document.querySelectorAll(".spot.locked").forEach(b=>b.addEventListener("click",()=>{
+    toast.textContent=`${b.dataset.name}正在建造中，敬請期待！🚧`;toast.hidden=false;
+    clearTimeout(t);t=setTimeout(()=>toast.hidden=true,2200);
   }));
-  all("#modes button").forEach(btn=>btn.addEventListener("click",()=>{
-    if(S.phase!=="ready")return;
-    S.mode=btn.dataset.mode;
-    document.body.classList.toggle("word-mode",S.mode==="word");
-    all("#modes button").forEach(b=>b.setAttribute("aria-pressed",b===btn));
-    showReadyScreen();
-  }));
-  $("pics").addEventListener("click",e=>{
-    S.pics=!S.pics;band.classList.toggle("nopics",!S.pics);
-    e.currentTarget.setAttribute("aria-pressed",S.pics);
-    e.currentTarget.textContent=S.pics?"應用題圖案提示：開":"應用題圖案提示：關";
-  });
-  $("say").addEventListener("click",()=>{if(S.q&&S.phase!=="ready")readQ();else say("十以內的加減法搶答")});
-  // 背景音樂設定
-  const $music=$("music"),$musicVol=$("musicVol");
-  const syncMusicBtn=()=>{$music.setAttribute("aria-pressed",M.on);$music.textContent=M.on?"輕音樂：開":"輕音樂：關"};
-  syncMusicBtn();$musicVol.value=MVOL[M.vol]?M.vol:"m";M.vol=$musicVol.value;
-  $music.addEventListener("click",()=>{
-    M.on=!M.on;pref("duel-music",M.on?"on":"off");syncMusicBtn();
-    if(M.on)musicStart();else musicStop();
-  });
-  $musicVol.addEventListener("change",e=>{
-    M.vol=e.target.value;pref("duel-music-vol",M.vol);
-    try{if(M.gain&&M.timer)M.gain.gain.setTargetAtTime(MVOL[M.vol],ac.currentTime,.1)}catch(err){}
-  });
-  // 運算勾選：至少留一個
-  try{const o=JSON.parse(pref("duel-ops")||"null");if(o&&(o.add||o.sub))S.ops={add:!!o.add,sub:!!o.sub}}catch(e){}
-  $("opAdd").checked=S.ops.add;$("opSub").checked=S.ops.sub;
-  const opNote=$("opNote");
-  [["opAdd","add"],["opSub","sub"]].forEach(([id,key])=>$(id).addEventListener("change",e=>{
-    if(S.phase!=="ready"){e.target.checked=S.ops[key];return}
-    const next={...S.ops,[key]:e.target.checked};
-    if(!next.add&&!next.sub){e.target.checked=true;opNote.textContent="至少要勾選一種運算。";return}
-    S.ops=next;pref("duel-ops",JSON.stringify(S.ops));
-    opNote.textContent=S.ops.add&&S.ops.sub?"目前：加減混合出題。":S.ops.sub?"目前：只出減法。":"目前：只出加法。";
-    showReadyScreen();
-  }));
-  $("voice").addEventListener("click",e=>{
-    S.voice=!S.voice;e.currentTarget.setAttribute("aria-pressed",S.voice);
-    e.currentTarget.textContent=S.voice?"語音朗讀：開":"語音朗讀：關";
-    if(!S.voice){try{synth&&synth.cancel()}catch(err){}}
-  });
-  $("restart").addEventListener("click",()=>{showReadyScreen();closeMenu()});
-  $("voiceSel").addEventListener("change",e=>{
-    const k=e.target.value;pref("duel-voice",k);
-    pickVoice();say("三 加 四 等於 七");
-  });
-  $("rateSel").value=String(S.rate);
-  if(!$("rateSel").value)$("rateSel").value="0.9";
-  $("rateSel").addEventListener("change",e=>{S.rate=+e.target.value;pref("duel-rate",e.target.value);say("三 加 四 等於 七")});
-  $("tryVoice").addEventListener("click",()=>say("農場裡有三隻小雞和兩隻小鴨，總共有幾隻動物？"));
-  pickVoice();
-  if(!synth)$("voiceGroup").hidden=true;
-
-  showReadyScreen();
 })();
 </script>
-
 </body>
 </html>

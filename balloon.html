@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>射氣球</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
+<style>
+/* 單人小遊戲：上方題目列，下方天空裡飄著寫了數字的氣球，點對的氣球把它戳破 */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --ink:#1f2b33; --muted:#5d6b72; --good:#1f9d61; --bad:#d23c3c; --accent:#e0477b;
+  --num:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
+  --text:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{margin:0;height:100%}
+body{background:linear-gradient(#8fd3ff,#d9f1ff 70%,#c3eaa8 70%);color:var(--ink);font-family:var(--text);overflow:hidden;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  display:flex;flex-direction:column}
+[hidden]{display:none!important}
+.top{display:flex;align-items:center;gap:12px;
+  padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px))}
+.ibtn{width:48px;height:48px;border-radius:14px;border:0;background:rgba(255,255,255,.85);font-size:24px;cursor:pointer;
+  display:grid;place-items:center;text-decoration:none;color:inherit;box-shadow:0 3px 0 rgba(0,0,0,.1);flex:none}
+.ibtn:active{transform:translateY(2px)}
+.q{flex:1;text-align:center;font-family:var(--num);font-weight:800;font-size:clamp(34px,8vmin,80px);line-height:1;
+  color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.q .ans{display:inline-block;min-width:1.2em;color:var(--accent)}
+.score{font-family:var(--num);font-weight:800;font-size:clamp(18px,3.4vmin,30px);background:rgba(255,255,255,.85);
+  border-radius:999px;padding:4px 14px;white-space:nowrap;flex:none}
+.sky{position:relative;flex:1;min-height:0;overflow:hidden}
+/* 氣球 */
+.b{position:absolute;left:0;top:0;width:var(--w);height:calc(var(--w)*1.18);border:0;padding:0;background:none;cursor:pointer;
+  touch-action:manipulation;will-change:transform}
+.b .body{position:absolute;inset:0;border-radius:50% 50% 48% 48%/56% 56% 44% 44%;background:
+  radial-gradient(circle at 32% 28%,rgba(255,255,255,.7) 0 10%,transparent 26%),var(--c);
+  box-shadow:inset -8px -10px 0 rgba(0,0,0,.12);display:grid;place-items:center;
+  font-family:var(--num);font-weight:800;font-size:calc(var(--w)*.5);color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.2);line-height:1}
+.b .body::after{content:"";position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);
+  border:7px solid transparent;border-bottom:9px solid var(--c);border-top:0}
+.b::after{content:"";position:absolute;left:50%;top:100%;width:2px;height:calc(var(--w)*.7);background:rgba(31,43,51,.35);margin-top:8px}
+.b.wrong .body{animation:shake .4s;filter:saturate(.3) brightness(1.1)}
+.b.pop{pointer-events:none}
+.b.pop .body{animation:pop .3s forwards}
+.b.pop::after{opacity:0}
+@keyframes shake{25%{translate:-8px 0}75%{translate:8px 0}}
+@keyframes pop{60%{transform:scale(1.35);opacity:.8}100%{transform:scale(1.6);opacity:0}}
+.spark{position:absolute;width:10px;height:10px;border-radius:2px;pointer-events:none;animation:fly .7s ease-out forwards}
+@keyframes fly{to{transform:translate(var(--dx),var(--dy)) rotate(260deg);opacity:0}}
+.msg{position:absolute;left:50%;top:14%;transform:translateX(-50%);font-size:clamp(22px,5vmin,44px);font-weight:800;
+  color:var(--good);background:rgba(255,255,255,.9);border-radius:999px;padding:4px 22px;pointer-events:none;white-space:nowrap}
+/* 開始／結束畫面 */
+.panel{position:absolute;inset:0;display:grid;place-items:center;background:rgba(217,241,255,.75);padding:16px;z-index:5}
+.card{background:#fff;border-radius:24px;padding:clamp(18px,4vmin,34px);width:min(460px,100%);box-shadow:0 12px 40px rgba(0,0,0,.18);
+  display:flex;flex-direction:column;gap:16px;align-items:center;text-align:center}
+.card h2{margin:0;font-size:clamp(26px,5.5vmin,44px)}
+.card p{margin:0;color:var(--muted);font-size:clamp(15px,2.6vmin,20px);line-height:1.5}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.chk{display:flex;align-items:center;gap:8px;font-size:18px;font-weight:700;border:2px solid #cfd8dc;border-radius:14px;padding:10px 16px;cursor:pointer}
+.chk input{width:22px;height:22px;margin:0;accent-color:var(--ink)}
+.chk:has(input:checked){border-color:var(--ink);background:#eef3f1}
+.opt{font:inherit;font-size:18px;font-weight:700;border:2px solid #cfd8dc;background:#fff;border-radius:14px;padding:10px 18px;cursor:pointer;color:inherit}
+.opt[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:#fff}
+.lbl{font-size:14px;font-weight:700;color:var(--muted)}
+.big{font-family:var(--text);font-weight:800;font-size:clamp(20px,4vmin,30px);border:0;border-radius:999px;padding:.5em 1.6em;
+  background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 5px 0 #a8305a;text-decoration:none;display:inline-block}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 #a8305a}
+.big.alt{background:#fff;color:var(--ink);box-shadow:0 5px 0 #cfd8dc;border:2px solid #cfd8dc}
+.stars{font-size:clamp(40px,9vmin,72px);letter-spacing:.1em;line-height:1}
+.note{font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="ibtn" href="./" aria-label="回遊樂園地圖">🏠</a>
+  <div class="q" id="q" aria-live="polite"></div>
+  <span class="score" id="score">⭐ 0</span>
+  <button type="button" class="ibtn" id="again" aria-label="再念一次題目">🔊</button>
+</header>
+<main class="sky" id="sky">
+  <div class="msg" id="msg" hidden></div>
+
+  <section class="panel" id="start">
+    <div class="card">
+      <h2>🎈 射氣球</h2>
+      <p>聽題目，找到寫著正確答案的氣球，點它把它戳破！</p>
+      <span class="lbl">運算</span>
+      <div class="row">
+        <label class="chk"><input type="checkbox" id="opAdd" checked> 加法 ＋</label>
+        <label class="chk"><input type="checkbox" id="opSub"> 減法 −</label>
+      </div>
+      <span class="lbl">題數</span>
+      <div class="row" id="counts">
+        <button type="button" class="opt" data-n="5" aria-pressed="false">5 題</button>
+        <button type="button" class="opt" data-n="10" aria-pressed="true">10 題</button>
+        <button type="button" class="opt" data-n="15" aria-pressed="false">15 題</button>
+      </div>
+      <button type="button" class="big" id="go">開始！</button>
+      <span class="note" id="note"></span>
+    </div>
+  </section>
+
+  <section class="panel" id="end" hidden>
+    <div class="card">
+      <div class="stars" id="stars"></div>
+      <h2 id="endTitle"></h2>
+      <p id="endText"></p>
+      <div class="row">
+        <button type="button" class="big" id="replay">再玩一次</button>
+        <a class="big alt" href="./">回遊樂園</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
+  const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  const S={total:10,round:0,score:0,firstTry:0,missed:false,q:null,phase:"start",ops:{add:true,sub:false},last:""};
+  try{const o=JSON.parse(pref("duel-ops")||"null");if(o&&(o.add||o.sub))S.ops={add:!!o.add,sub:!!o.sub}}catch(e){}
+  $("opAdd").checked=S.ops.add;$("opSub").checked=S.ops.sub;
+  const n0=+pref("balloon-total");if([5,10,15].includes(n0))S.total=n0;
+  const counts=[...document.querySelectorAll("#counts button")];
+  const syncCounts=()=>counts.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===S.total));syncCounts();
+  counts.forEach(b=>b.addEventListener("click",()=>{S.total=+b.dataset.n;pref("balloon-total",S.total);syncCounts()}));
+  [["opAdd","add"],["opSub","sub"]].forEach(([id,k])=>$(id).addEventListener("change",e=>{
+    const next={...S.ops,[k]:e.target.checked};
+    if(!next.add&&!next.sub){e.target.checked=true;$("note").textContent="至少要勾選一種運算。";return}
+    $("note").textContent="";S.ops=next;pref("duel-ops",JSON.stringify(S.ops));
+  }));
+
+  // ---- 語音：沿用搶答對決選好的聲音與語速 ----
+  const synth=window.speechSynthesis;let voice=null;
+  const rate=+(pref("duel-rate")||.9)||.9;
+  const quality=v=>{const u=v.voiceURI||"";return /eloquence|speech\.synthesis\.voice/i.test(u)?0:/\.premium\./i.test(u)?3:/enhanced|-premium/i.test(u)?2:1};
+  function pickVoice(){
+    if(!synth)return;
+    const vs=synth.getVoices().filter(v=>/^(zh|cmn)/i.test(v.lang));
+    const want=pref("duel-voice");
+    const tw=vs.filter(v=>/TW|Hant/i.test(v.lang)&&quality(v)>0).sort((a,b)=>quality(b)-quality(a));
+    voice=(want&&vs.find(v=>(v.voiceURI||v.name)===want))||tw[0]||vs.find(v=>quality(v)>0)||vs[0]||null;
+  }
+  if(synth){pickVoice();try{synth.addEventListener("voiceschanged",pickVoice)}catch(e){}}
+  const voiceOn=pref("duel-say")!=="off";
+  function say(text){
+    if(!voiceOn||!synth)return;
+    try{
+      const u=new SpeechSynthesisUtterance(text);
+      u.lang=voice?voice.lang.replace("_","-"):"zh-TW";if(voice)u.voice=voice;u.rate=rate;u.pitch=1.1;
+      if(synth.speaking||synth.pending){synth.cancel();setTimeout(()=>{try{synth.speak(u)}catch(e){}},90)}else synth.speak(u);
+    }catch(e){}
+  }
+  // ---- 音效 ----
+  let ac=null;
+  function tone(fs,dur=.12,type="triangle",vol=.15){
+    try{
+      ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume();
+      fs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*dur;
+        o.type=type;o.frequency.value=f;g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);
+        o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)});
+    }catch(e){}
+  }
+  function popSound(){
+    try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+      const len=.12,buf=ac.createBuffer(1,ac.sampleRate*len,ac.sampleRate),d=buf.getChannelData(0);
+      for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,3);
+      const s=ac.createBufferSource(),g=ac.createGain();s.buffer=buf;g.gain.value=.5;s.connect(g).connect(ac.destination);s.start();
+    }catch(e){}
+  }
+  const sfx={good:()=>{popSound();tone([660,880,1100])},bad:()=>tone([220,180],.15,"square",.08),win:()=>tone([523,659,784,1047],.16)};
+  function unlock(){
+    try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
+    try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}
+  }
+
+  // ---- 題目 ----
+  function newQ(){
+    const ops=[S.ops.add&&"add",S.ops.sub&&"sub"].filter(Boolean);
+    let q,key,tries=0;
+    do{
+      const op=ops[rnd(0,ops.length-1)];
+      if(op==="add"){const a=rnd(1,9),b=rnd(1,10-a);q={a,b,ans:a+b,sym:"+",word:"加"}}
+      else{const a=rnd(2,10),b=rnd(1,a-1);q={a,b,ans:a-b,sym:"−",word:"減"}}
+      key=q.a+q.sym+q.b;
+    }while(key===S.last&&++tries<10);
+    S.last=key;return q;
+  }
+  const showQ=(ans="?")=>{$("q").innerHTML=`${S.q.a} ${S.q.sym} ${S.q.b} = <span class="ans">${ans}</span>`};
+  const readQ=()=>S.q&&say(`${S.q.a} ${S.q.word} ${S.q.b}，等於多少？`);
+
+  // ---- 氣球 ----
+  const sky=$("sky"),COLORS=["#e0477b","#f08a24","#f2c12e","#3fb56a","#2f8fdb","#8a5cd6","#e25555","#1fb5a8"];
+  let balloons=[],raf=0,lastT=0;
+  function size(){return Math.max(70,Math.min(130,Math.min(sky.clientWidth,sky.clientHeight)*.17))}
+  function makeBalloons(){
+    clearBalloons();
+    const nums=new Set([S.q.ans]);
+    while(nums.size<6)nums.add(rnd(0,10));
+    const list=[...nums].sort(()=>Math.random()-.5);
+    const W=sky.clientWidth,H=sky.clientHeight,w=size(),lanes=list.length,laneW=(W-w)/(lanes-1||1);
+    list.forEach((n,i)=>{
+      const el=document.createElement("button");el.type="button";el.className="b";
+      el.style.setProperty("--w",w+"px");el.style.setProperty("--c",COLORS[(i+rnd(0,7))%COLORS.length]);
+      el.innerHTML=`<span class="body">${n}</span>`;el.setAttribute("aria-label",`氣球 ${n}`);
+      const b={el,n,x:i*laneW,baseX:i*laneW,y:rnd(H*.3,H*1.15),v:H/rnd(9,13),ph:Math.random()*6.28,w,dead:false};
+      el.addEventListener("pointerdown",e=>{e.preventDefault();hit(b)});
+      el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" ")hit(b)});
+      sky.appendChild(el);balloons.push(b);
+    });
+    // 讓正確答案的氣球不要等太久才出現
+    const right=balloons.find(b=>b.n===S.q.ans);right.y=H*.75;
+    lastT=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(tick);
+  }
+  function clearBalloons(){balloons.forEach(b=>b.el.remove());balloons=[];sky.querySelectorAll(".spark").forEach(s=>s.remove())}
+  function tick(now){
+    const dt=Math.min(.05,(now-lastT)/1000);lastT=now;const H=sky.clientHeight,t=now/1000;
+    balloons.forEach(b=>{
+      if(b.dead)return;
+      b.y-=b.v*dt*(b.fast?3:1);
+      if(b.y<-b.w*2){ if(b.fast){b.dead=true;b.el.remove();return} b.y=H+rnd(10,H*.3); }
+      b.x=b.baseX+Math.sin(t*1.1+b.ph)*b.w*.18;
+      b.el.style.transform=`translate(${b.x}px,${b.y}px)`;
+    });
+    raf=requestAnimationFrame(tick);
+  }
+  function burst(b){
+    const cx=b.x+b.w/2,cy=b.y+b.w*.55;
+    for(let i=0;i<12;i++){
+      const s=document.createElement("span");s.className="spark";
+      const a=i/12*6.28;s.style.left=cx+"px";s.style.top=cy+"px";
+      s.style.background=COLORS[i%COLORS.length];s.style.setProperty("--dx",Math.cos(a)*b.w*.9+"px");s.style.setProperty("--dy",Math.sin(a)*b.w*.9+"px");
+      sky.appendChild(s);setTimeout(()=>s.remove(),750);
+    }
+  }
+  function hit(b){
+    if(S.phase!=="play"||b.dead||b.fast)return;
+    if(b.n===S.q.ans){
+      S.phase="reveal";S.score++;if(!S.missed)S.firstTry++;
+      b.el.classList.add("pop");b.dead=true;burst(b);sfx.good();showQ(S.q.ans);updateScore();
+      setTimeout(()=>b.el.remove(),320);
+      const m=$("msg");m.textContent=["答對了！","好棒！","太厲害了！","戳破了！"][rnd(0,3)];m.hidden=false;
+      balloons.forEach(o=>{if(!o.dead)o.fast=true});
+      say(`${S.q.a} ${S.q.word} ${S.q.b} 等於 ${S.q.ans}`);
+      setTimeout(()=>{m.hidden=true;next()},2600);
+    }else{
+      S.missed=true;sfx.bad();b.el.classList.remove("wrong");void b.el.offsetWidth;b.el.classList.add("wrong");
+      setTimeout(()=>{b.fast=true},380);
+    }
+  }
+  const updateScore=()=>{$("score").textContent=`⭐ ${S.score} / ${S.total}`};
+
+  // ---- 流程 ----
+  function start(){
+    unlock();
+    $("start").hidden=true;$("end").hidden=true;
+    S.round=0;S.score=0;S.firstTry=0;S.last="";updateScore();next();
+    try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}
+  }
+  function next(){
+    if(S.round>=S.total)return finish();
+    S.round++;S.missed=false;S.q=newQ();showQ();S.phase="play";makeBalloons();readQ();
+  }
+  function finish(){
+    S.phase="end";cancelAnimationFrame(raf);clearBalloons();sfx.win();
+    const r=S.firstTry/S.total,stars=r>=.9?3:r>=.6?2:1;
+    $("stars").textContent="⭐".repeat(stars)+"☆".repeat(3-stars);
+    $("endTitle").textContent=stars===3?"太厲害了！":stars===2?"做得很好！":"再練習一下！";
+    $("endText").textContent=`${S.total} 題裡面，有 ${S.firstTry} 題第一次就戳對。`;
+    $("end").hidden=false;
+    say(`${$("endTitle").textContent}${S.total} 題裡面，有 ${S.firstTry} 題第一次就戳對`);
+  }
+  $("go").addEventListener("click",start);
+  $("replay").addEventListener("click",start);
+  $("again").addEventListener("click",readQ);
+  S.q={a:"?",b:"?",sym:"+"};$("q").innerHTML=`🎈 射氣球`;updateScore();
+  addEventListener("resize",()=>{if(S.phase==="play"){const W=sky.clientWidth,n=balloons.length,w=size(),lw=(W-w)/(n-1||1);
+    balloons.forEach((b,i)=>{b.w=w;b.baseX=i*lw;b.el.style.setProperty("--w",w+"px")})}});
+})();
+</script>
+</body>
+</html>
