@@ -53,11 +53,28 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
 .ch:active{transform:translateY(3px)}
 .ch.wrong{background:var(--bad);color:#fff}
 .ch.right{background:var(--good);color:#fff}
+/* 橫放：題目在左、四個答案在右，排成一行，不會超出玩家區 */
+@media (orientation:landscape){
+  .play{flex-direction:row;justify-content:center;gap:clamp(12px,2.4vmin,28px)}
+  .play .choices{width:auto;flex:1;max-width:min(560px,55%)}
+  .die{width:clamp(48px,8.5vmin,84px);font-size:clamp(30px,5.6vmin,54px)}
+  .q{font-size:clamp(32px,6.5vmin,70px)}
+  .ch{font-size:clamp(26px,5vmin,50px)}
+  .spk{width:48px;height:48px;font-size:24px}
+}
 /* 準備卡片 */
 .overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(8px,1.6vmin,14px);
   background:color-mix(in srgb,#eef3f1 92%,transparent);padding:12px;text-align:center;z-index:3}
 .overlay h2{margin:0;font-size:clamp(24px,5vmin,48px);color:var(--c)}
 .overlay .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+/* 平板橫放時玩家區比較矮：標題一行，難度、念題目、準備好了排成同一行，不會蓋到中間 */
+@media (orientation:landscape){
+  .overlay{flex-direction:row;flex-wrap:wrap;align-content:center;column-gap:clamp(10px,2vmin,20px);row-gap:clamp(6px,1.2vmin,10px);overflow-y:auto}
+  .overlay h2{width:100%;font-size:clamp(22px,4vmin,38px)}
+  .overlay .ready{font-size:clamp(18px,3.2vmin,30px)}
+}
+@media (orientation:landscape) and (max-height:600px){.overlay .opt small{display:none}.overlay h2{font-size:20px}}
+
 .opt{font:inherit;font-size:clamp(15px,2.4vmin,19px);font-weight:700;border:2px solid #cfd8dc;background:#fff;border-radius:14px;padding:8px 14px;cursor:pointer;color:inherit}
 .opt small{display:block;font-size:.72em;font-weight:600;opacity:.75}
 .opt[aria-pressed="true"]{border-color:var(--c);background:var(--c);color:#fff}
