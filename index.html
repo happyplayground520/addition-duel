@@ -83,8 +83,17 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
 .wq{display:none;flex-direction:column;align-items:center;gap:clamp(4px,.9vmin,10px);text-align:center;max-width:min(100%,34em)}
 .band.word .wq{display:flex}
 .band.word .q{display:none}
-.sent{margin:0;font-weight:800;font-size:clamp(20px,3.8vmin,40px);line-height:1.3;text-wrap:balance}
-.pics{margin:0;font-size:clamp(20px,3.6vmin,38px);line-height:1.15;letter-spacing:.05em;word-break:break-all}
+.word-mode .board{grid-template-rows:minmax(0,1fr) minmax(0,1.7fr) minmax(0,1fr)}
+.sent{margin:0;font-weight:800;font-size:clamp(22px,4.2vmin,44px);line-height:1.5;text-wrap:balance}
+.wrow{display:flex;align-items:center;justify-content:center;gap:clamp(8px,2vmin,20px);flex-wrap:wrap}
+.pics{margin:0;font-size:clamp(18px,3.2vmin,34px);line-height:1.15;letter-spacing:.05em;word-break:break-all}
+/* 注音：每個字右邊一小排直式注音，聲調在右上（和聖誕單字遊戲同一種排法） */
+.zy{display:inline-flex;align-items:center;vertical-align:middle;line-height:1;margin-right:.08em}
+.zy .b{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;margin-left:.06em;
+  font-family:var(--text);font-weight:400;font-size:max(.38em,12px);line-height:1.02;letter-spacing:0;color:#cfe0e6}
+.zy .b>span{position:relative;display:block}
+.zy .t{position:absolute;left:92%;top:-.45em;font-size:1em}
+.zy .lt{line-height:.7}
 .band.nopics .pics{display:none}
 .wans{font-family:var(--num),var(--text);font-weight:800;font-size:clamp(18px,3.2vmin,32px);line-height:1.2;
   border-radius:999px;padding:.1em .8em;background:var(--band-soft);color:#ffd75e;font-variant-numeric:tabular-nums}
@@ -120,6 +129,9 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
 .drawer button.opt[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
 .drawer button.opt:disabled{opacity:.45;cursor:not-allowed}
 .drawer button.wide{width:100%;text-align:left}
+.lbl2{font-size:14px;font-weight:700;color:var(--ink);margin-top:4px}
+.sel{font:inherit;font-size:16px;width:100%;padding:10px 12px;border-radius:12px;border:1.5px solid #cfd8dc;background:#fff;color:var(--ink)}
+.sel:focus-visible{outline:3px solid var(--p1);outline-offset:2px}
 .drawer button:focus-visible{outline:3px solid var(--p1);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -129,12 +141,12 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
   <div class="band">
     <div class="qwrap flip" aria-hidden="true">
       <div class="q"><span class="qa">?</span><span class="op">+</span><span class="qb">?</span><span class="op">=</span><span class="ans">?</span></div>
-      <div class="wq"><p class="sent"></p><p class="pics"></p><span class="wans">答案：？</span></div>
+      <div class="wq"><p class="sent"></p><div class="wrow"><p class="pics"></p><span class="wans">答案：？</span></div></div>
     </div>
     <div class="mid"><span class="round" id="round">共 10 題</span></div>
     <div class="qwrap" aria-live="polite">
       <div class="q"><span class="qa">?</span><span class="op">+</span><span class="qb">?</span><span class="op">=</span><span class="ans">?</span></div>
-      <div class="wq"><p class="sent"></p><p class="pics"></p><span class="wans">答案：？</span></div>
+      <div class="wq"><p class="sent"></p><div class="wrow"><p class="pics"></p><span class="wans">答案：？</span></div></div>
     </div>
   </div>
   <section class="side p1" data-p="0" aria-label="玩家 1"></section>
@@ -165,6 +177,16 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     <span class="lbl">語音</span>
     <div class="seg"><button type="button" class="opt" id="voice" aria-pressed="true">語音朗讀：開</button></div>
     <button type="button" class="opt wide" id="say">🔊 再念一次題目</button>
+    <label class="lbl2" for="voiceSel">聲音</label>
+    <select id="voiceSel" class="sel"></select>
+    <label class="lbl2" for="rateSel">語速</label>
+    <select id="rateSel" class="sel">
+      <option value="0.7">慢</option>
+      <option value="0.9" selected>正常</option>
+      <option value="1.05">快</option>
+    </select>
+    <button type="button" class="opt wide" id="tryVoice">▶ 試聽</button>
+    <span class="note" id="voiceNote"></span>
   </div>
   <div class="group">
     <span class="lbl">遊戲</span>
@@ -196,6 +218,39 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     {t:(a,b)=>`桌上有${a}個紅氣球和${b}個藍氣球，總共有幾個氣球？`,ea:"🎈",eb:"🔵"}
   ];
   const cn=n=>n===2?"兩":CN[n];
+
+  // ---- 注音 ----
+  const ZHUYIN={
+    零:"ㄌㄧㄥˊ",一:"ㄧ",兩:"ㄌㄧㄤˇ",三:"ㄙㄢ",四:"ㄙˋ",五:"ㄨˇ",六:"ㄌㄧㄡˋ",七:"ㄑㄧ",八:"ㄅㄚ",九:"ㄐㄧㄡˇ",十:"ㄕˊ",
+    農:"ㄋㄨㄥˊ",場:"ㄔㄤˇ",裡:"ㄌㄧˇ",有:"ㄧㄡˇ",隻:"ㄓ",小:"ㄒㄧㄠˇ",雞:"ㄐㄧ",和:"ㄏㄜˊ",鴨:"ㄧㄚ",總:"ㄗㄨㄥˇ",
+    共:"ㄍㄨㄥˋ",幾:"ㄐㄧˇ",動:"ㄉㄨㄥˋ",物:"ㄨˋ",樹:"ㄕㄨˋ",上:"ㄕㄤˋ",鳥:"ㄋㄧㄠˇ",又:"ㄧㄡˋ",飛:"ㄈㄟ",來:"ㄌㄞˊ",
+    了:"˙ㄌㄜ",現:"ㄒㄧㄢˋ",在:"ㄗㄞˋ",籃:"ㄌㄢˊ",子:"˙ㄗ",顆:"ㄎㄜ",蘋:"ㄆㄧㄥˊ",果:"ㄍㄨㄛˇ",橘:"ㄐㄩˊ",水:"ㄕㄨㄟˇ",
+    花:"ㄏㄨㄚ",園:"ㄩㄢˊ",開:"ㄎㄞ",朵:"ㄉㄨㄛˇ",紅:"ㄏㄨㄥˊ",黃:"ㄏㄨㄤˊ",池:"ㄔˊ",塘:"ㄊㄤˊ",青:"ㄑㄧㄥ",蛙:"ㄨㄚ",
+    跳:"ㄊㄧㄠˋ",明:"ㄇㄧㄥˊ",枝:"ㄓ",鉛:"ㄑㄧㄢ",筆:"ㄅㄧˇ",媽:"ㄇㄚ",給:"ㄍㄟˇ",他:"ㄊㄚ",盤:"ㄆㄢˊ",塊:"ㄎㄨㄞˋ",
+    餅:"ㄅㄧㄥˇ",乾:"ㄍㄢ",蛋:"ㄉㄢˋ",糕:"ㄍㄠ",點:"ㄉㄧㄢˇ",心:"ㄒㄧㄣ",停:"ㄊㄧㄥˊ",車:"ㄔㄜ",輛:"ㄌㄧㄤˋ",汽:"ㄑㄧˋ",
+    公:"ㄍㄨㄥ",書:"ㄕㄨ",架:"ㄐㄧㄚˋ",本:"ㄅㄣˇ",故:"ㄍㄨˋ",事:"ㄕˋ",圖:"ㄊㄨˊ",畫:"ㄏㄨㄚˋ",天:"ㄊㄧㄢ",星:"ㄒㄧㄥ",
+    出:"ㄔㄨ",魚:"ㄩˊ",缸:"ㄍㄤ",條:"ㄊㄧㄠˊ",美:"ㄇㄟˇ",先:"ㄒㄧㄢ",吃:"ㄔ",草:"ㄘㄠˇ",莓:"ㄇㄟˊ",狗:"ㄍㄡˇ",
+    貓:"ㄇㄠ",桌:"ㄓㄨㄛ",個:"ㄍㄜˋ",氣:"ㄑㄧˋ",球:"ㄑㄧㄡˊ",藍:"ㄌㄢˊ"
+  };
+  const ZY_WORDS={"媽媽":["ㄇㄚ","˙ㄇㄚ"]};   // 詞語裡要念輕聲的字
+  const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  function zyChar(ch,z){
+    if(!z)return esc(ch);
+    const light=z[0]==="˙";
+    const syms=[...(light?z.slice(1):z)];
+    const tone=/[ˊˇˋ]/.test(syms[syms.length-1])?syms.pop():"";
+    const col=syms.map((s,k)=>`<span>${s}${k===syms.length-1&&tone?`<span class="t">${tone}</span>`:""}</span>`).join("");
+    return `<span class="zy"><span class="h">${ch}</span><span class="b" aria-hidden="true">${light?'<span class="lt">˙</span>':""}${col}</span></span>`;
+  }
+  function zy(text){
+    const chars=[...String(text)],out=[];
+    for(let i=0;i<chars.length;){
+      const w=Object.keys(ZY_WORDS).find(k=>chars.slice(i,i+[...k].length).join("")===k);
+      if(w){[...w].forEach((ch,j)=>out.push(zyChar(ch,ZY_WORDS[w][j])));i+=[...w].length;continue}
+      out.push(zyChar(chars[i],ZHUYIN[chars[i]]));i++;
+    }
+    return out.join("");
+  }
   const $=id=>document.getElementById(id);
   const all=sel=>[...document.querySelectorAll(sel)];
   const $round=$("round"),$opts=$("opts"),$optsNote=$("optsNote");
@@ -223,11 +278,43 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
 
   // ---- 語音 ----
   const synth=window.speechSynthesis;
-  let zhVoice=null;
+  let zhVoice=null,zhVoices=[];
+  const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
+  S.rate=+(pref("duel-rate")||.9)||.9;
+  const voiceKey=v=>v.voiceURI||v.name;
+  // iPad 會把同一個聲音依音質各列一次，也會列出趣味聲音：分辨出來
+  function voiceQuality(v){
+    const u=v.voiceURI||"";
+    if(/eloquence|speech\.synthesis\.voice/i.test(u))return 0;   // 趣味聲音
+    if(/\.premium\./i.test(u))return 3;                           // 進階版
+    if(/enhanced|-premium/i.test(u))return 2;                      // 增強版
+    return 1;                                                      // 標準版
+  }
+  const QUALITY_ZH=["趣味聲音","標準版","增強版","進階版"];
+  const accentOf=lang=>/TW|Hant/i.test(lang)?0:/HK|yue/i.test(lang)?1:2;
+  const ACCENT_ZH=["台灣","香港","大陸"];
   function pickVoice(){
     if(!synth)return;
-    const vs=synth.getVoices();
-    zhVoice=vs.find(v=>/zh[-_]TW/i.test(v.lang))||vs.find(v=>/zh[-_](HK|Hant)/i.test(v.lang))||vs.find(v=>/^zh/i.test(v.lang))||null;
+    const vs=synth.getVoices().filter(v=>/^(zh|cmn|yue)/i.test(v.lang));
+    zhVoices=vs.sort((a,b)=>accentOf(a.lang)-accentOf(b.lang)||voiceQuality(b)-voiceQuality(a)||a.name.localeCompare(b.name));
+    // 預設：台灣口音、音質最好、像老師的聲音優先（iPad 美佳、Windows Yating/Hanhan、Chrome Google）
+    const usual=v=>/Mei-?Jia|美佳|Yating|Hanhan|Google/i.test(v.name)?1:0;
+    const best=zhVoices.filter(v=>accentOf(v.lang)===0&&voiceQuality(v)>0).sort((a,b)=>voiceQuality(b)-voiceQuality(a)||usual(b)-usual(a))[0]
+      ||zhVoices.find(v=>voiceQuality(v)>0)||zhVoices[0]||null;
+    const want=pref("duel-voice");
+    zhVoice=(want&&zhVoices.find(v=>voiceKey(v)===want))||best;
+    fillVoiceSel(best,want);
+  }
+  function fillVoiceSel(best,want){
+    const sel=document.getElementById("voiceSel"),note=document.getElementById("voiceNote");
+    if(!sel)return;
+    const opts=[`<option value="">自動（${best?esc(best.name):"平板預設"}）</option>`]
+      .concat(zhVoices.map(v=>`<option value="${esc(voiceKey(v))}">${esc(v.name)}（${ACCENT_ZH[accentOf(v.lang)]}・${QUALITY_ZH[voiceQuality(v)]}）</option>`));
+    sel.innerHTML=opts.join("");
+    sel.value=(want&&zhVoices.some(v=>voiceKey(v)===want))?want:"";
+    note.textContent=zhVoices.length
+      ?"想要更自然的聲音：iPad 到「設定 → 輔助使用 → 朗讀內容 → 聲音 → 中文」下載「增強版」或「進階版」，再回來這裡選。"
+      :"這台平板目前沒有中文語音，請到平板的語音設定下載中文（台灣）語音。";
   }
   if(synth){pickVoice();try{synth.addEventListener("voiceschanged",pickVoice)}catch(e){}}
   function say(text){
@@ -235,7 +322,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     try{
       const u=new SpeechSynthesisUtterance(text);
       u.lang=zhVoice?zhVoice.lang.replace("_","-"):"zh-TW";if(zhVoice)u.voice=zhVoice;
-      u.rate=.9;u.pitch=1.1;u.volume=1;
+      u.rate=S.rate;u.pitch=1.1;u.volume=1;
       // iPad / Safari：cancel 之後立刻 speak 有時會被吞掉，所以稍等一下再念
       if(synth.speaking||synth.pending){synth.cancel();setTimeout(()=>{try{synth.speak(u)}catch(e){}},90)}
       else synth.speak(u);
@@ -281,7 +368,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
   }
   function showWord(){
     band.classList.add("word");
-    sentEls.forEach(e=>e.textContent=S.q.text);picEls.forEach(e=>e.textContent=S.q.pics);
+    sentEls.forEach(e=>{e.innerHTML=zy(S.q.text);e.setAttribute("aria-label",S.q.text)});picEls.forEach(e=>e.textContent=S.q.pics);
     wansEls.forEach(e=>{e.textContent="答案：？";e.classList.remove("ok")});
     pop();
   }
@@ -402,6 +489,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
   all("#modes button").forEach(btn=>btn.addEventListener("click",()=>{
     if(S.phase!=="ready")return;
     S.mode=btn.dataset.mode;
+    document.body.classList.toggle("word-mode",S.mode==="word");
     all("#modes button").forEach(b=>b.setAttribute("aria-pressed",b===btn));
     showReadyScreen();
   }));
@@ -417,6 +505,15 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     if(!S.voice){try{synth&&synth.cancel()}catch(err){}}
   });
   $("restart").addEventListener("click",()=>{showReadyScreen();closeMenu()});
+  $("voiceSel").addEventListener("change",e=>{
+    const k=e.target.value;pref("duel-voice",k);
+    pickVoice();say("三 加 四 等於 七");
+  });
+  $("rateSel").value=String(S.rate);
+  if(!$("rateSel").value)$("rateSel").value="0.9";
+  $("rateSel").addEventListener("change",e=>{S.rate=+e.target.value;pref("duel-rate",e.target.value);say("三 加 四 等於 七")});
+  $("tryVoice").addEventListener("click",()=>say("農場裡有三隻小雞和兩隻小鴨，總共有幾隻動物？"));
+  pickVoice();
   if(!synth)$("voiceGroup").hidden=true;
 
   showReadyScreen();
