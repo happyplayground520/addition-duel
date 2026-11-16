@@ -109,6 +109,7 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
     <div class="actions">
       <button type="button" class="big alt" id="clear">全部拿回</button>
       <button type="button" class="big" id="pay">付錢！</button>
+      <button type="button" class="big" id="nextBtn" hidden>下一題 ▶</button>
     </div>
   </div>
   <div class="wallet" id="wallet" aria-label="錢包"></div>
@@ -122,6 +123,11 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
         <button type="button" class="opt" data-lv="1">初級<small>20 元以內</small></button>
         <button type="button" class="opt" data-lv="2">進階<small>100 元以內</small></button>
         <button type="button" class="opt" data-lv="3">高級<small>1000 元以內</small></button>
+      </div>
+      <span class="lbl">答對後換下一題</span>
+      <div class="row" id="advance">
+        <button type="button" class="opt" data-adv="auto">自動<small>稱讚說完再換</small></button>
+        <button type="button" class="opt" data-adv="manual">手動<small>按「下一題」才換</small></button>
       </div>
       <button type="button" class="big" id="go">開始！</button>
       <span class="note">錢幣是依照新臺幣的顏色和大小畫的示意圖</span>
@@ -147,40 +153,73 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
   const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
   const LV={1:{min:3,max:20,money:[1,5,10]},2:{min:21,max:100,money:[1,5,10,50]},3:{min:101,max:1000,money:[1,5,10,50,100,500,1000]}};
   const RIDES=[["🎠","旋轉木馬"],["🎡","摩天輪"],["🎢","雲霄飛車"],["🎪","馬戲團表演"],["🎈","射氣球"],["🚂","小火車"],["🛶","碰碰船"],["🏰","鬼屋探險"]];
-  const S={lv:LV[+pref("park-level")]?+pref("park-level"):1,total:10,round:0,score:0,tries:0,phase:"start",price:0,paid:[],lastRide:-1};
+  const S={adv:pref("booth-advance")==="manual"?"manual":"auto",lv:LV[+pref("park-level")]?+pref("park-level"):1,total:10,round:0,score:0,tries:0,phase:"start",price:0,paid:[],lastRide:-1};
   const syncLv=()=>document.querySelectorAll("#levels button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
   document.querySelectorAll("#levels button").forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("park-level",S.lv);syncLv()}));
   syncLv();
+  const syncAdv=()=>document.querySelectorAll("#advance button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.adv===S.adv));
+  document.querySelectorAll("#advance button").forEach(b=>b.addEventListener("click",()=>{S.adv=b.dataset.adv;pref("booth-advance",S.adv);syncAdv()}));
+  syncAdv();
+  // 答對後：付錢、拿回按鈕換成「下一題」；自動模式等稱讚念完 1 秒再換
+  let advTimer=null;
+  function goNext(){if(S.phase!=="reveal")return;clearTimeout(advTimer);try{synth&&synth.cancel()}catch(e){}next()}
 
-  // ---- 新臺幣示意圖：硬幣依實物的顏色與大小比例，紙鈔依主色 ----
-  const COIN={1:{r:20,fill:"#c98b4a",edge:"#9c6430",ink:"#5a3412",word:"壹圓"},
-              5:{r:22,fill:"#d9dde0",edge:"#9aa3a8",ink:"#4a5257",word:"伍圓"},
-              10:{r:26,fill:"#e4e7ea",edge:"#a3abb0",ink:"#4a5257",word:"拾圓",ring:"#c9a24a"},
-              50:{r:28,fill:"#e9c45d",edge:"#b38d2b",ink:"#6b4f0f",word:"伍拾圓"}};
-  const BILL={100:{fill:"#e58b8b",dark:"#b8454a",word:"壹佰圓"},500:{fill:"#d6a06a",dark:"#9b5f26",word:"伍佰圓"},1000:{fill:"#8fb1e0",dark:"#3e6aa8",word:"壹仟圓"}};
+  // ---- 新臺幣示意圖：硬幣照實物的金屬顏色與大小比例（1、5、10、50 元 = 20、22、26、28 公釐），
+  //      有齒紋邊、凸起外圈、弧形「中華民國」字樣與浮雕數字；紙鈔照主色，加浮水印、防偽線與底紋。不畫人像與官方圖案 ----
+  const COIN={1:{mm:20,metal:"cu",ink:"#6b3a14",hi:"#f3c79a",word:"壹圓"},
+              5:{mm:22,metal:"ag",ink:"#4d565c",hi:"#ffffff",word:"伍圓"},
+              10:{mm:26,metal:"ag",ink:"#4d565c",hi:"#ffffff",word:"拾圓"},
+              50:{mm:28,metal:"au",ink:"#6e5208",hi:"#fff1b8",word:"伍拾圓"}};
+  const BILL={100:{fill:"#f2b6b0",mid:"#e07f78",dark:"#a8322f",word:"壹佰圓"},
+              500:{fill:"#e9c9a3",mid:"#c98d52",dark:"#7d4a1c",word:"伍佰圓"},
+              1000:{fill:"#bcd2ef",mid:"#7fa3d6",dark:"#2c5694",word:"壹仟圓"}};
+  // 金屬漸層：放一次在頁面上，所有硬幣共用
+  document.body.insertAdjacentHTML("afterbegin",`<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+    <radialGradient id="m-cu" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#f6c79a"/><stop offset=".45" stop-color="#cf8a52"/><stop offset="1" stop-color="#8e5228"/></radialGradient>
+    <radialGradient id="m-ag" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#d3d8dc"/><stop offset="1" stop-color="#8f979d"/></radialGradient>
+    <radialGradient id="m-au" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#fff0b0"/><stop offset=".45" stop-color="#e2bb4e"/><stop offset="1" stop-color="#9c7618"/></radialGradient>
+    <linearGradient id="m-edge" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#000" stop-opacity=".35"/></linearGradient>
+  </defs></svg>`);
+  let uid=0;
+  // 梅花（五瓣小花）裝飾
+  const plum=(x,y,r,color)=>Array.from({length:5},(_,k)=>{const a=k*72*Math.PI/180;
+    return `<circle cx="${(x+Math.sin(a)*r*.55).toFixed(2)}" cy="${(y-Math.cos(a)*r*.55).toFixed(2)}" r="${(r*.45).toFixed(2)}" fill="${color}" opacity=".55"/>`}).join("")+`<circle cx="${x}" cy="${y}" r="${(r*.25).toFixed(2)}" fill="${color}" opacity=".8"/>`;
   function moneySVG(v,scale=1){
+    const F="Baloo 2,Arial Rounded MT Bold,sans-serif",T="PingFang TC,Microsoft JhengHei,Noto Sans TC,sans-serif";
     if(COIN[v]){
-      const c=COIN[v],r=c.r*scale*2.1,s=r*2+4,m=s/2;
+      const c=COIN[v],r=c.mm*scale*1.9,s=Math.ceil(r*2+6),m=s/2,id="arc"+(++uid);
+      const ar=r*.7;   // 弧形字的半徑
       return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" aria-hidden="true">
-        <circle cx="${m}" cy="${m}" r="${r}" fill="${c.edge}"/>
-        <circle cx="${m}" cy="${m}" r="${r*.9}" fill="${c.fill}"/>
-        ${c.ring?`<circle cx="${m}" cy="${m}" r="${r*.78}" fill="none" stroke="${c.ring}" stroke-width="${r*.08}"/>`:""}
-        <circle cx="${m}" cy="${m}" r="${r*.84}" fill="none" stroke="${c.edge}" stroke-width="1" stroke-dasharray="1.5 3"/>
-        <text x="${m}" y="${m-r*.42}" text-anchor="middle" font-size="${r*.24}" font-weight="700" fill="${c.ink}" font-family="PingFang TC,Microsoft JhengHei,sans-serif">中華民國</text>
-        <text x="${m}" y="${m+r*.08}" text-anchor="middle" dominant-baseline="central" font-size="${r*(v>=10?.62:.8)}" font-weight="800" fill="${c.ink}" font-family="Baloo 2,Arial Rounded MT Bold,sans-serif">${v}</text>
-        <text x="${m}" y="${m+r*.6}" text-anchor="middle" font-size="${r*.24}" font-weight="700" fill="${c.ink}" font-family="PingFang TC,Microsoft JhengHei,sans-serif">${c.word}</text>
+        <defs><path id="${id}" d="M ${m-ar} ${m} A ${ar} ${ar} 0 0 1 ${m+ar} ${m}"/></defs>
+        <circle cx="${m}" cy="${m}" r="${r}" fill="url(#m-${c.metal})"/>
+        <circle cx="${m}" cy="${m}" r="${r-1}" fill="none" stroke="${c.ink}" stroke-opacity=".45" stroke-width="${Math.max(1.5,r*.06)}" stroke-dasharray="1.2 2.2"/>
+        <circle cx="${m}" cy="${m}" r="${r*.88}" fill="none" stroke="url(#m-edge)" stroke-width="${r*.07}"/>
+        <circle cx="${m}" cy="${m}" r="${r*.84}" fill="url(#m-${c.metal})"/>
+        <text font-family="${T}" font-weight="700" font-size="${(r*.17).toFixed(1)}" fill="${c.ink}" letter-spacing="${(r*.05).toFixed(1)}"><textPath href="#${id}" startOffset="50%" text-anchor="middle">中華民國</textPath></text>
+        ${plum(m-r*.63,m+r*.1,r*.1,c.ink)}${plum(m+r*.63,m+r*.1,r*.1,c.ink)}
+        <text x="${m+1}" y="${m+r*.1+1}" text-anchor="middle" dominant-baseline="central" font-size="${(r*(v>=10?.62:.78)).toFixed(1)}" font-weight="800" fill="${c.hi}" opacity=".8" font-family="${F}">${v}</text>
+        <text x="${m}" y="${m+r*.1}" text-anchor="middle" dominant-baseline="central" font-size="${(r*(v>=10?.62:.78)).toFixed(1)}" font-weight="800" fill="${c.ink}" font-family="${F}">${v}</text>
+        <text x="${m}" y="${m+r*.62}" text-anchor="middle" font-size="${(r*.2).toFixed(1)}" font-weight="700" fill="${c.ink}" font-family="${T}">${c.word}</text>
       </svg>`;
     }
-    const b=BILL[v],w=170*scale,h=82*scale;
-    return `<svg width="${w}" height="${h}" viewBox="0 0 150 72" aria-hidden="true">
-      <rect x="1" y="1" width="148" height="70" rx="6" fill="${b.fill}" stroke="${b.dark}" stroke-width="2"/>
-      <rect x="7" y="7" width="136" height="58" rx="4" fill="none" stroke="${b.dark}" stroke-width="1" stroke-dasharray="2 2"/>
-      <circle cx="112" cy="36" r="20" fill="rgba(255,255,255,.35)" stroke="${b.dark}" stroke-width="1"/>
-      <text x="12" y="22" font-size="13" font-weight="800" fill="${b.dark}" font-family="Baloo 2,Arial Rounded MT Bold,sans-serif">${v}</text>
-      <text x="138" y="62" text-anchor="end" font-size="11" font-weight="800" fill="${b.dark}" font-family="Baloo 2,Arial Rounded MT Bold,sans-serif">${v}</text>
-      <text x="56" y="30" text-anchor="middle" font-size="11" font-weight="700" fill="${b.dark}" font-family="PingFang TC,Microsoft JhengHei,sans-serif">中華民國</text>
-      <text x="56" y="48" text-anchor="middle" font-size="15" font-weight="800" fill="${b.dark}" font-family="PingFang TC,Microsoft JhengHei,sans-serif">${b.word}</text>
-      <text x="112" y="37" text-anchor="middle" dominant-baseline="central" font-size="18" font-weight="800" fill="${b.dark}" font-family="Baloo 2,Arial Rounded MT Bold,sans-serif">${v}</text>
+    // 紙鈔：寬高比約 2.1:1
+    const b=BILL[v],w=180*scale,h=86*scale,pid="g"+(++uid);
+    return `<svg width="${w}" height="${h}" viewBox="0 0 180 86" aria-hidden="true">
+      <defs><pattern id="${pid}" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 4 Q2 0 4 4 T8 4" fill="none" stroke="${b.mid}" stroke-width=".6" opacity=".7"/></pattern></defs>
+      <rect x="1" y="1" width="178" height="84" rx="5" fill="${b.fill}" stroke="${b.dark}" stroke-width="1.5"/>
+      <rect x="1" y="1" width="178" height="84" rx="5" fill="url(#${pid})"/>
+      <rect x="6" y="6" width="168" height="74" rx="3" fill="none" stroke="${b.dark}" stroke-width="1.2"/>
+      <rect x="9" y="9" width="162" height="68" rx="2" fill="none" stroke="${b.mid}" stroke-width=".6" stroke-dasharray="3 2"/>
+      <ellipse cx="140" cy="43" rx="22" ry="26" fill="#fff" opacity=".55"/>
+      <ellipse cx="140" cy="43" rx="22" ry="26" fill="none" stroke="${b.mid}" stroke-width="1"/>
+      ${plum(140,43,14,b.dark)}
+      <rect x="110" y="6" width="3" height="74" fill="${b.dark}" opacity=".45"/>
+      <text x="68" y="31" text-anchor="middle" font-size="9" font-weight="700" fill="${b.dark}" font-family="${T}" letter-spacing="2">中華民國</text>
+      <text x="66" y="50" text-anchor="middle" font-size="18" font-weight="800" fill="${b.dark}" font-family="${T}">${b.word}</text>
+      <text x="66" y="66" text-anchor="middle" font-size="8" font-weight="700" fill="${b.dark}" font-family="${T}" letter-spacing="1">中央銀行</text>
+      <text x="12" y="19" font-size="11" font-weight="800" fill="${b.dark}" font-family="${F}">${v}</text>
+      <text x="104" y="77" text-anchor="end" font-size="14" font-weight="800" fill="${b.dark}" font-family="${F}">${v}</text>
+      <text x="167" y="21" text-anchor="end" font-size="11" font-weight="800" fill="${b.dark}" font-family="${F}">${v}</text>
     </svg>`;
   }
   const label=v=>`${v} 元${COIN[v]?"硬幣":"紙鈔"}`;
@@ -192,8 +231,13 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
     const tw=vs.filter(v=>/TW|Hant/i.test(v.lang)&&quality(v)>0).sort((a,b)=>quality(b)-quality(a));
     voice=(want&&vs.find(v=>(v.voiceURI||v.name)===want))||tw[0]||vs.find(v=>quality(v)>0)||vs[0]||null}
   if(synth){pickVoice();try{synth.addEventListener("voiceschanged",pickVoice)}catch(e){}}
-  function say(t){if(!synth)return;try{const u=new SpeechSynthesisUtterance(t);u.lang=voice?voice.lang.replace("_","-"):"zh-TW";if(voice)u.voice=voice;u.rate=rate;u.pitch=1.1;
-    if(synth.speaking||synth.pending){synth.cancel();setTimeout(()=>{try{synth.speak(u)}catch(e){}},90)}else synth.speak(u)}catch(e){}}
+  function say(t,done){
+    let called=false;const fin=()=>{if(!called){called=true;done&&done()}};
+    if(!synth){fin();return}
+    try{const u=new SpeechSynthesisUtterance(t);u.lang=voice?voice.lang.replace("_","-"):"zh-TW";if(voice)u.voice=voice;u.rate=rate;u.pitch=1.1;
+      u.onend=fin;u.onerror=fin;
+      if(synth.speaking||synth.pending){synth.cancel();setTimeout(()=>{try{synth.speak(u)}catch(e){fin()}},90)}else synth.speak(u)}catch(e){fin()}
+  }
   let ac=null;
   function tone(fs,dur=.12,type="triangle",vol=.15){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume();
     fs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*dur;o.type=type;o.frequency.value=f;
@@ -230,7 +274,8 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
   const upd=()=>{$("score").textContent=`⭐ ${S.score} / ${S.total}`};
   function next(){
     if(S.round>=S.total)return finish();
-    S.round++;S.tries=0;S.phase="play";S.paid=[];
+    S.round++;S.tries=0;S.phase="play";S.paid=[];clearTimeout(advTimer);
+    $("pay").hidden=false;$("clear").hidden=false;$("nextBtn").hidden=true;
     const L=LV[S.lv];S.price=rnd(L.min,L.max);
     let ri;do{ri=rnd(0,RIDES.length-1)}while(ri===S.lastRide);S.lastRide=ri;
     const[ico,name]=RIDES[ri];S.ride=name;
@@ -247,14 +292,18 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
       const best=fewest(S.price),used=S.paid.length;
       $("msg").textContent=used===best?`付剛好！而且用最少的 ${used} 個，好聰明！🎟️`:`付剛好！門票給你 🎟️（最少只要 ${best} 個喔）`;
       $("msg").className="msg good";
-      say(used===best?"付剛好，而且用了最少的錢幣，好聰明！":`付剛好，門票給你。其實最少只要${best}個喔`);
-      setTimeout(next,2800);
+      $("pay").hidden=true;$("clear").hidden=true;$("nextBtn").hidden=false;
+      const after=()=>{if(S.adv==="auto"&&S.phase==="reveal"){clearTimeout(advTimer);advTimer=setTimeout(goNext,1000)}};
+      say(used===best?"付剛好，而且用了最少的錢幣，好聰明！":`付剛好，門票給你。其實最少只要${best}個喔`,after);
+      // 萬一平板沒有觸發「念完」，最多等 12 秒
+      if(S.adv==="auto")advTimer=setTimeout(goNext,12000);
     }else{
       S.tries++;sfx.bad();
       const tip=t===0?"還沒有放錢喔":t<S.price?`還差 ${S.price-t} 元`:`多了 ${t-S.price} 元，要付剛好喔`;
       $("msg").textContent=tip;$("msg").className="msg bad";say(tip);
     }
   });
+  $("nextBtn").addEventListener("click",goNext);
   $("clear").addEventListener("click",()=>{if(S.phase==="play"){S.paid=[];sfx.paper();renderPaid()}});
   function finish(){
     S.phase="end";sfx.win();
