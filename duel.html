@@ -21,7 +21,8 @@
   --p2:#e0772b; --p2-soft:#fbe6d6;
   --good:#1f9d61; --bad:#d23c3c;
   --key:#ffffff;
-  --band:#1f2b33; --band-ink:#f2f5f4; --band-line:#4b5a63; --band-soft:#34444e;
+  --band:#2a1430; --band-ink:#fff6e6; --band-line:#6b4377; --band-soft:#46244f;
+  --curtain:#c8253b; --curtain-dark:#8a1022; --gold:#f5c542;
   --num:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
   --text:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
   color-scheme:light;
@@ -115,6 +116,46 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
 .wans{font-family:var(--num),var(--text);font-weight:800;font-size:clamp(18px,3.2vmin,32px);line-height:1.2;
   border-radius:999px;padding:.1em .8em;background:var(--band-soft);color:#ffd75e;font-variant-numeric:tabular-nums}
 .wans.ok{background:var(--good);color:#fff}
+/* ---- 馬戲團舞台：兩側紅布幕、上下垂邊、跑馬燈泡、搖擺的聚光燈 ---- */
+.band{position:relative;overflow:hidden;
+  background:radial-gradient(ellipse 45% 70% at 50% 50%,rgba(255,214,120,.16),transparent 70%),var(--band)}
+.band>.qwrap,.band>.mid{position:relative;z-index:2}
+.stage{position:absolute;inset:0;pointer-events:none;z-index:1}
+/* 左右布幕：一條條皺褶，中間用金色繩子綁起來 */
+.curtain{position:absolute;top:0;bottom:0;width:clamp(44px,7vmin,64px);
+  background:repeating-linear-gradient(90deg,var(--curtain-dark) 0 3px,var(--curtain) 3px 11px,#e04358 11px 14px,var(--curtain) 14px 18px);
+  box-shadow:0 0 18px rgba(0,0,0,.45)}
+.curtain.l{left:0;clip-path:polygon(0 0,100% 0,62% 50%,100% 100%,0 100%)}
+.curtain.r{right:0;clip-path:polygon(0 0,100% 0,100% 100%,0 100%,38% 50%)}
+.curtain::after{content:"";position:absolute;top:calc(50% - 5px);height:10px;width:70%;border-radius:5px;
+  background:linear-gradient(var(--gold),#c9961c)}
+.curtain.l::after{left:0} .curtain.r::after{right:0}
+/* 上下垂邊（扇形布邊） */
+.valance{position:absolute;left:0;right:0;height:16px;background-size:32px 16px;background-repeat:repeat-x}
+.valance.top{top:0;background-image:radial-gradient(circle at 50% 0,var(--curtain) 15px,var(--gold) 15.5px 16.5px,transparent 17px)}
+.valance.bot{bottom:0;background-image:radial-gradient(circle at 50% 100%,var(--curtain) 15px,var(--gold) 15.5px 16.5px,transparent 17px)}
+/* 跑馬燈泡：兩排錯開，輪流亮 */
+.bulbs{position:absolute;left:clamp(44px,7vmin,64px);right:clamp(44px,7vmin,64px);height:10px;
+  background-image:radial-gradient(circle,#fff3b0 0 3px,rgba(255,220,90,.55) 3.5px,transparent 6px);background-size:28px 10px;background-repeat:repeat-x}
+.bulbs.top{top:20px} .bulbs.bot{bottom:20px}
+.bulbs.b{background-position:14px 0;animation:twinkle 1.2s steps(1) infinite}
+.bulbs.a{animation:twinkle 1.2s steps(1) infinite reverse}
+@keyframes twinkle{50%{opacity:.25}}
+/* 聚光燈：從兩邊斜照進舞台，慢慢擺動 */
+.beam{position:absolute;top:-30%;width:28%;height:160%;mix-blend-mode:screen;filter:blur(6px);opacity:.55;
+  background:linear-gradient(rgba(255,240,190,.55),rgba(255,240,190,0) 85%);clip-path:polygon(45% 0,55% 0,100% 100%,0 100%)}
+.beam.l{left:10%;transform-origin:50% 0;animation:sway 7s ease-in-out infinite}
+.beam.r{right:10%;transform-origin:50% 0;animation:sway 7s ease-in-out infinite reverse}
+@keyframes sway{0%,100%{transform:rotate(-24deg)}50%{transform:rotate(18deg)}}
+/* 答對時舞台閃一下 */
+.band.flash .beam{opacity:.95;transition:opacity .15s}
+.band.flash .bulbs{animation-duration:.25s}
+/* 兩邊玩家區：淡淡的馬戲團帳篷條紋 */
+.side::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(90deg,rgba(200,37,59,.07) 0 44px,transparent 44px 88px)}
+.side>*{position:relative}
+.side>.overlay{position:absolute}
+@media (prefers-reduced-motion:reduce){.beam,.bulbs{animation:none!important}}
 @keyframes pop{from{transform:scale(.8);opacity:.3}}
 @keyframes popflip{from{transform:rotate(180deg) scale(.8);opacity:.3}}
 .mid{display:flex;align-items:center;gap:12px;width:100%;color:#9fb0b8}
@@ -179,6 +220,12 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
 <div class="board">
   <section class="side p2" data-p="1" aria-label="玩家 2"></section>
   <div class="band">
+    <div class="stage" aria-hidden="true">
+      <div class="beam l"></div><div class="beam r"></div>
+      <div class="valance top"></div><div class="valance bot"></div>
+      <div class="bulbs top a"></div><div class="bulbs top b"></div><div class="bulbs bot a"></div><div class="bulbs bot b"></div>
+      <div class="curtain l"></div><div class="curtain r"></div>
+    </div>
     <div class="qwrap flip" aria-hidden="true">
       <div class="q"><span class="qa">?</span><span class="op qop">+</span><span class="qb">?</span><span class="op">=</span><span class="ans">?</span></div>
       <div class="wq"><p class="sent"></p><div class="wrow"><p class="pics"></p><span class="wans">答案：？</span></div></div>
@@ -650,6 +697,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     if(S.phase!=="play"||S.locked[p])return;
     if(v===S.q.sum){
       S.phase="reveal";S.score[p]++;updateScore(p,true);sfx.good();keyEl.classList.add("right");reveal();
+      band.classList.add("flash");setTimeout(()=>band.classList.remove("flash"),900);
       ui.forEach((u,i)=>setMsg(i,i===p?"答對了！+1 分":`${NAMES[p]} 搶先答對`,i===p?"good":""));
       say(`${S.q.a} ${S.q.word} ${S.q.b} 等於 ${S.q.sum}`);
       timer=setTimeout(nextRound,2800);
