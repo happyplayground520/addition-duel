@@ -18,7 +18,7 @@
   color-scheme:light;
 }
 html,body{margin:0;height:100%}
-body{background:linear-gradient(#2a3a6b,#46578f 55%,#6b4a2f 55%);color:var(--ink);font-family:var(--text);overflow:hidden;
+body{background:linear-gradient(#ffe3ef,#fff3f8 58%,#ffd9a8 58%);color:var(--ink);font-family:var(--text);overflow:hidden;
   -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;display:flex;flex-direction:column}
 [hidden]{display:none!important}
 .top{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;
@@ -30,40 +30,61 @@ body{background:linear-gradient(#2a3a6b,#46578f 55%,#6b4a2f 55%);color:var(--ink
 .q .ans{color:var(--accent)}
 .q.bump{animation:bump .35s}
 @keyframes bump{40%{transform:scale(1.15)}}
-.stats{display:flex;flex-direction:column;align-items:flex-end;gap:2px;font-family:var(--num);font-weight:800;color:#fff}
+.stats{display:flex;flex-direction:column;align-items:flex-end;gap:2px;font-family:var(--num);font-weight:800;color:var(--ink)}
 .stats .sc{font-size:clamp(20px,3.6vmin,32px)}
 .stats .best{font-family:var(--text);font-size:13px;opacity:.85}
-.timebar{height:14px;margin:0 max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px));background:rgba(255,255,255,.3);border-radius:999px;overflow:hidden;position:relative}
+.timebar{height:14px;margin:0 max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px));background:#fff;border-radius:999px;overflow:hidden;position:relative}
 .timebar i{position:absolute;inset:0;transform-origin:left;background:linear-gradient(90deg,#1fb5a8,#f2c12e);border-radius:999px}
 .timebar.low i{background:var(--bad)}
-.timeTxt{text-align:center;font-family:var(--num);font-weight:800;font-size:clamp(16px,2.6vmin,22px);color:#fff;margin-top:2px}
+.timeTxt{text-align:center;font-family:var(--num);font-weight:800;font-size:clamp(16px,2.6vmin,22px);color:var(--muted);margin-top:2px}
+/* 三角彩旗 */
+.bunting{position:absolute;left:0;right:0;top:0;height:26px;pointer-events:none;
+  background:conic-gradient(from 150deg at 50% 0,#ff8fb8 0 60deg,transparent 0) 0 0/40px 26px repeat-x,
+             conic-gradient(from 150deg at 50% 0,#8fd3ff 0 60deg,transparent 0) 20px 0/40px 26px repeat-x;opacity:.9}
 /* 攤位：燈泡招牌＋三層木架上的瓶子 */
 .booth{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
   padding:8px max(16px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 .shelves{display:grid;grid-template-rows:repeat(2,auto);gap:clamp(10px,2.4vmin,24px);width:min(900px,100%)}
-.shelf{display:flex;justify-content:space-around;align-items:flex-end;padding:0 10px;border-bottom:14px solid var(--wood);
-  border-radius:0 0 6px 6px;box-shadow:0 6px 0 var(--wood-dark)}
+.shelf{display:flex;justify-content:space-around;align-items:flex-end;padding:0 10px;border-bottom:14px solid #f7b7cf;
+  border-radius:0 0 10px 10px;box-shadow:0 6px 0 #e58fb0}
 .bottle{position:relative;border:0;background:none;padding:0;cursor:pointer;touch-action:manipulation;width:clamp(70px,13vmin,130px);
   display:flex;flex-direction:column;align-items:center}
-.bottle .neck{width:28%;height:clamp(18px,4vmin,36px);background:var(--c);border-radius:6px 6px 0 0;opacity:.9}
-.bottle .body{width:100%;aspect-ratio:1/1.05;background:var(--c);border-radius:28% 28% 14% 14%;display:grid;place-items:center;
-  box-shadow:inset -8px -8px 0 rgba(0,0,0,.15),inset 8px 6px 0 rgba(255,255,255,.25)}
-.bottle .label{background:#fff;border-radius:12px;padding:0 .2em;min-width:72%;font-family:var(--num);font-weight:800;
-  font-size:clamp(26px,5.6vmin,54px);line-height:1.15;color:var(--ink)}
+.bottle .neck{position:relative;width:34%;height:clamp(16px,3.6vmin,32px);background:var(--c);border-radius:10px 10px 4px 4px;
+  box-shadow:inset 0 -4px 0 rgba(0,0,0,.08)}
+.bottle .neck::before{content:"";position:absolute;left:-12%;right:-12%;top:-7px;height:10px;border-radius:6px;background:#fff;box-shadow:0 2px 0 rgba(0,0,0,.08)}
+.bottle .body{position:relative;width:100%;aspect-ratio:1/1.1;background:var(--c);border-radius:46% 46% 40% 40%/42% 42% 50% 50%;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:10%;
+  box-shadow:inset -8px -10px 0 rgba(0,0,0,.08),inset 8px 8px 0 rgba(255,255,255,.45)}
+.bottle .face{position:absolute;top:16%;left:0;right:0;height:26%}
+.bottle .face i{position:absolute;top:0;width:9%;aspect-ratio:1/1.25;border-radius:50%;background:#3a2e39}
+.bottle .face i:nth-child(1){left:28%} .bottle .face i:nth-child(2){right:28%}
+.bottle .face b{position:absolute;top:34%;width:13%;aspect-ratio:1.6/1;border-radius:50%;background:#ff8fab;opacity:.75}
+.bottle .face b:nth-child(3){left:14%} .bottle .face b:nth-child(4){right:14%}
+.bottle .face u{position:absolute;left:50%;top:30%;width:14%;aspect-ratio:2/1;transform:translateX(-50%);
+  border:3px solid #3a2e39;border-top:0;border-radius:0 0 999px 999px;text-decoration:none}
+.bottle .label{background:#fff;border-radius:999px;padding:0 .3em;min-width:62%;font-family:var(--num);font-weight:800;
+  font-size:clamp(24px,5vmin,50px);line-height:1.15;color:var(--ink);box-shadow:0 2px 0 rgba(0,0,0,.08)}
+.bottle.hit .body{animation:hop .45s}
+@keyframes hop{40%{transform:translateY(-14px) scale(1.05)}}
+.bottle.wrong .face u{border-radius:999px 999px 0 0;border-top:3px solid #3a2e39;border-bottom:0;top:42%}
 .bottle:active .body{transform:translateY(2px)}
 .bottle.wrong .body{animation:shake .35s}
 .bottle.hit .label{background:var(--good);color:#fff}
 @keyframes shake{25%{translate:-6px 0}75%{translate:6px 0}}
 /* 飛出去的圈圈 */
-.ring{position:fixed;width:clamp(60px,11vmin,110px);aspect-ratio:2.2/1;border:clamp(7px,1.3vmin,12px) solid #ff5ea0;border-radius:50%;
-  pointer-events:none;z-index:10;box-shadow:0 3px 0 rgba(0,0,0,.25)}
+.ring{position:fixed;width:clamp(60px,11vmin,110px);aspect-ratio:2.2/1;border-radius:50%;pointer-events:none;z-index:10;
+  --t:clamp(8px,1.5vmin,14px);
+  background:conic-gradient(#ff7aa8,#ffb86b,#ffe66b,#7ee08a,#6bc7ff,#b48cff,#ff7aa8);
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - var(--t)),#000 calc(100% - var(--t) + 1px));
+  mask:radial-gradient(farthest-side,transparent calc(100% - var(--t)),#000 calc(100% - var(--t) + 1px));
+  filter:drop-shadow(0 3px 0 rgba(0,0,0,.18))}
 .float{position:fixed;font-family:var(--num);font-weight:800;font-size:28px;pointer-events:none;animation:up .8s forwards;z-index:11}
-.float.plus{color:#7dffb0} .float.minus{color:#ff8a8a}
+.float.plus{color:var(--good)} .float.minus{color:var(--bad)}
 @keyframes up{to{transform:translateY(-50px);opacity:0}}
 .count{position:fixed;inset:0;display:grid;place-items:center;font-family:var(--num);font-weight:800;font-size:clamp(90px,24vmin,200px);
-  color:#fff;pointer-events:none;z-index:15;text-shadow:0 6px 0 rgba(0,0,0,.25)}
+  color:var(--accent);pointer-events:none;z-index:15;text-shadow:0 6px 0 rgba(0,0,0,.25)}
 /* 開始／結束畫面 */
-.cover{position:fixed;inset:0;z-index:20;display:grid;place-items:start center;overflow-y:auto;background:rgba(42,58,107,.85);
+.cover{position:fixed;inset:0;z-index:20;display:grid;place-items:start center;overflow-y:auto;background:rgba(255,227,239,.88);
   padding:max(12px,env(safe-area-inset-top,0px)) 16px max(12px,env(safe-area-inset-bottom,0px))}
 .box{margin:auto 0;background:#fff;border-radius:24px;padding:clamp(18px,4vmin,32px);width:min(520px,100%);box-shadow:0 12px 40px rgba(0,0,0,.3);
   display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center}
@@ -95,6 +116,7 @@ body{background:linear-gradient(#2a3a6b,#46578f 55%,#6b4a2f 55%);color:var(--ink
 <div class="timebar" id="timebar"><i id="timefill"></i></div>
 <div class="timeTxt" id="timeTxt"></div>
 <main class="booth">
+  <div class="bunting" aria-hidden="true"></div>
   <div class="shelves" id="shelves"></div>
 </main>
 <div class="count" id="count" hidden></div>
@@ -172,7 +194,7 @@ body{background:linear-gradient(#2a3a6b,#46578f 55%,#6b4a2f 55%);color:var(--ink
     try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}}
 
   // ---- 出題與瓶子 ----
-  const COLORS=["#e0477b","#f08a24","#3fb56a","#2f8fdb","#8a5cd6","#1fb5a8","#e25555","#d1a21f"];
+  const COLORS=["#ffb3c8","#ffd59e","#b8ecc4","#a9dcff","#d6c2ff","#9fe6df","#ffe59a","#ffc4e6"];
   function newQ(){
     const ks=LV[S.lv].ks;let k,n,key,t=0;
     do{k=ks[rnd(0,ks.length-1)];n=rnd(1,9);key=k+"x"+n}while(key===S.last&&++t<10);
@@ -191,7 +213,7 @@ body{background:linear-gradient(#2a3a6b,#46578f 55%,#6b4a2f 55%);color:var(--ink
     const q=$("q");q.innerHTML=`${S.k} × ${S.n} = <span class="ans">?</span>`;q.classList.remove("bump");void q.offsetWidth;q.classList.add("bump");
     const v=values();
     $("shelves").innerHTML=[v.slice(0,3),v.slice(3)].map(row=>`<div class="shelf">${row.map(x=>
-      `<button type="button" class="bottle" data-v="${x}" style="--c:${COLORS[rnd(0,COLORS.length-1)]}" aria-label="${x}"><span class="neck"></span><span class="body"><span class="label">${x}</span></span></button>`).join("")}</div>`).join("");
+      `<button type="button" class="bottle" data-v="${x}" style="--c:${COLORS[rnd(0,COLORS.length-1)]}" aria-label="${x}"><span class="neck"></span><span class="body"><span class="face" aria-hidden="true"><i></i><i></i><b></b><b></b><u></u></span><span class="label">${x}</span></span></button>`).join("")}</div>`).join("");
     $("shelves").querySelectorAll(".bottle").forEach(b=>b.addEventListener("pointerdown",e=>{e.preventDefault();toss(b)}));
     say(`${S.k}乘以${S.n}`);
   }
