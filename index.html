@@ -204,6 +204,16 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     <span class="note" id="voiceNote"></span>
   </div>
   <div class="group">
+    <span class="lbl">背景音樂</span>
+    <div class="seg"><button type="button" class="opt" id="music" aria-pressed="true">輕音樂：開</button></div>
+    <label class="lbl2" for="musicVol">音樂音量</label>
+    <select id="musicVol" class="sel">
+      <option value="s">小</option>
+      <option value="m" selected>中</option>
+      <option value="l">大</option>
+    </select>
+  </div>
+  <div class="group">
     <span class="lbl">遊戲</span>
     <button type="button" class="opt wide" id="restart">↺ 重新開始</button>
   </div>
@@ -355,6 +365,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
       const u=new SpeechSynthesisUtterance(text);
       u.lang=zhVoice?zhVoice.lang.replace("_","-"):"zh-TW";if(zhVoice)u.voice=zhVoice;
       u.rate=S.rate;u.pitch=1.1;u.volume=1;
+      u.onstart=()=>duck(true);u.onend=u.onerror=()=>duck(false);
       // iPad / Safari：cancel 之後立刻 speak 有時會被吞掉，所以稍等一下再念
       if(synth.speaking||synth.pending){synth.cancel();setTimeout(()=>{try{synth.speak(u)}catch(e){}},90)}
       else synth.speak(u);
@@ -371,6 +382,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
       src.buffer=buf;src.connect(ac.destination);src.start(0);
     }catch(e){}
     try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}
+    if(M.on)musicStart();
   }
   ["touchend","pointerup","click","keydown"].forEach(ev=>document.addEventListener(ev,unlockAudio,{capture:true,passive:true}));
   const readQ=()=>{if(S.q)say(S.q.text||`${S.q.a} ${S.q.word} ${S.q.b}，等於多少？`)};
@@ -390,6 +402,54 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
   }
   const sfx={good:()=>tone([660,880,1100]),bad:()=>tone([220,180],.15,"square"),tick:()=>tone([520],.1),go:()=>tone([880],.25),win:()=>tone([523,659,784,1047],.16)};
   async function wake(){try{await navigator.wakeLock?.request("screen")}catch(e){}}
+
+  // ---- 背景輕音樂：WebAudio 即時產生（C–Am–F–G 和弦 + 五聲音階隨機旋律），不需要音樂檔 ----
+  const M={on:pref("duel-music")!=="off",vol:pref("duel-music-vol")||"m",gain:null,timer:null,next:0,step:0,mel:2};
+  const MVOL={s:.03,m:.055,l:.09};
+  const CHORDS=[[60,64,67],[57,60,64],[53,57,60],[55,59,62]];   // C、Am、F、G
+  const PENTA=[72,74,76,79,81,84,86];                            // C D E G A C D
+  const STEP=60/76/2;                                            // 每分鐘 76 拍的八分音符
+  const hz=m=>440*Math.pow(2,(m-69)/12);
+  function mNote(m,t,dur,type,vol,att=.02){
+    const o=ac.createOscillator(),g=ac.createGain();
+    o.type=type;o.frequency.value=hz(m);
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+att);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(g).connect(M.gain);o.start(t);o.stop(t+dur+.05);
+  }
+  function mSchedule(){
+    if(!ac||ac.state!=="running")return;
+    if(M.next<ac.currentTime)M.next=ac.currentTime+.05;
+    while(M.next<ac.currentTime+.3){
+      const t=M.next,s=M.step%8,ch=CHORDS[Math.floor(M.step/8)%4];
+      if(s===0){ch.forEach(n=>mNote(n,t,STEP*8.5,"triangle",.16,.5));mNote(ch[0]-12,t,STEP*3,"sine",.5,.03)}
+      if(s===4)mNote(ch[0]-5,t,STEP*3,"sine",.35,.03);
+      if(Math.random()<(s%2?.35:.7)){
+        if(s===0){const tones=PENTA.map((p,i)=>[p,i]).filter(([p])=>ch.some(c=>(p-c)%12===0));
+          M.mel=tones.reduce((b,x)=>Math.abs(x[1]-M.mel)<Math.abs(b[1]-M.mel)?x:b,tones[0]||[0,M.mel])[1]}
+        else M.mel=Math.max(0,Math.min(PENTA.length-1,M.mel+[-2,-1,-1,1,1,2][Math.floor(Math.random()*6)]));
+        mNote(PENTA[M.mel],t,STEP*(s===0?3:1.8),"sine",.42,.015);
+      }
+      M.next+=STEP;M.step++;
+    }
+  }
+  function musicStart(){
+    if(!M.on||M.timer)return;
+    try{
+      ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+      if(ac.state!=="running")ac.resume();
+      if(!M.gain){M.gain=ac.createGain();M.gain.connect(ac.destination)}
+      M.gain.gain.cancelScheduledValues(ac.currentTime);
+      M.gain.gain.setValueAtTime(0,ac.currentTime);M.gain.gain.linearRampToValueAtTime(MVOL[M.vol],ac.currentTime+1.5);
+      M.next=ac.currentTime+.1;M.timer=setInterval(mSchedule,100);
+    }catch(e){}
+  }
+  function musicStop(){
+    clearInterval(M.timer);M.timer=null;
+    try{if(M.gain){M.gain.gain.cancelScheduledValues(ac.currentTime);M.gain.gain.setTargetAtTime(0,ac.currentTime,.2)}}catch(e){}
+  }
+  // 念題目時音樂轉小聲
+  function duck(on){try{if(M.gain&&M.timer)M.gain.gain.setTargetAtTime(MVOL[M.vol]*(on?.3:1),ac.currentTime,.15)}catch(e){}}
+  document.addEventListener("visibilitychange",()=>{if(document.hidden)musicStop();else if(M.on&&ac)musicStart()});
 
   // ---- 題目顯示（正反兩行同步） ----
   const pop=()=>wrapEls.forEach(e=>{e.classList.remove("pop");void e.offsetWidth;e.classList.add("pop")});
@@ -544,6 +604,18 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     e.currentTarget.textContent=S.pics?"應用題圖案提示：開":"應用題圖案提示：關";
   });
   $("say").addEventListener("click",()=>{if(S.q&&S.phase!=="ready")readQ();else say("十以內的加減法搶答")});
+  // 背景音樂設定
+  const $music=$("music"),$musicVol=$("musicVol");
+  const syncMusicBtn=()=>{$music.setAttribute("aria-pressed",M.on);$music.textContent=M.on?"輕音樂：開":"輕音樂：關"};
+  syncMusicBtn();$musicVol.value=MVOL[M.vol]?M.vol:"m";M.vol=$musicVol.value;
+  $music.addEventListener("click",()=>{
+    M.on=!M.on;pref("duel-music",M.on?"on":"off");syncMusicBtn();
+    if(M.on)musicStart();else musicStop();
+  });
+  $musicVol.addEventListener("change",e=>{
+    M.vol=e.target.value;pref("duel-music-vol",M.vol);
+    try{if(M.gain&&M.timer)M.gain.gain.setTargetAtTime(MVOL[M.vol],ac.currentTime,.1)}catch(err){}
+  });
   // 運算勾選：至少留一個
   try{const o=JSON.parse(pref("duel-ops")||"null");if(o&&(o.add||o.sub))S.ops={add:!!o.add,sub:!!o.sub}}catch(e){}
   $("opAdd").checked=S.ops.add;$("opSub").checked=S.ops.sub;
