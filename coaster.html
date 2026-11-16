@@ -86,6 +86,17 @@ body{background:linear-gradient(#ffd9a8,#ffeedd 55%,#fff6ec);color:var(--ink);fo
 .note{font-size:13px;color:var(--muted)}
 .count{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--num);font-weight:800;font-size:clamp(90px,24vmin,200px);
   color:var(--accent);pointer-events:none;z-index:4}
+/* 開始／結束畫面：蓋住整個螢幕；螢幕太矮（手機橫放）時可以上下捲動，「開始」按鈕固定在下面看得到 */
+.panel{position:fixed;inset:0;z-index:20;display:grid;place-items:start center;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:max(12px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.panel>.box{margin:auto 0}
+#start .box>.big{position:sticky;bottom:0;z-index:1}
+@media (max-height:560px){
+  .panel>.box{gap:8px;padding:14px 18px}
+  .panel>.box h2{font-size:24px}
+  #start .box>p{display:none}
+  .panel .stars{font-size:36px}
+}
 </style>
 </head>
 <body>
