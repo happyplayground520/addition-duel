@@ -121,6 +121,22 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
   width:44px;height:44px;border-radius:12px;border:1px solid var(--band-line);background:var(--band-soft);color:var(--band-ink);
   font-size:22px;line-height:1;cursor:pointer;display:grid;place-items:center}
 .menu-btn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+/* 新手導覽：指向左側選單按鈕的提示卡 */
+.menu-btn.pulse{animation:pulse 1.4s ease-out infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,200,60,.85)}100%{box-shadow:0 0 0 16px rgba(255,200,60,0)}}
+.tour{position:fixed;z-index:25;left:calc(env(safe-area-inset-left,0px) + 70px);top:50%;transform:translateY(-50%);
+  width:min(320px,calc(100vw - 96px));background:#fff;color:var(--ink);border-radius:16px;padding:16px 18px;
+  box-shadow:0 10px 30px rgba(0,0,0,.25);display:flex;flex-direction:column;gap:10px}
+.tour[hidden]{display:none}
+.tour::before{content:"";position:absolute;left:-10px;top:50%;transform:translateY(-50%);
+  border:10px solid transparent;border-left:0;border-right-color:#fff}
+.tour h3{margin:0;font-size:18px}
+.tour p{margin:0;font-size:15px;line-height:1.5;color:var(--muted)}
+.tour .row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.tour label{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);cursor:pointer}
+.tour input{width:20px;height:20px;margin:0;accent-color:var(--ink)}
+.tour .ok{font-family:var(--text);font-weight:800;font-size:16px;border:0;border-radius:999px;padding:.45em 1.2em;
+  background:var(--ink);color:#fff;cursor:pointer}
 .scrim{position:fixed;inset:0;z-index:29;background:rgba(15,22,27,.35)}
 .drawer{position:fixed;z-index:30;top:0;bottom:0;left:0;width:min(300px,82vw);background:#fff;color:var(--ink);
   box-shadow:4px 0 24px rgba(0,0,0,.18);transform:translateX(-105%);transition:transform .22s ease;
@@ -171,6 +187,14 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
 </div>
 
 <button type="button" class="menu-btn" id="menuBtn" aria-label="開啟設定選單" aria-controls="drawer" aria-expanded="false">☰</button>
+<div class="tour" id="tour" role="dialog" aria-labelledby="tourTitle" hidden>
+  <h3 id="tourTitle">👈 設定在這裡</h3>
+  <p>點左邊的 ☰ 可以選擇加法／減法、數字題或應用題、題數、語音和背景音樂。</p>
+  <div class="row">
+    <label><input type="checkbox" id="tourOff"> 不要再顯示</label>
+    <button type="button" class="ok" id="tourOk">知道了</button>
+  </div>
+</div>
 <div class="scrim" id="scrim" hidden></div>
 <aside class="drawer" id="drawer" aria-label="設定" aria-hidden="true">
   <header><h2>設定</h2><button type="button" class="x" id="closeMenu" aria-label="關閉選單">×</button></header>
@@ -227,6 +251,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
   <div class="group">
     <span class="lbl">遊戲</span>
     <button type="button" class="opt wide" id="restart">↺ 重新開始</button>
+    <label class="chk"><input type="checkbox" id="tourShow" checked> 開啟時顯示新手導覽</label>
   </div>
 </aside>
 
@@ -549,6 +574,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     showQ("?","?","?");updateRound();syncOpts();
   }
   function toggleReady(p){
+    hideTour();
     if(S.phase==="over"){showReadyScreen();return}
     if(S.phase!=="ready")return;
     S.ready[p]=!S.ready[p];
@@ -615,7 +641,18 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
   const drawer=$("drawer"),scrim=$("scrim"),menuBtn=$("menuBtn");
   function openMenu(){drawer.classList.add("open");drawer.setAttribute("aria-hidden","false");scrim.hidden=false;menuBtn.setAttribute("aria-expanded","true");$("closeMenu").focus()}
   function closeMenu(){drawer.classList.remove("open");drawer.setAttribute("aria-hidden","true");scrim.hidden=true;menuBtn.setAttribute("aria-expanded","false")}
-  menuBtn.addEventListener("click",()=>drawer.classList.contains("open")?closeMenu():openMenu());
+  menuBtn.addEventListener("click",()=>{hideTour();drawer.classList.contains("open")?closeMenu():openMenu()});
+  // 新手導覽：每次開啟都提示選單位置，除非勾了「不要再顯示」
+  const tour=$("tour"),tourOff=$("tourOff"),tourShow=$("tourShow");
+  function hideTour(){
+    if(tour.hidden)return;
+    tour.hidden=true;menuBtn.classList.remove("pulse");
+    if(tourOff.checked){pref("duel-tour","off");tourShow.checked=false}
+  }
+  $("tourOk").addEventListener("click",hideTour);
+  tourShow.checked=pref("duel-tour")!=="off";
+  tourShow.addEventListener("change",()=>{pref("duel-tour",tourShow.checked?"on":"off");tourOff.checked=!tourShow.checked});
+  if(tourShow.checked){tour.hidden=false;menuBtn.classList.add("pulse")}
   $("closeMenu").addEventListener("click",closeMenu);
   scrim.addEventListener("click",closeMenu);
   document.addEventListener("keydown",e=>{if(e.key==="Escape")closeMenu()});
