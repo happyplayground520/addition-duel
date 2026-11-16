@@ -191,18 +191,25 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:mi
     tray.className="tray";tray.style.gridTemplateColumns=`repeat(${S.k},var(--cell))`;fit(S.n,S.k);
     tray.innerHTML=Array.from({length:S.n*S.k},(_,i)=>`<span class="cell" data-r="${Math.floor(i/S.k)}">🍩</span>`).join("");
   }
-  // 排排看：空盤子，點一格就把左上角到那一格排滿
+  // 排排看：空盤子，點一格放一個甜甜圈，再點一次拿走
   const maxCols=()=>Math.max(...LV[S.lv]),maxRows=()=>S.lv===1?5:9;
   function drawBuild(){
     const R=maxRows(),C=maxCols();
     tray.className="tray build";tray.style.gridTemplateColumns=`repeat(${C},var(--cell))`;fit(R,C);
-    tray.innerHTML=Array.from({length:R*C},(_,i)=>`<button type="button" class="cell" data-r="${Math.floor(i/C)}" data-c="${i%C}" aria-label="排到第 ${Math.floor(i/C)+1} 排第 ${i%C+1} 個"></button>`).join("");
-    tray.querySelectorAll(".cell").forEach(c=>c.addEventListener("click",()=>{if(S.phase!=="play")return;S.br=+c.dataset.r+1;S.bc=+c.dataset.c+1;sfx.tap();paint()}));
-    S.br=0;S.bc=0;paint();
+    tray.innerHTML=Array.from({length:R*C},(_,i)=>`<button type="button" class="cell" data-r="${Math.floor(i/C)}" data-c="${i%C}" aria-label="第 ${Math.floor(i/C)+1} 排第 ${i%C+1} 格"></button>`).join("");
+    tray.querySelectorAll(".cell").forEach(c=>c.addEventListener("click",()=>{if(S.phase!=="play")return;
+      const k=c.dataset.r+","+c.dataset.c;S.on.has(k)?S.on.delete(k):S.on.add(k);sfx.tap();paint()}));
+    S.on=new Set();paint();
+  }
+  // 每一排放了幾個（只算有放的排）
+  function rowCounts(){
+    const m=new Map();S.on.forEach(k=>{const r=+k.split(",")[0];m.set(r,(m.get(r)||0)+1)});
+    return[...m.entries()].sort((a,b)=>a[0]-b[0]);
   }
   function paint(){
-    tray.querySelectorAll(".cell").forEach(c=>{const on=+c.dataset.r<S.br&&+c.dataset.c<S.bc;c.classList.toggle("on",on);c.textContent=on?"🍩":""});
-    $("now").textContent=S.br?`現在：${S.br} 排，每排 ${S.bc} 個`:"點盤子排甜甜圈";
+    tray.querySelectorAll(".cell").forEach(c=>{const on=S.on.has(c.dataset.r+","+c.dataset.c);c.classList.toggle("on",on);c.textContent=on?"🍩":""});
+    const rows=rowCounts();
+    $("now").textContent=S.on.size?`現在：${rows.length} 排，一共 ${S.on.size} 個`:"點一格放一個甜甜圈";
   }
   addEventListener("resize",()=>{if(S.phase==="start"||S.phase==="end")return;S.kind==="build"?(fit(maxRows(),maxCols())):fit(S.n,S.k)});
 
@@ -250,11 +257,11 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:mi
     if(S.kind==="read"){const a=$("eq").querySelector(".ans");a.textContent=ans;a.classList.add("ok")}
     else $("eq").innerHTML=`${S.k} × ${S.n} = <span class="ans ok">${ans}</span>`;
     $("msg").textContent=["答對了！","排得好棒！","好好吃的樣子！"][rnd(0,2)];$("msg").className="msg good";
-    const rows=S.kind==="read"?S.n:S.br;
-    for(let r=0;r<rows;r++)setTimeout(()=>{
-      tray.querySelectorAll(`.cell[data-r="${r}"]`).forEach(c=>{if(c.textContent){c.classList.remove("lit");void c.offsetWidth;c.classList.add("lit")}});
-      seq.push(S.k*(r+1));$("skip").textContent=seq.join("、");sfx.pip(r);
-    },400*r);
+    const list=S.kind==="read"?Array.from({length:S.n},(_,i)=>i):rowCounts().map(e=>e[0]),rows=list.length,per=S.kind==="read"?S.k:S.on.size/rows;
+    list.forEach((row,r)=>setTimeout(()=>{
+      tray.querySelectorAll(`.cell[data-r="${row}"]`).forEach(c=>{if(c.textContent){c.classList.remove("lit");void c.offsetWidth;c.classList.add("lit")}});
+      seq.push(per*(r+1));$("skip").textContent=seq.join("、");sfx.pip(r);
+    },400*r));
     say(`${S.k}乘以${S.n}等於${ans}`);
     setTimeout(next,Math.max(3000,400*rows+2000));
   }
@@ -266,9 +273,10 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:mi
   }
   $("check").addEventListener("click",()=>{
     if(S.phase!=="play"||S.kind!=="build")return;
-    if(S.br===S.n&&S.bc===S.k)return celebrate();
+    const rc=rowCounts(),nr=rc.length,even=nr>0&&rc.every(e=>e[1]===rc[0][1]),per=even?rc[0][1]:0;
+    if(even&&nr===S.n&&per===S.k)return celebrate();
     // 排成 k 排、每排 n 個：總數一樣，也算對，順便說明交換律
-    if(S.br===S.k&&S.bc===S.n&&S.k!==S.n){
+    if(even&&nr===S.k&&per===S.n&&S.k!==S.n){
       $("msg").textContent=`也對！${S.k} 排 ${S.n} 個和 ${S.n} 排 ${S.k} 個一樣多`;S.tries=0;
       const ans=S.k*S.n;S.phase="reveal";S.score++;upd();sfx.good();
       $("eq").innerHTML=`${S.k} × ${S.n} = <span class="ans ok">${ans}</span>`;$("msg").className="msg good";
@@ -276,10 +284,11 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:mi
       setTimeout(next,4200);return;
     }
     S.tries++;sfx.bad();
-    const tip=!S.br?"還沒有排甜甜圈喔":S.bc!==S.k?`每排要 ${S.k} 個，現在是 ${S.bc} 個`:`要排 ${S.n} 排，現在是 ${S.br} 排`;
+    const bad=rc.find(e=>e[1]!==S.k);
+    const tip=!nr?"還沒有排甜甜圈喔":bad?`每排要 ${S.k} 個，第 ${bad[0]+1} 排現在是 ${bad[1]} 個`:`要排 ${S.n} 排，現在是 ${nr} 排`;
     $("msg").textContent=tip;$("msg").className="msg bad";say(tip);
   });
-  $("reset").addEventListener("click",()=>{if(S.phase==="play"&&S.kind==="build"){S.br=0;S.bc=0;paint()}});
+  $("reset").addEventListener("click",()=>{if(S.phase==="play"&&S.kind==="build"){S.on=new Set();paint()}});
   function finish(){
     S.phase="end";sfx.win();
     const r=S.score/S.total,st=r>=.9?3:r>=.6?2:1;
