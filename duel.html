@@ -65,7 +65,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
 .key.right{background:var(--good);color:#fff}
 @keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 .side.locked .pad{opacity:.4;pointer-events:none}
-.overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+.overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(6px,1.4vmin,12px);overflow-y:auto;
   background:color-mix(in srgb,var(--bg) 90%,transparent);text-align:center;padding:16px}
 .overlay h2{margin:0;font-size:clamp(26px,6vmin,56px);color:var(--c);text-wrap:balance}
 .overlay p{margin:0;font-size:clamp(15px,2.6vmin,22px);color:var(--muted)}
@@ -84,6 +84,28 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
   padding:.5em 1.4em;background:var(--c);color:#fff;cursor:pointer;box-shadow:0 5px 0 color-mix(in srgb,var(--c) 60%,#000)}
 .ready:active{transform:translateY(3px);box-shadow:0 2px 0 color-mix(in srgb,var(--c) 60%,#000)}
 .ready.on{background:var(--good);box-shadow:0 5px 0 color-mix(in srgb,var(--good) 60%,#000)}
+/* 準備卡片：各自選難度、語音 */
+.overlay .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.overlay .row[hidden],.overlay p[hidden]{display:none}
+.overlay h2{font-size:clamp(24px,4.6vmin,46px)}
+.overlay p{font-size:clamp(14px,2.2vmin,19px)}
+@media (max-height:820px){.overlay .opt small{display:inline;margin-left:4px}}
+/* 橫放時玩家區比較矮：難度、語音、準備好了排成一行 */
+@media (orientation:landscape){
+  .overlay{flex-direction:row;flex-wrap:wrap;align-content:center;column-gap:clamp(10px,2vmin,20px)}
+  .overlay h2,.overlay p{width:100%}
+  .overlay p{order:9}
+  .overlay h2{font-size:clamp(22px,4vmin,40px)}
+}
+.overlay .opt{font:inherit;font-size:clamp(15px,2.4vmin,19px);font-weight:700;border:2px solid #cfd8dc;background:#fff;border-radius:14px;
+  padding:8px 14px;cursor:pointer;color:var(--ink)}
+.overlay .opt small{display:block;font-size:.72em;font-weight:600;opacity:.75}
+.overlay .opt[aria-pressed="true"]{border-color:var(--c);background:var(--c);color:#fff}
+.lvtag{font-size:clamp(13px,2.2vmin,19px);font-weight:700;color:#fff;background:var(--c);border-radius:999px;padding:1px 10px;white-space:nowrap}
+.spk{width:clamp(44px,6.5vmin,56px);height:clamp(44px,6.5vmin,56px);border-radius:14px;border:2px solid var(--c);background:#fff;
+  font-size:clamp(22px,3.4vmin,28px);cursor:pointer;flex:none;display:grid;place-items:center;padding:0}
+.spk.off{opacity:.45}
+.head .left{display:flex;align-items:center;gap:10px;min-width:0}
 
 /* ---- 中間題目區 ---- */
 .band{background:var(--band);color:var(--band-ink);display:flex;flex-direction:column;justify-content:space-between;align-items:center;
@@ -248,7 +270,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
 <button type="button" class="menu-btn" id="menuBtn" aria-label="開啟設定選單" aria-controls="drawer" aria-expanded="false">☰</button>
 <div class="tour" id="tour" role="dialog" aria-labelledby="tourTitle" hidden>
   <h3 id="tourTitle">👈 設定在這裡</h3>
-  <p>點左邊的 ☰ 可以選擇加法／減法、數字題或應用題、題數、語音和背景音樂。下面的 🏠 可以回遊樂園。</p>
+  <p>兩邊可以各自選難度。點左邊的 ☰ 可以選擇加法／減法、數字題或應用題、題數、語音和背景音樂。下面的 🏠 可以回遊樂園。</p>
   <div class="row">
     <label><input type="checkbox" id="tourOff"> 不要再顯示</label>
     <button type="button" class="ok" id="tourOk">知道了</button>
@@ -268,11 +290,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
   </div>
   <div class="group">
     <span class="lbl">難度</span>
-    <div class="seg lockable" id="levels">
-      <button type="button" class="opt" data-lv="1">初級 1–10</button>
-      <button type="button" class="opt" data-lv="2">進階 1–20</button>
-      <button type="button" class="opt" data-lv="3">高級 1–100</button>
-    </div>
+    <span class="note">每位玩家在自己的「準備好了」畫面各自選難度。難度一樣時兩邊搶答同一題；難度不同時各答各的題目。</span>
   </div>
   <div class="group">
     <span class="lbl">題型</span>
@@ -327,8 +345,11 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
 <script>
 (function(){
   const NAMES=["玩家 1","玩家 2"];
-  const LV={1:{max:10,name:"初級"},2:{max:20,name:"進階"},3:{max:100,name:"高級"}};
-  const S={lv:1,total:10,round:0,score:[0,0],phase:"ready",ready:[false,false],locked:[false,false],q:null,last:"",lastT:-1,voice:true,mode:"num",pics:true,ops:{add:true,sub:false}};
+  const LV={1:{max:10,name:"初級",sub:"10 以內"},2:{max:20,name:"進階",sub:"20 以內"},3:{max:100,name:"高級",sub:"100 以內"}};
+  const COLOR=["藍色","橘色"];
+  // 每位玩家：自己的難度、要不要念題目、這一題
+  const P=[{lv:1,voice:true,q:null},{lv:1,voice:true,q:null}];
+  const S={total:10,round:0,score:[0,0],phase:"ready",ready:[false,false],locked:[false,false],q:null,last:{},lastT:-1,voice:true,mode:"num",pics:true,ops:{add:true,sub:false}};
 
   // ---- 應用題題庫：兩樣東西相加 ----
   const CN=["零","一","兩","三","四","五","六","七","八","九","十"];
@@ -415,38 +436,66 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
 
   sides.forEach((el,p)=>{
     el.innerHTML=`
-      <div class="head"><span class="name">${NAMES[p]}</span><span class="msg"></span><span class="score"><b>0</b><small>分</small></span></div>
+      <div class="head"><span class="left"><span class="name">${NAMES[p]}</span><span class="lvtag"></span></span><span class="msg"></span>
+        <span class="left"><span class="score"><b>0</b><small>分</small></span><button type="button" class="spk" aria-label="念我的題目">🔊</button></span></div>
       <div class="pad"></div>
-      <div class="overlay"><h2></h2><p></p><div class="final" hidden></div><button type="button" class="ready">準備好了</button></div>`;
+      <div class="overlay"><h2></h2>
+        <div class="row lvs">${[1,2,3].map(l=>`<button type="button" class="opt" data-lv="${l}">${LV[l].name}<small>${LV[l].sub}</small></button>`).join("")}</div>
+        <div class="row vrow"><button type="button" class="opt vbtn"></button></div>
+        <p></p><div class="final" hidden></div><button type="button" class="ready">準備好了</button></div>`;
     const u={el,msg:el.querySelector(".msg"),score:el.querySelector(".score"),scoreB:el.querySelector(".score b"),
       pad:el.querySelector(".pad"),keys:[],ov:el.querySelector(".overlay"),ovH:el.querySelector(".overlay h2"),
-      ovP:el.querySelector(".overlay p"),final:el.querySelector(".final"),readyBtn:el.querySelector(".ready")};
+      ovP:el.querySelector(".overlay p"),final:el.querySelector(".final"),readyBtn:el.querySelector(".ready"),
+      lvtag:el.querySelector(".lvtag"),spk:el.querySelector(".spk"),lvs:[...el.querySelectorAll(".lvs .opt")],
+      lvRow:el.querySelector(".lvs"),vRow:el.querySelector(".vrow"),vbtn:el.querySelector(".vbtn")};
     ui[p]=u;
+    u.lvs.forEach(b=>b.addEventListener("click",()=>{if(S.phase!=="ready")return;
+      P[p].lv=+b.dataset.lv;pref("duel-lv"+p,P[p].lv);autoVoice();renderPads();showReadyScreen()}));
+    u.vbtn.addEventListener("click",()=>{if(S.phase!=="ready")return;P[p].voice=!P[p].voice;syncSetup()});
+    u.spk.addEventListener("click",()=>{if(P[p].q&&S.phase!=="ready"&&S.phase!=="over")say(sameQ()?qText(P[p].q):`${COLOR[p]}，${qText(P[p].q)}`)});
     const tap=(node,fn)=>{node.addEventListener("pointerdown",e=>{e.preventDefault();fn()});
       node.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();fn()}})};
     u.tap=tap;
     // 「準備好了」用 click（手指放開時觸發），平板才會允許之後的語音
     u.readyBtn.addEventListener("click",()=>toggleReady(p));
   });
-  // 按鍵：初級 0–10、進階 0–20 是數字鍵；高級（到 100）改成四個選項，每題換一次
+  // 按鍵：初級 0–10、進階 0–20 是數字鍵；高級（到 100）改成四個選項，每題換一次（各自依自己的難度）
   function renderPads(){
     ui.forEach((u,p)=>{
-      const choice=S.lv===3,n=choice?4:LV[S.lv].max+1;
-      u.pad.className="pad"+(choice?" choices":S.lv===2?" wide":"");
+      const lv=P[p].lv,choice=lv===3,n=choice?4:LV[lv].max+1;
+      u.pad.className="pad"+(choice?" choices":lv===2?" wide":"");
       u.pad.innerHTML=Array.from({length:n},(_,i)=>`<button type="button" class="key" data-v="${choice?"":i}">${choice?"?":i}</button>`).join("");
       u.keys=[...u.pad.querySelectorAll(".key")];
       u.keys.forEach(k=>u.tap(k,()=>{if(k.dataset.v!=="")answer(p,+k.dataset.v,k)}));
     });
   }
-  // 高級：正確答案加三個接近的數字，兩邊順序一樣
+  // 高級：正確答案加三個接近的數字；兩邊同一題時順序也一樣
   function setChoices(){
-    if(S.lv!==3)return;
-    const ans=S.q.sum,set=new Set([ans]);
-    while(set.size<4){const v=ans+(Math.random()<.5?-1:1)*rnd(1,10);if(v>=0&&v<=100)set.add(v)}
-    const list=[...set].sort(()=>Math.random()-.5);
-    ui.forEach(u=>u.keys.forEach((k,i)=>{k.dataset.v=list[i];k.textContent=list[i]}));
+    let shared=null;
+    ui.forEach((u,p)=>{
+      if(P[p].lv!==3)return;
+      if(!(shared&&sameQ())){
+        const ans=P[p].q.sum,set=new Set([ans]);
+        while(set.size<4){const v=ans+(Math.random()<.5?-1:1)*rnd(1,10);if(v>=0&&v<=100)set.add(v)}
+        shared=[...set].sort(()=>Math.random()-.5);
+      }
+      u.keys.forEach((k,i)=>{k.dataset.v=shared[i];k.textContent=shared[i]});
+    });
   }
-  function blankChoices(){if(S.lv===3)ui.forEach(u=>u.keys.forEach(k=>{k.dataset.v="";k.textContent="?"}))}
+  function blankChoices(){ui.forEach((u,p)=>{if(P[p].lv===3)u.keys.forEach(k=>{k.dataset.v="";k.textContent="?"})})}
+  const sameQ=()=>P[0].lv===P[1].lv;
+  // 難度一樣：兩邊都念；難度不同：只念難度低的那邊（之後還可以自己切換）
+  function autoVoice(){
+    if(P[0].lv===P[1].lv){P[0].voice=P[1].voice=true}
+    else{const low=P[0].lv<P[1].lv?0:1;P[low].voice=true;P[1-low].voice=false}
+  }
+  function syncSetup(){
+    ui.forEach((u,p)=>{
+      u.lvs.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===P[p].lv));
+      u.vbtn.textContent=P[p].voice?"🔊 念題目：開":"🔇 念題目：關";u.vbtn.setAttribute("aria-pressed",P[p].voice);
+      u.lvtag.textContent=LV[P[p].lv].name;u.spk.classList.toggle("off",!P[p].voice);
+    });
+  }
 
   // ---- 語音 ----
   const synth=window.speechSynthesis;
@@ -515,7 +564,14 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     if(M.on)musicStart();
   }
   ["touchend","pointerup","click","keydown"].forEach(ev=>document.addEventListener(ev,unlockAudio,{capture:true,passive:true}));
-  const readQ=()=>{if(S.q)say(S.q.text||`${S.q.a} ${S.q.word} ${S.q.b}，等於多少？`)};
+  const qText=q=>q.text||`${q.a} ${q.word} ${q.b}，等於多少？`;
+  // 同一題：念一次；不同題：念有開「念題目」的那幾邊，前面加上顏色
+  const readQ=()=>{
+    if(!P[0].q)return;
+    if(sameQ()){if(P[0].voice||P[1].voice)say(qText(P[0].q));return}
+    const who=[0,1].filter(p=>P[p].voice);
+    if(who.length)say(who.map(p=>`${COLOR[p]}，${qText(P[p].q)}`).join("。"));
+  };
 
   // ---- 音效 ----
   let ac=null;
@@ -611,41 +667,50 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     aEls.forEach(e=>e.textContent=a);bEls.forEach(e=>e.textContent=b);ansEls.forEach(e=>{e.textContent=ans;e.classList.remove("ok")});
     pop();
   }
-  function showWord(){
-    band.classList.add("word");
-    sentEls.forEach(e=>{e.innerHTML=zy(S.q.text);e.setAttribute("aria-label",S.q.text)});picEls.forEach(e=>e.innerHTML=S.q.pics);
-    wansEls.forEach(e=>{e.textContent="答案：？";e.classList.remove("ok")});
+  // 中間兩行：上面那行（倒過來）給玩家 2，下面那行給玩家 1
+  const LINE=[1,0];
+  function showBoth(){
+    const word=S.mode==="word";band.classList.toggle("word",word);
+    [0,1].forEach(p=>{
+      const q=P[p].q,i=LINE[p];
+      if(word){sentEls[i].innerHTML=zy(q.text);sentEls[i].setAttribute("aria-label",q.text);picEls[i].innerHTML=q.pics;
+        wansEls[i].textContent="答案：？";wansEls[i].classList.remove("ok")}
+      else{qopEls[i].textContent=q.sym;aEls[i].textContent=q.a;bEls[i].textContent=q.b;ansEls[i].textContent="?";ansEls[i].classList.remove("ok")}
+    });
     pop();
   }
-  function reveal(){
-    ansEls.forEach(e=>{e.textContent=S.q.sum;e.classList.add("ok")});
-    wansEls.forEach(e=>{e.textContent=`${S.q.a} ${S.q.sym} ${S.q.b} = ${S.q.sum}`;e.classList.add("ok")});
+  function reveal(p){
+    const q=P[p].q,i=LINE[p];
+    ansEls[i].textContent=q.sum;ansEls[i].classList.add("ok");
+    wansEls[i].textContent=`${q.a} ${q.sym} ${q.b} = ${q.sum}`;wansEls[i].classList.add("ok");
   }
+  const revealAll=()=>{reveal(0);reveal(1)};
 
   // ---- 遊戲流程 ----
   const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
-  function newQuestion(){
+  function newQuestion(lv){
     const ops=[S.ops.add&&"+",S.ops.sub&&"-"].filter(Boolean);
-    let a,b,op,k;
+    let a,b,op,k,t=0;
     do{
       op=ops[rnd(0,ops.length-1)];
-      const N=LV[S.lv].max;
+      const N=LV[lv].max;
       if(op==="+"){a=rnd(1,N-1);b=rnd(1,N-a)}   // 和不超過難度上限
       else{a=rnd(2,N);b=rnd(1,a-1)}             // 上限以內，答案至少 1
       k=a+op+b;
-    }while(k===S.last);
+    }while(k===S.last[lv]&&++t<20);
     const add=op==="+";
-    S.last=k;S.q={a,b,op,sum:add?a+b:a-b,sym:add?"+":"−",word:add?"加":"減"};
+    S.last[lv]=k;const q={a,b,op,sum:add?a+b:a-b,sym:add?"+":"−",word:add?"加":"減"};
     if(S.mode==="word"){
       const list=add?TPL:TPL_SUB;
       let ti;do{ti=rnd(0,list.length-1)}while(op+ti===S.lastT&&list.length>1);
       S.lastT=op+ti;const tp=list[ti];
-      S.q.text=tp.t(cn(a),cn(b));
+      q.text=tp.t(cn(a),cn(b));
       // 數字大於 10 時圖案太多，就不畫圖案
-      S.q.pics=(add?a+b:a)>10?""
+      q.pics=(add?a+b:a)>10?""
         :add?tp.ea.repeat(a)+" ＋ "+tp.eb.repeat(b)
         :Array.from({length:a},(_,i)=>i<a-b?`<span>${tp.e}</span>`:`<span class="gone">${tp.e}</span>`).join("");
     }
+    return q;
   }
   function setMsg(p,t,cls=""){ui[p].msg.textContent=t;ui[p].msg.className="msg "+cls}
   function updateRound(){$round.textContent=S.phase==="ready"?`共 ${S.total} 題`:`${Math.min(S.round,S.total)} / ${S.total}`}
@@ -660,15 +725,16 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
   let timer=null;
   function showReadyScreen(){
     clearTimeout(timer);try{synth&&synth.cancel()}catch(e){}
-    S.phase="ready";S.ready=[false,false];S.round=0;S.score=[0,0];S.q=null;
+    S.phase="ready";S.ready=[false,false];S.round=0;S.score=[0,0];P[0].q=P[1].q=null;
     ui.forEach((u,p)=>{
       updateScore(p);u.ov.hidden=false;u.ovH.textContent=NAMES[p];u.ovP.hidden=false;u.final.hidden=true;
+      u.lvRow.hidden=false;u.vRow.hidden=false;
       const opName=S.ops.add&&S.ops.sub?"加減混合":S.ops.sub?"減法":"加法";
-      u.ovP.textContent=`${LV[S.lv].name}・${opName}・${S.mode==="word"?"應用題":"數字題"}：題目會出現在中間並念出來，先按對的人得分。共 ${S.total} 題。`;
+      u.ovP.textContent=`${opName}・${S.mode==="word"?"應用題":"數字題"}・共 ${S.total} 題。${sameQ()?"兩邊搶答同一題，先按對的人得分。":"難度不同，各答自己的題目，先答對的人得分。"}`;
       u.readyBtn.textContent="準備好了";u.readyBtn.classList.remove("on");
       setMsg(p,"");u.el.classList.remove("locked");u.keys.forEach(k=>k.classList.remove("wrong","right"));
     });
-    showQ("?","?","?");updateRound();syncOpts();blankChoices();
+    showQ("?","?","?");updateRound();syncOpts();blankChoices();syncSetup();
   }
   function toggleReady(p){
     hideTour();
@@ -694,27 +760,29 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
   function nextRound(){
     clearTimeout(timer);
     if(S.round>=S.total){finish();return}
-    S.round++;S.phase="play";S.locked=[false,false];newQuestion();setChoices();
-    if(S.mode==="word")showWord();else showQ(S.q.a,S.q.b,"?",S.q.sym);
+    S.round++;S.phase="play";S.locked=[false,false];
+    P[0].q=newQuestion(P[0].lv);P[1].q=sameQ()?P[0].q:newQuestion(P[1].lv);
+    setChoices();showBoth();
     updateRound();
     ui.forEach((u,p)=>{u.el.classList.remove("locked");setMsg(p,"快搶答！");u.keys.forEach(k=>k.classList.remove("wrong","right"))});
     readQ();
   }
   function answer(p,v,keyEl){
     if(S.phase!=="play"||S.locked[p])return;
-    if(v===S.q.sum){
-      S.phase="reveal";S.score[p]++;updateScore(p,true);sfx.good();keyEl.classList.add("right");reveal();
+    const q=P[p].q,eq=x=>`${x.a} ${x.word} ${x.b} 等於 ${x.sum}`;
+    if(v===q.sum){
+      S.phase="reveal";S.score[p]++;updateScore(p,true);sfx.good();keyEl.classList.add("right");revealAll();
       band.classList.add("flash");setTimeout(()=>band.classList.remove("flash"),900);
       ui.forEach((u,i)=>setMsg(i,i===p?"答對了！+1 分":`${NAMES[p]} 搶先答對`,i===p?"good":""));
-      say(`${S.q.a} ${S.q.word} ${S.q.b} 等於 ${S.q.sum}`);
+      say(sameQ()?eq(q):`${COLOR[p]}答對了，${eq(q)}`);
       timer=setTimeout(nextRound,2800);
     }else{
       S.locked[p]=true;sfx.bad();keyEl.classList.add("wrong");ui[p].el.classList.add("locked");
-      setMsg(p,"答錯了，這題換對手","bad");
+      setMsg(p,sameQ()?"答錯了，這題換對手":"答錯了，等對手作答","bad");
       if(S.locked[0]&&S.locked[1]){
-        S.phase="reveal";reveal();
-        ui.forEach((u,i)=>setMsg(i,`都答錯了，答案是 ${S.q.sum}`,"bad"));
-        say(`都答錯了，${S.q.a} ${S.q.word} ${S.q.b} 等於 ${S.q.sum}`);
+        S.phase="reveal";revealAll();
+        ui.forEach((u,i)=>setMsg(i,`都答錯了，答案是 ${P[i].q.sum}`,"bad"));
+        say(sameQ()?`都答錯了，${eq(q)}`:`都答錯了。藍色，${eq(P[0].q)}。橘色，${eq(P[1].q)}`);
         timer=setTimeout(nextRound,3000);
       }
     }
@@ -726,7 +794,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
       const me=S.score[p],op=S.score[1-p];
       u.ov.hidden=false;
       u.ovH.textContent=me>op?"你贏了！🏆":me<op?"再接再厲！":"平手！";
-      u.ovP.hidden=true;
+      u.ovP.hidden=true;u.lvRow.hidden=true;u.vRow.hidden=true;
       const card=(who,k,n,win)=>`<div class="card k${k}${win?" win":""}"><span class="who">${who}</span><span class="pts">${n}<small>分</small></span></div>`;
       u.final.innerHTML=card("你",p+1,me,me>op)+card("對手",2-p,op,op>me);
       u.final.hidden=false;
@@ -773,7 +841,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     e.currentTarget.setAttribute("aria-pressed",S.pics);
     e.currentTarget.textContent=S.pics?"應用題圖案提示：開":"應用題圖案提示：關";
   });
-  $("say").addEventListener("click",()=>{if(S.q&&S.phase!=="ready")readQ();else say("加減法搶答對決")});
+  $("say").addEventListener("click",()=>{if(P[0].q&&S.phase!=="ready")readQ();else say("加減法搶答對決")});
   // 背景音樂設定
   const $music=$("music"),$musicVol=$("musicVol");
   const syncMusicBtn=()=>{$music.setAttribute("aria-pressed",M.on);$music.textContent=M.on?"輕音樂：開":"輕音樂：關"};
@@ -815,17 +883,11 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
   pickVoice();
   if(!synth)$("voiceGroup").hidden=true;
 
-  // 難度：和其他小遊戲共用同一個設定
-  S.lv=LV[+pref("park-level")]?+pref("park-level"):1;
-  const syncLevels=()=>all("#levels button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
-  all("#levels button").forEach(btn=>btn.addEventListener("click",()=>{
-    if(S.phase!=="ready")return;
-    S.lv=+btn.dataset.lv;pref("park-level",S.lv);syncLevels();renderPads();showReadyScreen();
-  }));
-  syncLevels();renderPads();
+  // 難度：兩邊各自記住；第一次玩時沿用遊樂園共用的難度
+  const base=LV[+pref("park-level")]?+pref("park-level"):1;
+  P.forEach((x,p)=>{const v=+pref("duel-lv"+p);x.lv=LV[v]?v:base});
+  autoVoice();renderPads();
   showReadyScreen();
 })();
 </script>
-
-</body>
-</html>
+</body></html>
