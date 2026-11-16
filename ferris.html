@@ -109,8 +109,8 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:minma
       <p>摩天輪的每個車廂都坐了一樣多的小動物，<br>總共坐了幾隻？用乘法算算看！</p>
       <span class="lbl">難度</span>
       <div class="row" id="levels">
-        <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small>2、5、4、8 的乘法</small></button>
-        <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small>3、6、9、7 的乘法</small></button>
+        <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small>2、5 的乘法</small></button>
+        <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small>2、5、4、8 的乘法</small></button>
         <button type="button" class="opt" data-lv="3" aria-label="高級"><span class="lvst">⭐⭐⭐</span><small>九九乘法</small></button>
       </div>
       <button type="button" class="big" id="go" aria-label="開始">READY</button>
@@ -134,7 +134,7 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:minma
   const $=id=>document.getElementById(id);
   const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
   const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
-  const LV={1:[2,5,4,8],2:[3,6,9,7],3:[2,3,4,5,6,7,8,9]};
+  const LV={1:[2,5],2:[2,5,4,8],3:[2,3,4,5,6,7,8,9]};
   const S={lv:LV[+pref("park-level")]?+pref("park-level"):1,total:10,round:0,score:0,tries:0,phase:"start",k:2,n:3,last:""};
   const syncLv=()=>document.querySelectorAll("#levels button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
   document.querySelectorAll("#levels button").forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("park-level",S.lv);syncLv()}));
