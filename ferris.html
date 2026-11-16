@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>摩天輪乘法</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
+<style>
+/* 單人小遊戲：摩天輪有幾個車廂、每個車廂坐幾隻動物，算出總共幾隻（每份的量 × 份數） */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --ink:#1f2b33; --muted:#5d6b72; --good:#1f9d61; --bad:#d23c3c;
+  --accent:#2f8fdb; --accent-dark:#1d63a3;
+  --num:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
+  --text:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{margin:0;height:100%}
+body{background:linear-gradient(#7cc8f5,#cdeeff 62%,#bfe7a0 62%);color:var(--ink);font-family:var(--text);overflow:hidden;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;display:flex;flex-direction:column}
+[hidden]{display:none!important}
+.top{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;
+  padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 6px max(16px,env(safe-area-inset-left,0px))}
+.ibtn{width:48px;height:48px;border-radius:14px;border:0;background:rgba(255,255,255,.9);font-size:24px;cursor:pointer;
+  display:grid;place-items:center;text-decoration:none;color:inherit;box-shadow:0 3px 0 rgba(0,0,0,.1)}
+.ibtn:active{transform:translateY(2px)}
+.title{justify-self:center;font-weight:800;font-size:clamp(18px,3.2vmin,28px)}
+.right{display:flex;gap:10px;align-items:center}
+.score{font-family:var(--num);font-weight:800;font-size:clamp(18px,3.2vmin,28px);background:rgba(255,255,255,.9);border-radius:999px;padding:4px 14px;white-space:nowrap}
+main{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:clamp(10px,3vmin,36px);align-items:center;
+  padding:0 max(16px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+@media (orientation:portrait){main{grid-template-columns:1fr;grid-template-rows:minmax(0,1.3fr) auto}}
+.wheel{height:100%;min-height:0;display:grid;place-items:center}
+.wheel svg{width:100%;height:100%;overflow:visible}
+.car.lit rect{stroke:#f2b705;stroke-width:5}
+.panel{display:flex;flex-direction:column;align-items:center;gap:clamp(10px,2vmin,18px);text-align:center;min-width:0}
+.story{font-size:clamp(18px,3.2vmin,28px);font-weight:800;line-height:1.5;background:rgba(255,255,255,.9);border-radius:18px;padding:.5em .9em}
+.story b{color:var(--accent)}
+.eq{font-family:var(--num);font-weight:800;font-size:clamp(44px,9vmin,90px);line-height:1;white-space:nowrap;font-variant-numeric:tabular-nums}
+.eq .ans{display:inline-block;min-width:1.2em;border-radius:.18em;background:#fff;color:var(--accent);padding:0 .12em}
+.eq .ans.ok{background:var(--good);color:#fff}
+.skip{min-height:1.4em;font-family:var(--num),var(--text);font-weight:800;font-size:clamp(18px,3.2vmin,28px);color:var(--accent-dark)}
+.choices{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(8px,1.6vmin,14px);width:min(100%,520px)}
+@media (orientation:portrait){.choices{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.ch{font-family:var(--num);font-weight:800;font-size:clamp(28px,5.4vmin,52px);border:0;border-radius:18px;padding:.25em 0;
+  background:#fff;color:var(--ink);box-shadow:0 5px 0 #a9cde8;cursor:pointer}
+.ch:active{transform:translateY(3px);box-shadow:0 2px 0 #a9cde8}
+.ch.wrong{background:var(--bad);color:#fff;animation:shake .35s}
+.ch.right{background:var(--good);color:#fff}
+@keyframes shake{25%{translate:-6px 0}75%{translate:6px 0}}
+.msg{min-height:1.4em;font-size:clamp(18px,3.2vmin,28px);font-weight:800}
+.msg.good{color:var(--good)} .msg.bad{color:var(--bad)}
+.cover{position:absolute;inset:0;display:grid;place-items:center;background:rgba(205,238,255,.85);padding:16px;z-index:5;overflow:auto}
+.box{background:#fff;border-radius:24px;padding:clamp(18px,4vmin,32px);width:min(500px,100%);box-shadow:0 12px 40px rgba(0,0,0,.18);
+  display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center}
+.box h2{margin:0;font-size:clamp(26px,5.5vmin,42px)}
+.box p{margin:0;color:var(--muted);font-size:clamp(15px,2.5vmin,19px);line-height:1.5}
+.row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.lbl{font-size:14px;font-weight:700;color:var(--muted);margin-top:4px}
+.opt{font:inherit;font-size:17px;font-weight:700;border:2px solid #cfd8dc;background:#fff;border-radius:14px;padding:9px 14px;cursor:pointer;color:inherit}
+.opt small{display:block;font-size:12px;font-weight:600;opacity:.75}
+.opt[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:#fff}
+.big{font-family:var(--text);font-weight:800;font-size:clamp(20px,4vmin,30px);border:0;border-radius:999px;padding:.45em 1.6em;
+  background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 5px 0 var(--accent-dark);text-decoration:none;display:inline-block}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 var(--accent-dark)}
+.big.alt{background:#fff;color:var(--ink);box-shadow:0 5px 0 #cfd8dc;border:2px solid #cfd8dc}
+.stars{font-size:clamp(40px,9vmin,72px);letter-spacing:.1em;line-height:1}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="ibtn" href="./" aria-label="回遊樂園地圖">🏠</a>
+  <div class="title">🎡 摩天輪乘法</div>
+  <div class="right"><span class="score" id="score">⭐ 0</span><button type="button" class="ibtn" id="again" aria-label="再念一次題目">🔊</button></div>
+</header>
+<main>
+  <div class="wheel"><svg id="svg" viewBox="0 0 400 430" role="img" aria-label="摩天輪"></svg></div>
+  <div class="panel">
+    <div class="story" id="story"></div>
+    <div class="eq" id="eq"></div>
+    <div class="skip" id="skip" aria-live="polite"></div>
+    <div class="choices" id="choices"></div>
+    <div class="msg" id="msg" aria-live="polite"></div>
+  </div>
+
+  <section class="cover" id="start">
+    <div class="box">
+      <h2>🎡 摩天輪乘法</h2>
+      <p>摩天輪的每個車廂都坐了一樣多的小動物，<br>總共坐了幾隻？用乘法算算看！</p>
+      <span class="lbl">難度</span>
+      <div class="row" id="levels">
+        <button type="button" class="opt" data-lv="1">初級<small>2、5 的乘法</small></button>
+        <button type="button" class="opt" data-lv="2">進階<small>2、3、4、5 的乘法</small></button>
+        <button type="button" class="opt" data-lv="3">高級<small>九九乘法</small></button>
+      </div>
+      <button type="button" class="big" id="go">開始！</button>
+    </div>
+  </section>
+  <section class="cover" id="end" hidden>
+    <div class="box">
+      <div class="stars" id="stars"></div>
+      <h2 id="endTitle"></h2>
+      <p id="endText"></p>
+      <div class="row">
+        <button type="button" class="big" id="replay">再玩一次</button>
+        <a class="big alt" href="./">回遊樂園</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
+  const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  const LV={1:[2,5],2:[2,3,4,5],3:[2,3,4,5,6,7,8,9]};
+  const S={lv:LV[+pref("park-level")]?+pref("park-level"):1,total:10,round:0,score:0,tries:0,phase:"start",k:2,n:3,last:""};
+  const syncLv=()=>document.querySelectorAll("#levels button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
+  document.querySelectorAll("#levels button").forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("park-level",S.lv);syncLv()}));
+  syncLv();
+
+  // ---- 語音與音效 ----
+  const synth=window.speechSynthesis;let voice=null;const rate=+(pref("duel-rate")||.9)||.9;
+  const quality=v=>{const u=v.voiceURI||"";return /eloquence|speech\.synthesis\.voice/i.test(u)?0:/\.premium\./i.test(u)?3:/enhanced|-premium/i.test(u)?2:1};
+  function pickVoice(){if(!synth)return;const vs=synth.getVoices().filter(v=>/^(zh|cmn)/i.test(v.lang));const want=pref("duel-voice");
+    const tw=vs.filter(v=>/TW|Hant/i.test(v.lang)&&quality(v)>0).sort((a,b)=>quality(b)-quality(a));
+    voice=(want&&vs.find(v=>(v.voiceURI||v.name)===want))||tw[0]||vs.find(v=>quality(v)>0)||vs[0]||null}
+  if(synth){pickVoice();try{synth.addEventListener("voiceschanged",pickVoice)}catch(e){}}
+  function say(t){if(!synth)return;try{const u=new SpeechSynthesisUtterance(t);u.lang=voice?voice.lang.replace("_","-"):"zh-TW";if(voice)u.voice=voice;u.rate=rate;u.pitch=1.1;
+    if(synth.speaking||synth.pending){synth.cancel();setTimeout(()=>{try{synth.speak(u)}catch(e){}},90)}else synth.speak(u)}catch(e){}}
+  let ac=null;
+  function tone(fs,dur=.12,type="triangle",vol=.15){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume();
+    fs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*dur;o.type=type;o.frequency.value=f;
+      g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)})}catch(e){}}
+  const sfx={good:()=>tone([660,880,1100]),bad:()=>tone([220,180],.14,"square",.07),pip:i=>tone([520+i*60],.07,"sine",.12),win:()=>tone([523,659,784,1047],.16)};
+  function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
+    try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}}
+
+  // ---- 摩天輪 ----
+  const NS="http://www.w3.org/2000/svg",svg=$("svg"),CX=200,CY=200,R=145;
+  const mk=(tag,attrs,parent=svg)=>{const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);parent.appendChild(e);return e};
+  const ANIMALS=["🐻","🐰","🐱","🐶","🐼","🐸","🐷","🦊","🐯","🐨"];
+  const COLORS=["#e0477b","#f08a24","#f2c12e","#3fb56a","#2f8fdb","#8a5cd6","#1fb5a8","#e25555","#d1478f"];
+  // 支架與底座
+  mk("path",{d:`M${CX} ${CY} L95 410 M${CX} ${CY} L305 410`,stroke:"#5a6b75","stroke-width":12,"stroke-linecap":"round"});
+  mk("rect",{x:60,y:404,width:280,height:18,rx:9,fill:"#5a6b75"});
+  const spin=mk("g",{});
+  mk("circle",{cx:CX,cy:CY,r:R,fill:"none",stroke:"#ffffff","stroke-width":8},spin);
+  mk("circle",{cx:CX,cy:CY,r:R-14,fill:"none",stroke:"#ffffff","stroke-width":3,"stroke-dasharray":"4 10"},spin);
+  const spokes=mk("g",{},spin);
+  mk("circle",{cx:CX,cy:CY,r:16,fill:"#f2b705",stroke:"#5a6b75","stroke-width":4});
+  const carsG=mk("g",{});
+  let cars=[],rot=0,raf=0,lastT=0;
+  function build(){
+    spokes.innerHTML="";carsG.innerHTML="";cars=[];
+    const n=S.n,k=S.k,cols=k<=3?k:k<=4?2:3,rows=Math.ceil(k/cols);
+    const C=26,w=Math.max(54,cols*C+14),h=Math.max(44,rows*C+14);
+    const animal=ANIMALS[rnd(0,ANIMALS.length-1)];
+    for(let i=0;i<n;i++){
+      const a=i/n*360;
+      mk("line",{x1:CX,y1:CY,x2:CX+R*Math.sin(a*Math.PI/180),y2:CY-R*Math.cos(a*Math.PI/180),stroke:"#ffffff","stroke-width":4},spokes);
+      const g=mk("g",{class:"car"},carsG);
+      mk("line",{x1:0,y1:0,x2:0,y2:10,stroke:"#5a6b75","stroke-width":3},g);
+      mk("rect",{x:-w/2,y:10,width:w,height:h,rx:12,fill:COLORS[i%COLORS.length],stroke:"#ffffff","stroke-width":3},g);
+      for(let j=0;j<k;j++){
+        const c=j%cols,r=Math.floor(j/cols),rowCount=Math.min(cols,k-r*cols);
+        const x=(c-(rowCount-1)/2)*C,y=10+7+r*C+C/2;
+        const t=mk("text",{x,y,"font-size":23,"text-anchor":"middle","dominant-baseline":"central"},g);t.textContent=animal;
+      }
+      cars.push({g,a});
+    }
+    place();
+  }
+  function place(){
+    spin.setAttribute("transform",`rotate(${rot} ${CX} ${CY})`);
+    cars.forEach(c=>{const a=(c.a+rot)*Math.PI/180;c.g.setAttribute("transform",`translate(${CX+R*Math.sin(a)} ${CY-R*Math.cos(a)})`)});
+  }
+  function tick(now){const dt=Math.min(.05,(now-lastT)/1000);lastT=now;rot=(rot+dt*(S.phase==="reveal"?28:7))%360;place();raf=requestAnimationFrame(tick)}
+
+  // ---- 出題 ----
+  function newQ(){
+    const ks=LV[S.lv];let k,n,key,t=0;
+    do{k=ks[rnd(0,ks.length-1)];n=rnd(S.lv===1?1:2,S.lv===1?6:9);key=k+"x"+n}while(key===S.last&&++t<10);
+    S.last=key;S.k=k;S.n=n;
+  }
+  // 干擾選項：多一份、少一份、每份差一、把乘法當加法
+  function options(){
+    const ans=S.k*S.n,set=new Set([ans]);
+    [S.k*(S.n+1),S.k*(S.n-1),(S.k+1)*S.n,(S.k-1)*S.n,S.k+S.n,ans+rnd(1,3),ans-rnd(1,3)].sort(()=>Math.random()-.5)
+      .forEach(v=>{if(set.size<4&&v>0)set.add(v)});
+    while(set.size<4)set.add(ans+rnd(-9,9)||1);
+    return[...set].sort(()=>Math.random()-.5);
+  }
+  function start(){unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.score=0;S.last="";upd();next();
+    try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}}
+  const upd=()=>{$("score").textContent=`⭐ ${S.score} / ${S.total}`};
+  function next(){
+    if(S.round>=S.total)return finish();
+    S.round++;S.tries=0;S.phase="play";newQ();build();
+    $("story").innerHTML=`摩天輪有 <b>${S.n}</b> 個車廂，<br>每個車廂坐 <b>${S.k}</b> 隻動物，<br>總共有幾隻？`;
+    $("eq").innerHTML=`${S.k} × ${S.n} = <span class="ans">?</span>`;
+    $("skip").textContent="";$("msg").textContent="";$("msg").className="msg";
+    $("choices").innerHTML=options().map(v=>`<button type="button" class="ch" data-v="${v}">${v}</button>`).join("");
+    $("choices").querySelectorAll(".ch").forEach(b=>b.addEventListener("click",()=>pick(b)));
+    say(`摩天輪有${S.n}個車廂，每個車廂坐${S.k}隻動物，總共有幾隻？`);
+  }
+  function pick(b){
+    if(S.phase!=="play")return;
+    const ans=S.k*S.n;
+    if(+b.dataset.v===ans){
+      S.phase="reveal";if(S.tries===0)S.score++;upd();b.classList.add("right");sfx.good();
+      const a=$("eq").querySelector(".ans");a.textContent=ans;a.classList.add("ok");
+      $("msg").textContent="答對了！";$("msg").className="msg good";
+      // 幾個一數：車廂一個一個亮起來
+      const seq=[];cars.forEach((c,i)=>setTimeout(()=>{c.g.classList.add("lit");seq.push(S.k*(i+1));$("skip").textContent=seq.join("、");sfx.pip(i)},350*i));
+      say(`${S.k}的${S.n}倍，${S.k}乘以${S.n}等於${ans}`);
+      setTimeout(next,Math.max(3000,350*S.n+1800));
+    }else{
+      S.tries++;sfx.bad();b.classList.remove("wrong");void b.offsetWidth;b.classList.add("wrong");
+      $("msg").textContent=`提示：${S.k} 個一數，數 ${S.n} 次`;$("msg").className="msg bad";
+      say(`提示，${S.k}個一數，數${S.n}次`);
+    }
+  }
+  function finish(){
+    S.phase="end";sfx.win();
+    const r=S.score/S.total,st=r>=.9?3:r>=.6?2:1;
+    $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);
+    $("endTitle").textContent=st===3?"太厲害了！":st===2?"做得很好！":"再練習一下！";
+    $("endText").textContent=`${S.total} 題裡面，有 ${S.score} 題第一次就答對。`;
+    $("end").hidden=false;say(`${$("endTitle").textContent}${S.total}題裡面，有${S.score}題第一次就答對`);
+  }
+  $("go").addEventListener("click",start);$("replay").addEventListener("click",start);
+  $("again").addEventListener("click",()=>{if(S.phase==="play")say(`摩天輪有${S.n}個車廂，每個車廂坐${S.k}隻動物，總共有幾隻？`)});
+  S.k=3;S.n=6;build();upd();lastT=performance.now();raf=requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

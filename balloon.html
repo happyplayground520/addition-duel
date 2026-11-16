@@ -26,7 +26,11 @@ body{background:linear-gradient(#8fd3ff,#d9f1ff 70%,#c3eaa8 70%);color:var(--ink
 .ibtn{width:48px;height:48px;border-radius:14px;border:0;background:rgba(255,255,255,.85);font-size:24px;cursor:pointer;
   display:grid;place-items:center;text-decoration:none;color:inherit;box-shadow:0 3px 0 rgba(0,0,0,.1);flex:none}
 .ibtn:active{transform:translateY(2px)}
-.q{flex:1;text-align:center;font-family:var(--num);font-weight:800;font-size:clamp(34px,8vmin,80px);line-height:1;
+.ttl{flex:1;text-align:center;font-weight:800;font-size:clamp(18px,3.2vmin,28px)}
+/* 題目卡：放在標題列下面、天空上方，白底大字比較清楚 */
+.qbar{display:flex;justify-content:center;padding:0 16px 8px}
+.q{background:#fff;border-radius:22px;padding:.12em .6em;box-shadow:0 5px 0 rgba(0,0,0,.08),0 8px 20px rgba(0,0,0,.08);
+  text-align:center;font-family:var(--num);font-weight:800;font-size:clamp(52px,11vmin,120px);line-height:1.1;
   color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
 .q .ans{display:inline-block;min-width:1.2em;color:var(--accent)}
 .score{font-family:var(--num);font-weight:800;font-size:clamp(18px,3.4vmin,30px);background:rgba(255,255,255,.85);
@@ -77,10 +81,11 @@ body{background:linear-gradient(#8fd3ff,#d9f1ff 70%,#c3eaa8 70%);color:var(--ink
 <body>
 <header class="top">
   <a class="ibtn" href="./" aria-label="回遊樂園地圖">🏠</a>
-  <div class="q" id="q" aria-live="polite"></div>
+  <div class="ttl">🎈 射氣球</div>
   <span class="score" id="score">⭐ 0</span>
   <button type="button" class="ibtn" id="again" aria-label="再念一次題目">🔊</button>
 </header>
+<div class="qbar"><div class="q" id="q" aria-live="polite"></div></div>
 <main class="sky" id="sky">
   <div class="msg" id="msg" hidden></div>
 
@@ -183,7 +188,7 @@ body{background:linear-gradient(#8fd3ff,#d9f1ff 70%,#c3eaa8 70%);color:var(--ink
       const s=ac.createBufferSource(),g=ac.createGain();s.buffer=buf;g.gain.value=.5;s.connect(g).connect(ac.destination);s.start();
     }catch(e){}
   }
-  const sfx={good:()=>{popSound();tone([660,880,1100])},bad:()=>tone([220,180],.15,"square",.08),win:()=>tone([523,659,784,1047],.16)};
+  const sfx={good:()=>{popSound();tone([784,1175],.16,"sine",.32)},bad:()=>tone([150],.32,"square",.16),win:()=>tone([523,659,784,1047],.16)};
   function unlock(){
     try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
     try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}
@@ -291,7 +296,7 @@ body{background:linear-gradient(#8fd3ff,#d9f1ff 70%,#c3eaa8 70%);color:var(--ink
   $("go").addEventListener("click",start);
   $("replay").addEventListener("click",start);
   $("again").addEventListener("click",readQ);
-  S.q={a:"?",b:"?",sym:"+"};$("q").innerHTML=`🎈 射氣球`;updateScore();
+  S.q={a:"?",b:"?",sym:"+"};$("q").innerHTML=`? + ? = <span class="ans">?</span>`;updateScore();
   addEventListener("resize",()=>{if(S.phase==="play"){const W=sky.clientWidth,n=balloons.length,w=size(),lw=(W-w)/(n-1||1);
     balloons.forEach((b,i)=>{b.w=w;b.baseX=i*lw;b.el.style.setProperty("--w",w+"px")})}});
 })();

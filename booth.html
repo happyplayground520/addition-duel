@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>售票亭買門票</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
+<style>
+/* 單人小遊戲：在售票亭買設施門票，從錢包拿新臺幣硬幣和紙鈔放到付款盤，付剛好的錢 */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --ink:#1f2b33; --muted:#5d6b72; --good:#1f9d61; --bad:#d23c3c;
+  --accent:#e0772b; --accent-dark:#a8521a; --wood:#c98a52; --wood-dark:#9b6236;
+  --num:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
+  --text:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{margin:0;height:100%}
+body{background:linear-gradient(#ffe7c4,#fff4e2);color:var(--ink);font-family:var(--text);overflow:hidden;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;display:flex;flex-direction:column}
+[hidden]{display:none!important}
+.top{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;
+  padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 6px max(16px,env(safe-area-inset-left,0px))}
+.ibtn{width:48px;height:48px;border-radius:14px;border:0;background:rgba(255,255,255,.9);font-size:24px;cursor:pointer;
+  display:grid;place-items:center;text-decoration:none;color:inherit;box-shadow:0 3px 0 rgba(0,0,0,.1)}
+.ibtn:active{transform:translateY(2px)}
+.title{justify-self:center;font-weight:800;font-size:clamp(18px,3.2vmin,28px)}
+.right{display:flex;gap:10px;align-items:center}
+.score{font-family:var(--num);font-weight:800;font-size:clamp(18px,3.2vmin,28px);background:rgba(255,255,255,.9);border-radius:999px;padding:4px 14px;white-space:nowrap}
+main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;gap:clamp(8px,1.6vmin,14px);
+  padding:0 max(16px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+/* 售票亭窗口與門票 */
+.booth{position:relative;align-self:center;margin-top:16px;width:min(640px,100%);background:var(--wood);border-radius:20px 20px 12px 12px;
+  padding:34px 18px 14px;box-shadow:inset 0 -6px 0 var(--wood-dark)}
+.booth::before{content:"售票亭";position:absolute;left:50%;top:-14px;transform:translateX(-50%);background:var(--accent);color:#fff;
+  font-weight:800;padding:4px 22px;border-radius:999px;font-size:18px;letter-spacing:.2em;box-shadow:0 3px 0 var(--accent-dark)}
+.booth::after{content:"";position:absolute;left:0;right:0;top:0;height:18px;border-radius:20px 20px 0 0;
+  background:repeating-linear-gradient(90deg,#e0477b 0 28px,#fff 28px 56px)}
+.ticket{display:flex;align-items:center;gap:clamp(10px,2vmin,18px);background:#fff;border-radius:14px;padding:10px 18px;
+  border:3px dashed #f2b705}
+.ticket .ico{font-size:clamp(40px,8vmin,70px);line-height:1}
+.ticket .what{flex:1;font-weight:800;font-size:clamp(18px,3.2vmin,28px);line-height:1.3}
+.ticket .what small{display:block;font-size:.6em;color:var(--muted)}
+.price{font-family:var(--num);font-weight:800;font-size:clamp(40px,8vmin,76px);line-height:1;color:var(--accent);white-space:nowrap}
+.price small{font-family:var(--text);font-size:.4em;color:var(--ink);margin-left:4px}
+/* 付款盤 */
+.tray{flex:1;min-height:90px;background:#fff;border-radius:18px;border:3px solid #f0d3ac;display:flex;flex-direction:column;
+  padding:10px 14px;gap:8px;width:min(860px,100%);align-self:center}
+.tray .head{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:clamp(15px,2.6vmin,22px);color:var(--muted)}
+.tray .sum{font-family:var(--num),var(--text);color:var(--ink);font-size:clamp(22px,4vmin,36px)}
+.tray .sum.over{color:var(--bad)} .tray .sum.ok{color:var(--good)}
+.paid{flex:1;min-height:0;overflow:auto;display:flex;flex-wrap:wrap;align-content:flex-start;gap:8px}
+.paid .money{margin:0}
+.empty{color:#b9a58a;font-size:16px;align-self:center;margin:auto}
+.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+/* 錢包 */
+.wallet{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:clamp(8px,1.8vmin,16px);
+  background:#8a5a34;border-radius:18px;padding:12px;width:min(860px,100%);align-self:center;box-shadow:inset 0 -5px 0 #6c4426}
+.money{border:0;padding:0;background:none;cursor:pointer;touch-action:manipulation;line-height:0;flex:none}
+.money:active{transform:translateY(3px)}
+.money svg{display:block;filter:drop-shadow(0 3px 2px rgba(0,0,0,.3))}
+.msg{min-height:1.4em;text-align:center;font-size:clamp(18px,3.2vmin,26px);font-weight:800}
+.msg.good{color:var(--good)} .msg.bad{color:var(--bad)}
+.big{font-family:var(--text);font-weight:800;font-size:clamp(18px,3.4vmin,26px);border:0;border-radius:999px;padding:.4em 1.4em;
+  background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 5px 0 var(--accent-dark);text-decoration:none;display:inline-block}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 var(--accent-dark)}
+.big.alt{background:#fff;color:var(--ink);box-shadow:0 5px 0 #cfd8dc;border:2px solid #cfd8dc}
+.cover{position:absolute;inset:0;display:grid;place-items:center;background:rgba(255,231,196,.88);padding:16px;z-index:5;overflow:auto}
+.box{background:#fff;border-radius:24px;padding:clamp(18px,4vmin,32px);width:min(520px,100%);box-shadow:0 12px 40px rgba(0,0,0,.18);
+  display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center}
+.box h2{margin:0;font-size:clamp(26px,5.5vmin,42px)}
+.box p{margin:0;color:var(--muted);font-size:clamp(15px,2.5vmin,19px);line-height:1.5}
+.row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.lbl{font-size:14px;font-weight:700;color:var(--muted);margin-top:4px}
+.opt{font:inherit;font-size:17px;font-weight:700;border:2px solid #cfd8dc;background:#fff;border-radius:14px;padding:9px 14px;cursor:pointer;color:inherit}
+.opt small{display:block;font-size:12px;font-weight:600;opacity:.75}
+.opt[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:#fff}
+.stars{font-size:clamp(40px,9vmin,72px);letter-spacing:.1em;line-height:1}
+.note{font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="ibtn" href="./" aria-label="回遊樂園地圖">🏠</a>
+  <div class="title">🎟️ 售票亭買門票</div>
+  <div class="right"><span class="score" id="score">⭐ 0</span><button type="button" class="ibtn" id="again" aria-label="再念一次題目">🔊</button></div>
+</header>
+<main>
+  <div class="booth">
+    <div class="ticket"><span class="ico" id="tIco">🎠</span><span class="what" id="tWhat"></span><span class="price" id="tPrice"></span></div>
+  </div>
+  <div class="tray">
+    <div class="head"><span>付款盤（點錢幣可以拿回來）</span><span class="sum" id="sum">0 元</span></div>
+    <div class="paid" id="paid"></div>
+    <div class="msg" id="msg" aria-live="polite"></div>
+    <div class="actions">
+      <button type="button" class="big alt" id="clear">全部拿回</button>
+      <button type="button" class="big" id="pay">付錢！</button>
+    </div>
+  </div>
+  <div class="wallet" id="wallet" aria-label="錢包"></div>
+
+  <section class="cover" id="start">
+    <div class="box">
+      <h2>🎟️ 售票亭買門票</h2>
+      <p>想玩遊樂園的設施要先買門票！<br>從錢包拿出硬幣和紙鈔，付<b>剛好</b>的錢。</p>
+      <span class="lbl">難度</span>
+      <div class="row" id="levels">
+        <button type="button" class="opt" data-lv="1">初級<small>20 元以內</small></button>
+        <button type="button" class="opt" data-lv="2">進階<small>100 元以內</small></button>
+        <button type="button" class="opt" data-lv="3">高級<small>1000 元以內</small></button>
+      </div>
+      <button type="button" class="big" id="go">開始！</button>
+      <span class="note">錢幣是依照新臺幣的顏色和大小畫的示意圖</span>
+    </div>
+  </section>
+  <section class="cover" id="end" hidden>
+    <div class="box">
+      <div class="stars" id="stars"></div>
+      <h2 id="endTitle"></h2>
+      <p id="endText"></p>
+      <div class="row">
+        <button type="button" class="big" id="replay">再玩一次</button>
+        <a class="big alt" href="./">回遊樂園</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
+  const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  const LV={1:{min:3,max:20,money:[1,5,10]},2:{min:21,max:100,money:[1,5,10,50]},3:{min:101,max:1000,money:[1,5,10,50,100,500,1000]}};
+  const RIDES=[["🎠","旋轉木馬"],["🎡","摩天輪"],["🎢","雲霄飛車"],["🎪","馬戲團表演"],["🎈","射氣球"],["🚂","小火車"],["🛶","碰碰船"],["🏰","鬼屋探險"]];
+  const S={lv:LV[+pref("park-level")]?+pref("park-level"):1,total:10,round:0,score:0,tries:0,phase:"start",price:0,paid:[],lastRide:-1};
+  const syncLv=()=>document.querySelectorAll("#levels button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
+  document.querySelectorAll("#levels button").forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("park-level",S.lv);syncLv()}));
+  syncLv();
+
+  // ---- 新臺幣示意圖：硬幣依實物的顏色與大小比例，紙鈔依主色 ----
+  const COIN={1:{r:20,fill:"#c98b4a",edge:"#9c6430",ink:"#5a3412",word:"壹圓"},
+              5:{r:22,fill:"#d9dde0",edge:"#9aa3a8",ink:"#4a5257",word:"伍圓"},
+              10:{r:26,fill:"#e4e7ea",edge:"#a3abb0",ink:"#4a5257",word:"拾圓",ring:"#c9a24a"},
+              50:{r:28,fill:"#e9c45d",edge:"#b38d2b",ink:"#6b4f0f",word:"伍拾圓"}};
+  const BILL={100:{fill:"#e58b8b",dark:"#b8454a",word:"壹佰圓"},500:{fill:"#d6a06a",dark:"#9b5f26",word:"伍佰圓"},1000:{fill:"#8fb1e0",dark:"#3e6aa8",word:"壹仟圓"}};
+  function moneySVG(v,scale=1){
+    if(COIN[v]){
+      const c=COIN[v],r=c.r*scale*2.1,s=r*2+4,m=s/2;
+      return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" aria-hidden="true">
+        <circle cx="${m}" cy="${m}" r="${r}" fill="${c.edge}"/>
+        <circle cx="${m}" cy="${m}" r="${r*.9}" fill="${c.fill}"/>
+        ${c.ring?`<circle cx="${m}" cy="${m}" r="${r*.78}" fill="none" stroke="${c.ring}" stroke-width="${r*.08}"/>`:""}
+        <circle cx="${m}" cy="${m}" r="${r*.84}" fill="none" stroke="${c.edge}" stroke-width="1" stroke-dasharray="1.5 3"/>
+        <text x="${m}" y="${m-r*.42}" text-anchor="middle" font-size="${r*.24}" font-weight="700" fill="${c.ink}" font-family="PingFang TC,Microsoft JhengHei,sans-serif">中華民國</text>
+        <text x="${m}" y="${m+r*.08}" text-anchor="middle" dominant-baseline="central" font-size="${r*(v>=10?.62:.8)}" font-weight="800" fill="${c.ink}" font-family="Baloo 2,Arial Rounded MT Bold,sans-serif">${v}</text>
+        <text x="${m}" y="${m+r*.6}" text-anchor="middle" font-size="${r*.24}" font-weight="700" fill="${c.ink}" font-family="PingFang TC,Microsoft JhengHei,sans-serif">${c.word}</text>
+      </svg>`;
+    }
+    const b=BILL[v],w=170*scale,h=82*scale;
+    return `<svg width="${w}" height="${h}" viewBox="0 0 150 72" aria-hidden="true">
+      <rect x="1" y="1" width="148" height="70" rx="6" fill="${b.fill}" stroke="${b.dark}" stroke-width="2"/>
+      <rect x="7" y="7" width="136" height="58" rx="4" fill="none" stroke="${b.dark}" stroke-width="1" stroke-dasharray="2 2"/>
+      <circle cx="112" cy="36" r="20" fill="rgba(255,255,255,.35)" stroke="${b.dark}" stroke-width="1"/>
+      <text x="12" y="22" font-size="13" font-weight="800" fill="${b.dark}" font-family="Baloo 2,Arial Rounded MT Bold,sans-serif">${v}</text>
+      <text x="138" y="62" text-anchor="end" font-size="11" font-weight="800" fill="${b.dark}" font-family="Baloo 2,Arial Rounded MT Bold,sans-serif">${v}</text>
+      <text x="56" y="30" text-anchor="middle" font-size="11" font-weight="700" fill="${b.dark}" font-family="PingFang TC,Microsoft JhengHei,sans-serif">中華民國</text>
+      <text x="56" y="48" text-anchor="middle" font-size="15" font-weight="800" fill="${b.dark}" font-family="PingFang TC,Microsoft JhengHei,sans-serif">${b.word}</text>
+      <text x="112" y="37" text-anchor="middle" dominant-baseline="central" font-size="18" font-weight="800" fill="${b.dark}" font-family="Baloo 2,Arial Rounded MT Bold,sans-serif">${v}</text>
+    </svg>`;
+  }
+  const label=v=>`${v} 元${COIN[v]?"硬幣":"紙鈔"}`;
+
+  // ---- 語音與音效 ----
+  const synth=window.speechSynthesis;let voice=null;const rate=+(pref("duel-rate")||.9)||.9;
+  const quality=v=>{const u=v.voiceURI||"";return /eloquence|speech\.synthesis\.voice/i.test(u)?0:/\.premium\./i.test(u)?3:/enhanced|-premium/i.test(u)?2:1};
+  function pickVoice(){if(!synth)return;const vs=synth.getVoices().filter(v=>/^(zh|cmn)/i.test(v.lang));const want=pref("duel-voice");
+    const tw=vs.filter(v=>/TW|Hant/i.test(v.lang)&&quality(v)>0).sort((a,b)=>quality(b)-quality(a));
+    voice=(want&&vs.find(v=>(v.voiceURI||v.name)===want))||tw[0]||vs.find(v=>quality(v)>0)||vs[0]||null}
+  if(synth){pickVoice();try{synth.addEventListener("voiceschanged",pickVoice)}catch(e){}}
+  function say(t){if(!synth)return;try{const u=new SpeechSynthesisUtterance(t);u.lang=voice?voice.lang.replace("_","-"):"zh-TW";if(voice)u.voice=voice;u.rate=rate;u.pitch=1.1;
+    if(synth.speaking||synth.pending){synth.cancel();setTimeout(()=>{try{synth.speak(u)}catch(e){}},90)}else synth.speak(u)}catch(e){}}
+  let ac=null;
+  function tone(fs,dur=.12,type="triangle",vol=.15){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume();
+    fs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*dur;o.type=type;o.frequency.value=f;
+      g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)})}catch(e){}}
+  const sfx={coin:()=>tone([1800,2400],.04,"sine",.08),paper:()=>tone([300],.05,"triangle",.05),good:()=>tone([660,880,1100]),
+    bad:()=>tone([220,180],.14,"square",.07),win:()=>tone([523,659,784,1047],.16)};
+  function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
+    try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}}
+
+  // ---- 錢包與付款盤 ----
+  function renderWallet(){
+    $("wallet").innerHTML=LV[S.lv].money.slice().reverse().map(v=>`<button type="button" class="money" data-v="${v}" aria-label="放一個${label(v)}">${moneySVG(v,S.lv===3?.8:1)}</button>`).join("");
+    $("wallet").querySelectorAll(".money").forEach(b=>b.addEventListener("click",()=>add(+b.dataset.v)));
+  }
+  const sum=()=>S.paid.reduce((a,b)=>a+b,0);
+  function renderPaid(){
+    const p=$("paid");
+    p.innerHTML=S.paid.length?S.paid.map((v,i)=>`<button type="button" class="money" data-i="${i}" aria-label="拿回${label(v)}">${moneySVG(v,.62)}</button>`).join("")
+      :`<span class="empty">把錢包裡的錢點進來</span>`;
+    p.querySelectorAll(".money").forEach(b=>b.addEventListener("click",()=>{if(S.phase!=="play")return;S.paid.splice(+b.dataset.i,1);sfx.paper();renderPaid()}));
+    const t=sum(),el=$("sum");el.textContent=`${t} 元`;el.className="sum"+(t>S.price?" over":t===S.price?" ok":"");
+  }
+  function add(v){
+    if(S.phase!=="play")return;
+    if(S.paid.length>=40){$("msg").textContent="付款盤滿了，換大一點的錢試試看";$("msg").className="msg bad";return}
+    S.paid.push(v);S.paid.sort((a,b)=>b-a);COIN[v]?sfx.coin():sfx.paper();$("msg").textContent="";renderPaid();
+  }
+  // 最少要幾個錢幣／紙鈔
+  const fewest=p=>LV[S.lv].money.slice().reverse().reduce((n,v)=>{n+=Math.floor(p/v);p%=v;return n},0);
+
+  // ---- 遊戲流程 ----
+  function start(){unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.score=0;upd();renderWallet();next();
+    try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}}
+  const upd=()=>{$("score").textContent=`⭐ ${S.score} / ${S.total}`};
+  function next(){
+    if(S.round>=S.total)return finish();
+    S.round++;S.tries=0;S.phase="play";S.paid=[];
+    const L=LV[S.lv];S.price=rnd(L.min,L.max);
+    let ri;do{ri=rnd(0,RIDES.length-1)}while(ri===S.lastRide);S.lastRide=ri;
+    const[ico,name]=RIDES[ri];S.ride=name;
+    $("tIco").textContent=ico;$("tWhat").innerHTML=`${name}<small>門票一張</small>`;
+    $("tPrice").innerHTML=`${S.price}<small>元</small>`;
+    $("msg").textContent="";$("msg").className="msg";renderPaid();
+    say(`${name}的門票要${S.price}元，請付剛好的錢`);
+  }
+  $("pay").addEventListener("click",()=>{
+    if(S.phase!=="play")return;
+    const t=sum();
+    if(t===S.price){
+      S.phase="reveal";if(S.tries===0)S.score++;upd();sfx.good();
+      const best=fewest(S.price),used=S.paid.length;
+      $("msg").textContent=used===best?`付剛好！而且用最少的 ${used} 個，好聰明！🎟️`:`付剛好！門票給你 🎟️（最少只要 ${best} 個喔）`;
+      $("msg").className="msg good";
+      say(used===best?"付剛好，而且用了最少的錢幣，好聰明！":`付剛好，門票給你。其實最少只要${best}個喔`);
+      setTimeout(next,2800);
+    }else{
+      S.tries++;sfx.bad();
+      const tip=t===0?"還沒有放錢喔":t<S.price?`還差 ${S.price-t} 元`:`多了 ${t-S.price} 元，要付剛好喔`;
+      $("msg").textContent=tip;$("msg").className="msg bad";say(tip);
+    }
+  });
+  $("clear").addEventListener("click",()=>{if(S.phase==="play"){S.paid=[];sfx.paper();renderPaid()}});
+  function finish(){
+    S.phase="end";sfx.win();
+    const r=S.score/S.total,st=r>=.9?3:r>=.6?2:1;
+    $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);
+    $("endTitle").textContent=st===3?"太厲害了！":st===2?"做得很好！":"再練習一下！";
+    $("endText").textContent=`買了 ${S.total} 張門票，有 ${S.score} 張第一次就付剛好。`;
+    $("end").hidden=false;say(`${$("endTitle").textContent}有${S.score}張門票第一次就付剛好`);
+  }
+  $("go").addEventListener("click",start);$("replay").addEventListener("click",start);
+  $("again").addEventListener("click",()=>{if(S.phase==="play")say(`${S.ride}的門票要${S.price}元，請付剛好的錢`)});
+  renderWallet();renderPaid();upd();
+})();
+</script>
+</body>
+</html>
