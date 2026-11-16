@@ -217,7 +217,8 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     const tap=(node,fn)=>{node.addEventListener("pointerdown",e=>{e.preventDefault();fn()});
       node.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();fn()}})};
     u.keys.forEach(k=>tap(k,()=>answer(p,+k.dataset.v,k)));
-    tap(u.readyBtn,()=>toggleReady(p));
+    // 「準備好了」用 click（手指放開時觸發），平板才會允許之後的語音
+    u.readyBtn.addEventListener("click",()=>toggleReady(p));
   });
 
   // ---- 語音 ----
@@ -232,13 +233,27 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
   function say(text){
     if(!S.voice||!synth)return;
     try{
-      synth.cancel();
       const u=new SpeechSynthesisUtterance(text);
-      u.lang=zhVoice?zhVoice.lang:"zh-TW";if(zhVoice)u.voice=zhVoice;
-      u.rate=.9;u.pitch=1.1;
-      synth.speak(u);
+      u.lang=zhVoice?zhVoice.lang.replace("_","-"):"zh-TW";if(zhVoice)u.voice=zhVoice;
+      u.rate=.9;u.pitch=1.1;u.volume=1;
+      // iPad / Safari：cancel 之後立刻 speak 有時會被吞掉，所以稍等一下再念
+      if(synth.speaking||synth.pending){synth.cancel();setTimeout(()=>{try{synth.speak(u)}catch(e){}},90)}
+      else synth.speak(u);
     }catch(e){}
   }
+  // 平板只允許在「手指離開螢幕」時解鎖聲音：前幾次碰觸時解鎖語音與音效
+  let unlockTries=0;
+  function unlockAudio(){
+    if(unlockTries>=4)return;unlockTries++;
+    try{
+      ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+      if(ac.state!=="running")ac.resume();
+      const buf=ac.createBuffer(1,1,22050),src=ac.createBufferSource();
+      src.buffer=buf;src.connect(ac.destination);src.start(0);
+    }catch(e){}
+    try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}
+  }
+  ["touchend","pointerup","click","keydown"].forEach(ev=>document.addEventListener(ev,unlockAudio,{capture:true,passive:true}));
   const readQ=()=>{if(S.q)say(S.q.text||`${S.q.a} 加 ${S.q.b}，等於多少？`)};
 
   // ---- 音效 ----
@@ -343,8 +358,8 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     if(v===S.q.sum){
       S.phase="reveal";S.score[p]++;updateScore(p,true);sfx.good();keyEl.classList.add("right");reveal();
       ui.forEach((u,i)=>setMsg(i,i===p?"答對了！+1 分":`${NAMES[p]} 搶先答對`,i===p?"good":""));
-      say(`${NAMES[p]} 答對了，等於 ${S.q.sum}`);
-      timer=setTimeout(nextRound,2400);
+      say(`${S.q.a} 加 ${S.q.b} 等於 ${S.q.sum}`);
+      timer=setTimeout(nextRound,2800);
     }else{
       S.locked[p]=true;sfx.bad();keyEl.classList.add("wrong");ui[p].el.classList.add("locked");
       setMsg(p,"答錯了，這題換對手","bad");
