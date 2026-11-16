@@ -192,7 +192,7 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:minma
     spin.setAttribute("transform",`rotate(${rot} ${CX} ${CY})`);
     cars.forEach(c=>{const a=(c.a+rot)*Math.PI/180;c.g.setAttribute("transform",`translate(${CX+R*Math.sin(a)} ${CY-R*Math.cos(a)})`)});
   }
-  function tick(now){const dt=Math.min(.05,(now-lastT)/1000);lastT=now;rot=(rot+dt*(S.phase==="reveal"?28:7))%360;place();raf=requestAnimationFrame(tick)}
+  function tick(now){const dt=Math.min(.05,(now-lastT)/1000);lastT=now;rot=(rot+dt*(S.spinning?40:0))%360;/* 作答時不轉，孩子比較好數 */place();raf=requestAnimationFrame(tick)}
 
   // ---- 出題 ----
   function newQ(){
@@ -213,7 +213,7 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:minma
   const upd=()=>{$("score").textContent=`⭐ ${S.score} / ${S.total}`};
   function next(){
     if(S.round>=S.total)return finish();
-    S.round++;S.tries=0;S.phase="play";newQ();build();
+    S.round++;S.tries=0;S.phase="play";S.spinning=false;newQ();build();
     $("story").innerHTML=`摩天輪有 <b>${S.n}</b> 個車廂，<br>每個車廂坐 <b>${S.k}</b> 隻動物，<br>總共有幾隻？`;
     $("eq").innerHTML=`${S.k} × ${S.n} = <span class="ans">?</span>`;
     $("skip").textContent="";$("msg").textContent="";$("msg").className="msg";
@@ -231,6 +231,8 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:minma
       // 幾個一數：車廂一個一個亮起來
       const seq=[];cars.forEach((c,i)=>setTimeout(()=>{c.g.classList.add("lit");seq.push(S.k*(i+1));$("skip").textContent=seq.join("、");sfx.pip(i)},350*i));
       say(`${S.k}的${S.n}倍，${S.k}乘以${S.n}等於${ans}`);
+      // 數完之後才轉一小段慶祝，再停下來
+      setTimeout(()=>{if(S.phase!=="reveal")return;S.spinning=true;setTimeout(()=>S.spinning=false,1800)},350*S.n+200);
       setTimeout(next,Math.max(3000,350*S.n+1800));
     }else{
       S.tries++;sfx.bad();b.classList.remove("wrong");void b.offsetWidth;b.classList.add("wrong");
