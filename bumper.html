@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>碰碰車賽跑</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
+<style>
+/* 雙人對戰：平板平放，兩人坐兩側（上半部旋轉 180°）。中間是賽道，各自答自己難度的題目，答對車子就往前，先到終點贏 */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --ink:#1f2b33; --muted:#66757d; --good:#1f9d61; --bad:#d23c3c;
+  --p1:#2f6fdb; --p1-soft:#dbe7fb; --p2:#e0772b; --p2-soft:#fbe6d6;
+  --num:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
+  --text:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{margin:0;height:100%}
+body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+[hidden]{display:none!important}
+.board{height:100%;display:grid;grid-template-rows:minmax(0,1fr) minmax(0,.62fr) minmax(0,1fr)}
+/* 玩家區 */
+.side{position:relative;display:flex;flex-direction:column;justify-content:center;gap:clamp(6px,1.4vmin,14px);min-height:0;
+  padding:clamp(8px,1.8vmin,16px) max(16px,env(safe-area-inset-right,0px)) clamp(8px,1.8vmin,16px) max(16px,env(safe-area-inset-left,0px))}
+.side.p1{--c:var(--p1);--soft:var(--p1-soft);background:linear-gradient(to top,var(--p1-soft),#eef3f1)}
+.side.p2{--c:var(--p2);--soft:var(--p2-soft);background:linear-gradient(to top,var(--p2-soft),#eef3f1);transform:rotate(180deg)}
+.head{display:flex;align-items:center;gap:10px}
+.name{font-weight:800;font-size:clamp(19px,3.2vmin,30px);color:var(--c);display:flex;align-items:center;gap:8px;white-space:nowrap}
+.name::before{content:"";width:.7em;height:.7em;border-radius:50%;background:var(--c)}
+.lvtag{font-size:clamp(14px,2.3vmin,20px);font-weight:700;color:#fff;background:var(--c);border-radius:999px;padding:1px 10px}
+.msg{flex:1;text-align:center;font-weight:800;font-size:clamp(17px,3vmin,28px);color:var(--muted)}
+.msg.good{color:var(--good)} .msg.bad{color:var(--bad)}
+.spk{width:56px;height:56px;border-radius:14px;border:2px solid var(--c);background:#fff;font-size:28px;cursor:pointer;flex:none}
+.spk.off{opacity:.45}
+.q{text-align:center;font-family:var(--num);font-weight:800;font-size:clamp(40px,8.5vmin,92px);line-height:1;white-space:nowrap}
+.q .a{color:var(--c)}
+.choices{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(8px,1.6vmin,16px)}
+.ch{font-family:var(--num);font-weight:800;font-size:clamp(30px,6vmin,62px);border:0;border-radius:18px;padding:.2em 0;background:#fff;color:var(--ink);
+  box-shadow:0 5px 0 color-mix(in srgb,var(--c) 45%,#c9d2d6);cursor:pointer;touch-action:manipulation}
+.ch:active{transform:translateY(3px)}
+.ch.wrong{background:var(--bad);color:#fff;animation:shake .35s}
+.ch.right{background:var(--good);color:#fff}
+.side.locked .choices{opacity:.4;pointer-events:none}
+@keyframes shake{25%{translate:-6px 0}75%{translate:6px 0}}
+/* 準備卡片：各自選難度、語音 */
+.overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(8px,1.6vmin,14px);
+  background:color-mix(in srgb,#eef3f1 92%,transparent);padding:12px;text-align:center;z-index:3}
+.overlay h2{margin:0;font-size:clamp(24px,5vmin,48px);color:var(--c)}
+.overlay .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.opt{font:inherit;font-size:clamp(15px,2.4vmin,19px);font-weight:700;border:2px solid #cfd8dc;background:#fff;border-radius:14px;padding:8px 14px;cursor:pointer;color:inherit}
+.opt small{display:block;font-size:.72em;font-weight:600;opacity:.75}
+.opt[aria-pressed="true"]{border-color:var(--c);background:var(--c);color:#fff}
+.ready{font-family:var(--text);font-weight:800;font-size:clamp(20px,4vmin,34px);border:0;border-radius:999px;padding:.45em 1.4em;
+  background:var(--c);color:#fff;cursor:pointer;box-shadow:0 5px 0 color-mix(in srgb,var(--c) 60%,#000)}
+.ready.on{background:var(--good);box-shadow:0 5px 0 color-mix(in srgb,var(--good) 60%,#000)}
+.overlay .big{font-family:var(--num);font-weight:800;font-size:clamp(40px,9vmin,80px);line-height:1;color:var(--c)}
+/* 中間賽道 */
+.track{position:relative;background:#3d4a52;display:grid;grid-template-rows:1fr 1fr;
+  padding:6px max(70px,env(safe-area-inset-right,0px)) 6px max(70px,env(safe-area-inset-left,0px));
+  background-image:repeating-linear-gradient(90deg,#46545d 0 2px,transparent 2px 40px)}
+.lane{position:relative;border-bottom:3px dashed #fff8;display:flex;align-items:center}
+.lane:last-child{border-bottom:0}
+.lane .marks{position:absolute;inset:0;display:grid;grid-template-columns:repeat(10,1fr)}
+.lane .marks span{border-right:1px solid #ffffff22}
+.finish{position:absolute;top:0;bottom:0;right:max(52px,env(safe-area-inset-right,0px));width:16px;
+  background:repeating-conic-gradient(#fff 0 25%,#1f2b33 0 50%) 0 0/16px 16px}
+.car{position:absolute;left:0;top:50%;font-size:clamp(34px,7vmin,64px);line-height:1;transition:left .5s cubic-bezier(.3,1.4,.6,1);
+  filter:drop-shadow(0 3px 0 rgba(0,0,0,.35))}
+.car .tint{position:absolute;inset:-6px -10px;border-radius:999px;background:var(--c);opacity:.55;z-index:-1}
+.lane.p2 .car{--c:var(--p2);transform:translate(-50%,-50%) scaleX(-1)}
+.lane.p1 .car{--c:var(--p1);transform:translate(-50%,-50%) scaleX(-1)}
+.home{position:fixed;right:calc(env(safe-area-inset-right,0px) + 6px);top:50%;transform:translateY(-50%);z-index:5;width:46px;height:46px;border-radius:12px;
+  background:#fff;display:grid;place-items:center;font-size:22px;text-decoration:none;box-shadow:0 3px 0 rgba(0,0,0,.2)}
+.count{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:6;font-family:var(--num);font-weight:800;
+  font-size:clamp(80px,20vmin,180px);color:#fff;text-shadow:0 6px 0 rgba(0,0,0,.3)}
+@media (prefers-reduced-motion:reduce){.car{transition:none}}
+</style>
+</head>
+<body>
+<div class="board">
+  <section class="side p2" data-p="1" aria-label="橘色玩家"></section>
+  <div class="track" aria-label="賽道">
+    <div class="lane p2"><div class="marks"></div><span class="car" id="car1"><span class="tint"></span>🚗</span></div>
+    <div class="lane p1"><div class="marks"></div><span class="car" id="car0"><span class="tint"></span>🚗</span></div>
+    <span class="finish" aria-hidden="true"></span>
+  </div>
+  <section class="side p1" data-p="0" aria-label="藍色玩家"></section>
+</div>
+<a class="home" href="./" aria-label="回遊樂園地圖">🏠</a>
+<div class="count" id="count" hidden></div>
+
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
+  const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  const NAMES=["藍色","橘色"],GOAL=10;
+  const LV={1:{name:"初級",sub:"10 以內加減"},2:{name:"進階",sub:"20 以內加減"},3:{name:"高級",sub:"100 以內加減、九九乘法"}};
+  const base=LV[+pref("park-level")]?+pref("park-level"):1;
+  // 每一邊：難度、語音、準備好了沒、位置、題目
+  const P=[0,1].map(p=>({lv:+pref("bumper-lv"+p)||base,voice:true,ready:false,pos:0,q:null,locked:false}));
+  P.forEach(x=>{if(!LV[x.lv])x.lv=1});
+  let phase="ready",timer=null;
+  document.querySelectorAll(".marks").forEach(m=>m.innerHTML="<span></span>".repeat(10));
+
+  // ---- 語音：排隊一句一句念，不會疊在一起 ----
+  const synth=window.speechSynthesis;let voice=null;const rate=+(pref("duel-rate")||.9)||.9;
+  const quality=v=>{const u=v.voiceURI||"";return /eloquence|speech\.synthesis\.voice/i.test(u)?0:/\.premium\./i.test(u)?3:/enhanced|-premium/i.test(u)?2:1};
+  function pickVoice(){if(!synth)return;const vs=synth.getVoices().filter(v=>/^(zh|cmn)/i.test(v.lang));const want=pref("duel-voice");
+    const tw=vs.filter(v=>/TW|Hant/i.test(v.lang)&&quality(v)>0).sort((a,b)=>quality(b)-quality(a));
+    voice=(want&&vs.find(v=>(v.voiceURI||v.name)===want))||tw[0]||vs.find(v=>quality(v)>0)||vs[0]||null}
+  if(synth){pickVoice();try{synth.addEventListener("voiceschanged",pickVoice)}catch(e){}}
+  const queue=[];let speaking=false,guard=null;
+  function speakNext(){
+    if(speaking||!queue.length||!synth)return;
+    const item=queue.shift();speaking=true;
+    const done=()=>{if(!speaking)return;speaking=false;clearTimeout(guard);setTimeout(speakNext,150)};
+    try{const u=new SpeechSynthesisUtterance(item.t);u.lang=voice?voice.lang.replace("_","-"):"zh-TW";if(voice)u.voice=voice;u.rate=rate;u.pitch=1.1;
+      u.onend=done;u.onerror=done;synth.speak(u)}catch(e){done()}
+    guard=setTimeout(done,7000);   // 平板沒回報念完時，最多等 7 秒
+  }
+  // 同一邊有新題目時，把那一邊還沒念到的舊題目拿掉
+  function enqueue(p,t){for(let i=queue.length-1;i>=0;i--)if(queue[i].p===p)queue.splice(i,1);queue.push({p,t});speakNext()}
+  function sayNow(t){queue.length=0;try{synth&&synth.cancel()}catch(e){}speaking=false;queue.push({p:-1,t});speakNext()}
+  let ac=null;
+  function tone(fs,dur=.12,type="triangle",vol=.15){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume();
+    fs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*dur;o.type=type;o.frequency.value=f;
+      g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)})}catch(e){}}
+  const sfx={good:()=>tone([784,1175],.12,"sine",.28),bad:()=>tone([150],.3,"square",.15),tick:()=>tone([600],.1),go:()=>tone([900],.25),
+    honk:()=>tone([440,440],.09,"square",.08),win:()=>tone([523,659,784,1047],.16)};
+  function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
+    try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}}
+
+  // ---- 出題：各自依自己的難度 ----
+  function makeQ(lv,last){
+    let q,t=0;
+    do{
+      if(lv===3&&Math.random()<.5){const a=rnd(2,9),b=rnd(1,9);q={a,b,sym:"×",word:"乘以",ans:a*b}}
+      else{const N=lv===1?10:lv===2?20:100,add=Math.random()<.5;
+        if(add){const a=rnd(1,N-1),b=rnd(1,N-a);q={a,b,sym:"+",word:"加",ans:a+b}}
+        else{const a=rnd(2,N),b=rnd(1,a-1);q={a,b,sym:"−",word:"減",ans:a-b}}}
+    }while(last&&q.a===last.a&&q.b===last.b&&++t<10);
+    const set=new Set([q.ans]),sp=lv===1?3:lv===2?5:10;
+    while(set.size<4){const v=q.ans+(Math.random()<.5?-1:1)*rnd(1,sp);if(v>=0)set.add(v)}
+    q.opts=[...set].sort(()=>Math.random()-.5);
+    return q;
+  }
+  const qText=q=>`${q.a} ${q.word} ${q.b}，等於多少？`;
+
+  // ---- 畫面 ----
+  const ui=[...document.querySelectorAll(".side")].sort((a,b)=>a.dataset.p-b.dataset.p).map((el,p)=>{
+    el.innerHTML=`
+      <div class="head"><span class="name">${NAMES[p]}</span><span class="lvtag"></span><span class="msg"></span>
+        <button type="button" class="spk" aria-label="念我的題目">🔊</button></div>
+      <div class="q"></div>
+      <div class="choices">${"<button type='button' class='ch'></button>".repeat(4)}</div>
+      <div class="overlay">
+        <h2>${NAMES[p]}的碰碰車</h2>
+        <div class="row lvs">${[1,2,3].map(l=>`<button type="button" class="opt" data-lv="${l}">${LV[l].name}<small>${LV[l].sub}</small></button>`).join("")}</div>
+        <div class="row"><button type="button" class="opt vbtn"></button></div>
+        <div class="big" hidden></div>
+        <button type="button" class="ready">準備好了</button>
+      </div>`;
+    const u={el,msg:el.querySelector(".msg"),q:el.querySelector(".q"),lvtag:el.querySelector(".lvtag"),spk:el.querySelector(".spk"),
+      chs:[...el.querySelectorAll(".ch")],ov:el.querySelector(".overlay"),h2:el.querySelector(".overlay h2"),big:el.querySelector(".overlay .big"),
+      lvs:[...el.querySelectorAll(".lvs .opt")],vbtn:el.querySelector(".vbtn"),ready:el.querySelector(".ready"),car:$("car"+p)};
+    u.lvs.forEach(b=>b.addEventListener("click",()=>{if(phase!=="ready")return;P[p].lv=+b.dataset.lv;pref("bumper-lv"+p,P[p].lv);autoVoice();syncSetup()}));
+    u.vbtn.addEventListener("click",()=>{if(phase!=="ready")return;P[p].voice=!P[p].voice;syncSetup()});
+    u.ready.addEventListener("click",()=>toggleReady(p));
+    u.spk.addEventListener("click",()=>{if(phase==="play"&&P[p].q)enqueue(p,`${NAMES[p]}，${qText(P[p].q)}`)});
+    u.chs.forEach(b=>b.addEventListener("pointerdown",e=>{e.preventDefault();answer(p,b)}));
+    return u;
+  });
+  // 難度一樣：兩邊都念；難度不同：只念難度低的那邊（念題目之後還可以自己切換）
+  function autoVoice(){
+    if(P[0].lv===P[1].lv){P[0].voice=P[1].voice=true}
+    else{const low=P[0].lv<P[1].lv?0:1;P[low].voice=true;P[1-low].voice=false}
+  }
+  function syncSetup(){
+    ui.forEach((u,p)=>{
+      u.lvs.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===P[p].lv));
+      u.vbtn.textContent=P[p].voice?"🔊 念題目：開":"🔇 念題目：關";u.vbtn.setAttribute("aria-pressed",P[p].voice);
+      u.lvtag.textContent=LV[P[p].lv].name;u.spk.classList.toggle("off",!P[p].voice);
+    });
+  }
+  function placeCars(){ui.forEach((u,p)=>{u.car.style.left=`${P[p].pos/GOAL*100}%`})}
+
+  // ---- 流程 ----
+  function showReady(){
+    clearTimeout(timer);phase="ready";queue.length=0;try{synth&&synth.cancel()}catch(e){}
+    P.forEach(x=>{x.ready=false;x.pos=0;x.q=null;x.locked=false});placeCars();
+    ui.forEach((u,p)=>{u.ov.hidden=false;u.h2.textContent=`${NAMES[p]}的碰碰車`;u.big.hidden=true;u.ready.textContent="準備好了";u.ready.classList.remove("on");
+      u.lvs.forEach(b=>b.parentElement.hidden=false);u.vbtn.parentElement.hidden=false;u.q.textContent="";u.msg.textContent="";u.el.classList.remove("locked")});
+    syncSetup();
+  }
+  function toggleReady(p){
+    unlock();
+    if(phase==="over"){showReady();return}
+    if(phase!=="ready")return;
+    P[p].ready=!P[p].ready;const b=ui[p].ready;b.classList.toggle("on",P[p].ready);b.textContent=P[p].ready?"等待對手…":"準備好了";sfx.tick();
+    if(P[0].ready&&P[1].ready)countdown();
+  }
+  function countdown(){
+    phase="count";ui.forEach(u=>u.ov.hidden=true);
+    const c=$("count");let n=3;c.hidden=false;c.textContent=n;sfx.tick();
+    const iv=setInterval(()=>{n--;if(n>0){c.textContent=n;sfx.tick();return}
+      clearInterval(iv);c.hidden=true;sfx.go();phase="play";
+      try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}
+      [0,1].forEach(p=>newQ(p));
+    },800);
+  }
+  function newQ(p){
+    const x=P[p],u=ui[p];x.q=makeQ(x.lv,x.q);x.locked=false;u.el.classList.remove("locked");
+    u.q.innerHTML=`${x.q.a} ${x.q.sym} ${x.q.b} = <span class="a">?</span>`;
+    u.chs.forEach((b,i)=>{b.textContent=x.q.opts[i];b.dataset.v=x.q.opts[i];b.classList.remove("wrong","right")});
+    if(x.voice)enqueue(p,`${NAMES[p]}，${qText(x.q)}`);
+  }
+  function answer(p,b){
+    const x=P[p],u=ui[p];
+    if(phase!=="play"||x.locked)return;
+    if(+b.dataset.v===x.q.ans){
+      b.classList.add("right");sfx.good();x.pos++;placeCars();u.q.querySelector(".a").textContent=x.q.ans;
+      u.msg.textContent="答對了！往前衝！";u.msg.className="msg good";x.locked=true;
+      if(x.pos>=GOAL)return setTimeout(()=>finish(p),550);
+      setTimeout(()=>{if(phase==="play")newQ(p)},650);
+    }else{
+      // 答錯：這一邊停 1.5 秒，避免亂按
+      b.classList.add("wrong");sfx.bad();x.locked=true;u.el.classList.add("locked");
+      u.msg.textContent="答錯了，等一下再試";u.msg.className="msg bad";
+      setTimeout(()=>{if(phase==="play"&&x.locked){x.locked=false;u.el.classList.remove("locked");b.classList.remove("wrong");u.msg.textContent="";u.msg.className="msg"}},1500);
+    }
+  }
+  function finish(w){
+    phase="over";sfx.win();sfx.honk();
+    ui.forEach((u,p)=>{u.ov.hidden=false;u.h2.textContent=p===w?"你贏了！🏆":"再接再厲！";u.big.hidden=false;u.big.textContent=`${P[p].pos} / ${GOAL}`;
+      u.lvs.forEach(b=>b.parentElement.hidden=true);u.vbtn.parentElement.hidden=true;u.ready.textContent="再玩一次";u.ready.classList.remove("on")});
+    sayNow(`${NAMES[w]}的碰碰車先到終點，${NAMES[w]}贏了！`);
+  }
+  autoVoice();showReady();
+})();
+</script>
+</body>
+</html>

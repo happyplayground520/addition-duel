@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>小火車大富翁</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
+<style>
+/* 雙人輪流：中間是環狀鐵軌，輪到的人擲骰子，答對自己難度的題目才能前進骰到的格數，先繞一圈回到起點的贏 */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --ink:#1f2b33; --muted:#66757d; --good:#1f9d61; --bad:#d23c3c;
+  --p1:#2f6fdb; --p1-soft:#dbe7fb; --p2:#e0772b; --p2-soft:#fbe6d6;
+  --num:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
+  --text:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{margin:0;height:100%}
+body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+[hidden]{display:none!important}
+.board{height:100%;display:grid;grid-template-rows:minmax(0,1fr) minmax(0,1.3fr) minmax(0,1fr)}
+/* 玩家區 */
+.side{position:relative;display:flex;flex-direction:column;justify-content:center;gap:clamp(6px,1.3vmin,12px);min-height:0;
+  padding:clamp(8px,1.6vmin,14px) max(16px,env(safe-area-inset-right,0px)) clamp(8px,1.6vmin,14px) max(16px,env(safe-area-inset-left,0px));transition:opacity .2s}
+.side.p1{--c:var(--p1);--soft:var(--p1-soft);background:linear-gradient(to top,var(--p1-soft),#eef3f1)}
+.side.p2{--c:var(--p2);--soft:var(--p2-soft);background:linear-gradient(to top,var(--p2-soft),#eef3f1);transform:rotate(180deg)}
+.side.wait .play{opacity:.35}
+.head{display:flex;align-items:center;gap:10px}
+.name{font-weight:800;font-size:clamp(19px,3.2vmin,30px);color:var(--c);display:flex;align-items:center;gap:8px;white-space:nowrap}
+.name::before{content:"";width:.7em;height:.7em;border-radius:50%;background:var(--c)}
+.lvtag{font-size:clamp(14px,2.3vmin,20px);font-weight:700;color:#fff;background:var(--c);border-radius:999px;padding:1px 10px}
+.msg{flex:1;text-align:center;font-weight:800;font-size:clamp(17px,3vmin,28px);color:var(--muted)}
+.msg.good{color:var(--good)} .msg.bad{color:var(--bad)}
+.spk{width:56px;height:56px;border-radius:14px;border:2px solid var(--c);background:#fff;font-size:28px;cursor:pointer;flex:none}
+.spk.off{opacity:.45}
+.play{display:flex;flex-direction:column;align-items:center;gap:clamp(6px,1.3vmin,12px)}
+.roll{font-family:var(--text);font-weight:800;font-size:clamp(22px,4.4vmin,40px);border:0;border-radius:999px;padding:.4em 1.4em;
+  background:var(--c);color:#fff;cursor:pointer;box-shadow:0 5px 0 color-mix(in srgb,var(--c) 60%,#000)}
+.roll:active{transform:translateY(3px)}
+.qline{display:flex;align-items:center;gap:clamp(10px,2vmin,20px)}
+.die{width:clamp(56px,10vmin,96px);aspect-ratio:1;border-radius:18%;background:#fff;border:3px solid var(--c);display:grid;place-items:center;
+  font-family:var(--num);font-weight:800;font-size:clamp(34px,6.5vmin,62px);color:var(--c);box-shadow:0 4px 0 color-mix(in srgb,var(--c) 45%,#c9d2d6)}
+.die.spin{animation:spin .12s linear infinite}
+@keyframes spin{50%{transform:rotate(12deg) scale(.92)}}
+.q{font-family:var(--num);font-weight:800;font-size:clamp(36px,7.5vmin,80px);line-height:1;white-space:nowrap}
+.q .a{color:var(--c)}
+.choices{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(8px,1.6vmin,16px);width:100%}
+.ch{font-family:var(--num);font-weight:800;font-size:clamp(28px,5.6vmin,56px);border:0;border-radius:18px;padding:.2em 0;background:#fff;color:var(--ink);
+  box-shadow:0 5px 0 color-mix(in srgb,var(--c) 45%,#c9d2d6);cursor:pointer;touch-action:manipulation}
+.ch:active{transform:translateY(3px)}
+.ch.wrong{background:var(--bad);color:#fff}
+.ch.right{background:var(--good);color:#fff}
+/* 準備卡片 */
+.overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(8px,1.6vmin,14px);
+  background:color-mix(in srgb,#eef3f1 92%,transparent);padding:12px;text-align:center;z-index:3}
+.overlay h2{margin:0;font-size:clamp(24px,5vmin,48px);color:var(--c)}
+.overlay .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.opt{font:inherit;font-size:clamp(15px,2.4vmin,19px);font-weight:700;border:2px solid #cfd8dc;background:#fff;border-radius:14px;padding:8px 14px;cursor:pointer;color:inherit}
+.opt small{display:block;font-size:.72em;font-weight:600;opacity:.75}
+.opt[aria-pressed="true"]{border-color:var(--c);background:var(--c);color:#fff}
+.ready{font-family:var(--text);font-weight:800;font-size:clamp(20px,4vmin,34px);border:0;border-radius:999px;padding:.45em 1.4em;
+  background:var(--c);color:#fff;cursor:pointer;box-shadow:0 5px 0 color-mix(in srgb,var(--c) 60%,#000)}
+.ready.on{background:var(--good);box-shadow:0 5px 0 color-mix(in srgb,var(--good) 60%,#000)}
+/* 中間的鐵軌 */
+.map{position:relative;min-height:0;background:#bfe6a0;
+  background-image:radial-gradient(circle at 15% 30%,#a9d987 0 5%,transparent 5.5%),radial-gradient(circle at 80% 70%,#a9d987 0 6%,transparent 6.5%)}
+.map svg{position:absolute;inset:0;width:100%;height:100%}
+.home{flex:none;width:52px;height:52px;border-radius:14px;
+  background:#fff;display:grid;place-items:center;font-size:26px;text-decoration:none;box-shadow:0 3px 0 rgba(0,0,0,.2)}
+.toast{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:6;background:#fff;border-radius:18px;padding:10px 22px;
+  font-weight:800;font-size:clamp(20px,4vmin,34px);box-shadow:0 8px 24px rgba(0,0,0,.2);pointer-events:none;white-space:nowrap}
+.toast.flip{transform:translate(-50%,-50%) rotate(180deg)}
+</style>
+</head>
+<body>
+<div class="board">
+  <section class="side p2" data-p="1" aria-label="橘色玩家"></section>
+  <div class="map"><svg id="svg" viewBox="0 0 640 290" preserveAspectRatio="xMidYMid meet" role="img" aria-label="小火車鐵軌"></svg></div>
+  <section class="side p1" data-p="0" aria-label="藍色玩家"></section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
+  const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  const NAMES=["藍色","橘色"],COLORS=["#2f6fdb","#e0772b"],N=20;
+  const LV={1:{name:"初級",sub:"10 以內加減"},2:{name:"進階",sub:"20 以內加減"},3:{name:"高級",sub:"100 以內加減、九九乘法"}};
+  const base=LV[+pref("park-level")]?+pref("park-level"):1;
+  const P=[0,1].map(p=>({lv:+pref("train-lv"+p)||base,voice:true,ready:false,pos:0,q:null}));
+  P.forEach(x=>{if(!LV[x.lv])x.lv=1});
+  // 特別的站：⭐ 加速站再走 2 格、🚇 隧道退後 2 格
+  const SPECIAL={4:"fast",8:"tunnel",12:"fast",16:"tunnel"};
+  let phase="ready",turn=0,die=0;
+
+  // ---- 語音與音效 ----
+  const synth=window.speechSynthesis;let voice=null;const rate=+(pref("duel-rate")||.9)||.9;
+  const quality=v=>{const u=v.voiceURI||"";return /eloquence|speech\.synthesis\.voice/i.test(u)?0:/\.premium\./i.test(u)?3:/enhanced|-premium/i.test(u)?2:1};
+  function pickVoice(){if(!synth)return;const vs=synth.getVoices().filter(v=>/^(zh|cmn)/i.test(v.lang));const want=pref("duel-voice");
+    const tw=vs.filter(v=>/TW|Hant/i.test(v.lang)&&quality(v)>0).sort((a,b)=>quality(b)-quality(a));
+    voice=(want&&vs.find(v=>(v.voiceURI||v.name)===want))||tw[0]||vs.find(v=>quality(v)>0)||vs[0]||null}
+  if(synth){pickVoice();try{synth.addEventListener("voiceschanged",pickVoice)}catch(e){}}
+  function say(t){if(!synth)return;try{const u=new SpeechSynthesisUtterance(t);u.lang=voice?voice.lang.replace("_","-"):"zh-TW";if(voice)u.voice=voice;u.rate=rate;u.pitch=1.1;
+    if(synth.speaking||synth.pending){synth.cancel();setTimeout(()=>{try{synth.speak(u)}catch(e){}},90)}else synth.speak(u)}catch(e){}}
+  let ac=null;
+  function tone(fs,dur=.12,type="triangle",vol=.15){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume();
+    fs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*dur;o.type=type;o.frequency.value=f;
+      g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)})}catch(e){}}
+  const sfx={good:()=>tone([784,1175],.12,"sine",.28),bad:()=>tone([150],.3,"square",.15),tick:()=>tone([600],.08),step:()=>tone([700],.05,"square",.05),
+    roll:()=>tone([300,400,500],.04,"square",.05),choo:()=>tone([523,659],.18,"sawtooth",.06),win:()=>tone([523,659,784,1047],.16)};
+  function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
+    try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}}
+
+  // ---- 鐵軌：20 個車站排成圓角長方形 ----
+  const NS="http://www.w3.org/2000/svg",svg=$("svg");
+  const mk=(tag,attrs,parent=svg)=>{const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);parent.appendChild(e);return e};
+  // 起點在左下角，往右走：下排 8 格 → 右邊 2 格 → 上排 8 格 → 左邊 2 格
+  const X0=40,X1=600,Y0=36,Y1=254,step=(X1-X0)/7;
+  const SQ=[];
+  for(let i=0;i<8;i++)SQ.push([X0+i*step,Y1]);
+  SQ.push([X1,Y1-(Y1-Y0)/3],[X1,Y0+(Y1-Y0)/3]);
+  for(let i=0;i<8;i++)SQ.push([X1-i*step,Y0]);
+  SQ.push([X0,Y0+(Y1-Y0)/3],[X0,Y1-(Y1-Y0)/3]);
+  mk("rect",{x:X0,y:Y0,width:X1-X0,height:Y1-Y0,rx:40,fill:"none",stroke:"#8a6a4a","stroke-width":22});
+  mk("rect",{x:X0,y:Y0,width:X1-X0,height:Y1-Y0,rx:40,fill:"none",stroke:"#c9a27a","stroke-width":14,"stroke-dasharray":"4 10"});
+  SQ.forEach(([x,y],i)=>{
+    const sp=SPECIAL[i];
+    mk("rect",{x:x-27,y:y-27,width:54,height:54,rx:13,fill:i===0?"#fff3b0":sp==="fast"?"#d6f5d6":sp==="tunnel"?"#e3dcef":"#fff",stroke:"#5a6b75","stroke-width":2.5});
+    const t=mk("text",{x,y:y+1,"text-anchor":"middle","dominant-baseline":"central","font-size":i===0||sp?30:18,"font-weight":800,fill:"#5a6b75","font-family":"Baloo 2,sans-serif"});
+    t.textContent=i===0?"🏁":sp==="fast"?"⭐":sp==="tunnel"?"🚇":i;
+  });
+  // 中間說明（正反各一份）
+  const info=[mk("text",{x:320,y:196,"text-anchor":"middle","font-size":28,"font-weight":800,fill:"#2b4a1f","font-family":"PingFang TC,Microsoft JhengHei,sans-serif"}),
+              mk("text",{x:320,y:94,"text-anchor":"middle","font-size":28,"font-weight":800,fill:"#2b4a1f","font-family":"PingFang TC,Microsoft JhengHei,sans-serif",transform:"rotate(180 320 94)"})];
+  mk("text",{x:320,y:145,"text-anchor":"middle","dominant-baseline":"central","font-size":17,fill:"#2b4a1f","font-family":"PingFang TC,Microsoft JhengHei,sans-serif"}).textContent="⭐ 再走 2 格　🚇 退後 2 格";
+  const tokens=[0,1].map(p=>{const g=mk("g",{});mk("circle",{r:21,fill:COLORS[p],stroke:"#fff","stroke-width":3},g);
+    const t=mk("text",{"text-anchor":"middle","dominant-baseline":"central","font-size":24},g);t.textContent="🚂";return g});
+  function placeTokens(){
+    tokens.forEach((g,p)=>{const i=Math.min(P[p].pos,N)%N,[x,y]=SQ[i],same=(Math.min(P[0].pos,N)%N)===(Math.min(P[1].pos,N)%N);
+      g.setAttribute("transform",`translate(${x+(same?(p?12:-12):0)} ${y+(same?(p?-10:10):0)})`)});
+  }
+  function setInfo(t){info.forEach(e=>e.textContent=t)}
+
+  // ---- 出題 ----
+  function makeQ(lv){
+    let q;
+    if(lv===3&&Math.random()<.5){const a=rnd(2,9),b=rnd(1,9);q={a,b,sym:"×",word:"乘以",ans:a*b}}
+    else{const Nn=lv===1?10:lv===2?20:100,add=Math.random()<.5;
+      if(add){const a=rnd(1,Nn-1),b=rnd(1,Nn-a);q={a,b,sym:"+",word:"加",ans:a+b}}
+      else{const a=rnd(2,Nn),b=rnd(1,a-1);q={a,b,sym:"−",word:"減",ans:a-b}}}
+    const set=new Set([q.ans]),sp=lv===1?3:lv===2?5:10;
+    while(set.size<4){const v=q.ans+(Math.random()<.5?-1:1)*rnd(1,sp);if(v>=0)set.add(v)}
+    q.opts=[...set].sort(()=>Math.random()-.5);return q;
+  }
+
+  // ---- 畫面 ----
+  const ui=[...document.querySelectorAll(".side")].sort((a,b)=>a.dataset.p-b.dataset.p).map((el,p)=>{
+    el.innerHTML=`
+      <div class="head">${p===0?'<a class="home" href="./" aria-label="回遊樂園地圖">🏠</a>':""}<span class="name">${NAMES[p]}</span><span class="lvtag"></span><span class="msg"></span>
+        <button type="button" class="spk" aria-label="再念一次我的題目">🔊</button></div>
+      <div class="play">
+        <button type="button" class="roll">🎲 擲骰子</button>
+        <div class="qline" hidden><div class="die">?</div><div class="q"></div></div>
+        <div class="choices" hidden>${"<button type='button' class='ch'></button>".repeat(4)}</div>
+      </div>
+      <div class="overlay">
+        <h2>${NAMES[p]}的小火車</h2>
+        <div class="row lvs">${[1,2,3].map(l=>`<button type="button" class="opt" data-lv="${l}">${LV[l].name}<small>${LV[l].sub}</small></button>`).join("")}</div>
+        <div class="row"><button type="button" class="opt vbtn"></button></div>
+        <button type="button" class="ready">準備好了</button>
+      </div>`;
+    const u={el,msg:el.querySelector(".msg"),lvtag:el.querySelector(".lvtag"),spk:el.querySelector(".spk"),roll:el.querySelector(".roll"),
+      qline:el.querySelector(".qline"),die:el.querySelector(".die"),q:el.querySelector(".q"),choices:el.querySelector(".choices"),chs:[...el.querySelectorAll(".ch")],
+      ov:el.querySelector(".overlay"),h2:el.querySelector(".overlay h2"),lvs:[...el.querySelectorAll(".lvs .opt")],vbtn:el.querySelector(".vbtn"),ready:el.querySelector(".ready")};
+    u.lvs.forEach(b=>b.addEventListener("click",()=>{if(phase!=="ready")return;P[p].lv=+b.dataset.lv;pref("train-lv"+p,P[p].lv);syncSetup()}));
+    u.vbtn.addEventListener("click",()=>{if(phase!=="ready")return;P[p].voice=!P[p].voice;syncSetup()});
+    u.ready.addEventListener("click",()=>toggleReady(p));
+    u.roll.addEventListener("click",()=>roll(p));
+    u.spk.addEventListener("click",()=>{if(phase==="answer"&&turn===p)say(qText(p))});
+    u.chs.forEach(b=>b.addEventListener("click",()=>answer(p,b)));
+    return u;
+  });
+  const qText=p=>`${NAMES[p]}擲到${die}，${P[p].q.a}${P[p].q.word}${P[p].q.b}，等於多少？`;
+  function syncSetup(){
+    ui.forEach((u,p)=>{u.lvs.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===P[p].lv));
+      u.vbtn.textContent=P[p].voice?"🔊 念題目：開":"🔇 念題目：關";u.vbtn.setAttribute("aria-pressed",P[p].voice);
+      u.lvtag.textContent=LV[P[p].lv].name;u.spk.classList.toggle("off",!P[p].voice)});
+  }
+  function toast(t,p){const el=$("toast");el.textContent=t;el.classList.toggle("flip",p===1);el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,1500)}
+
+  // ---- 流程 ----
+  function showReady(){
+    phase="ready";try{synth&&synth.cancel()}catch(e){}
+    P.forEach(x=>{x.ready=false;x.pos=0;x.q=null});placeTokens();setInfo("🚂 小火車大富翁");
+    ui.forEach((u,p)=>{u.ov.hidden=false;u.h2.textContent=`${NAMES[p]}的小火車`;u.ready.textContent="準備好了";u.ready.classList.remove("on");
+      u.lvs[0].parentElement.hidden=false;u.vbtn.parentElement.hidden=false;u.msg.textContent=""});
+    syncSetup();
+  }
+  function toggleReady(p){
+    unlock();
+    if(phase==="over"){showReady();return}
+    if(phase!=="ready")return;
+    P[p].ready=!P[p].ready;const b=ui[p].ready;b.classList.toggle("on",P[p].ready);b.textContent=P[p].ready?"等待對手…":"準備好了";sfx.tick();
+    if(P[0].ready&&P[1].ready){ui.forEach(u=>u.ov.hidden=true);sfx.choo();turn=rnd(0,1);startTurn()}
+  }
+  function startTurn(){
+    phase="roll";
+    ui.forEach((u,p)=>{const me=p===turn;u.el.classList.toggle("wait",!me);u.roll.hidden=!me;u.qline.hidden=true;u.choices.hidden=true;
+      u.msg.textContent=me?"輪到你了！":"等對手…";u.msg.className="msg"});
+    setInfo(`輪到 ${NAMES[turn]}`);say(`輪到${NAMES[turn]}，請擲骰子`);
+  }
+  function roll(p){
+    if(phase!=="roll"||p!==turn)return;
+    phase="rolling";const u=ui[p];u.roll.hidden=true;u.qline.hidden=false;u.q.textContent="";u.die.classList.add("spin");
+    let n=0;const iv=setInterval(()=>{u.die.textContent=rnd(1,6);sfx.roll();if(++n>=8){clearInterval(iv);
+      u.die.classList.remove("spin");die=rnd(1,6);u.die.textContent=die;
+      P[p].q=makeQ(P[p].lv);const q=P[p].q;
+      u.q.innerHTML=`${q.a} ${q.sym} ${q.b} = <span class="a">?</span>`;
+      u.chs.forEach((b,i)=>{b.textContent=q.opts[i];b.dataset.v=q.opts[i];b.classList.remove("wrong","right")});
+      u.choices.hidden=false;u.msg.textContent=`擲到 ${die}！答對就前進 ${die} 格`;phase="answer";
+      if(P[p].voice)say(qText(p));}},90);
+  }
+  function answer(p,b){
+    if(phase!=="answer"||p!==turn)return;
+    phase="moving";const u=ui[p],q=P[p].q;
+    u.q.querySelector(".a").textContent=q.ans;
+    if(+b.dataset.v===q.ans){
+      b.classList.add("right");sfx.good();u.msg.textContent=`答對了！前進 ${die} 格`;u.msg.className="msg good";
+      say(`答對了，前進${die}格`);
+      move(p,die,()=>landed(p));
+    }else{
+      b.classList.add("wrong");u.chs.find(x=>+x.dataset.v===q.ans).classList.add("right");sfx.bad();
+      u.msg.textContent=`答案是 ${q.ans}，這次停在原地`;u.msg.className="msg bad";
+      say(`答案是${q.ans}，這次停在原地`);
+      setTimeout(nextTurn,2200);
+    }
+  }
+  // 一格一格走
+  function move(p,steps,done){
+    const dir=steps>0?1:-1;let left=Math.abs(steps);
+    const iv=setInterval(()=>{
+      if(left<=0||P[p].pos>=N){clearInterval(iv);done();return}
+      P[p].pos=Math.max(0,P[p].pos+dir);left--;sfx.step();placeTokens();
+    },320);
+  }
+  function landed(p){
+    if(P[p].pos>=N)return finish(p);
+    const sp=SPECIAL[P[p].pos];
+    if(sp==="fast"){toast("⭐ 加速站！再走 2 格",p);say("加速站，再走兩格");setTimeout(()=>move(p,2,()=>P[p].pos>=N?finish(p):setTimeout(nextTurn,700)),900);return}
+    if(sp==="tunnel"){toast("🚇 隧道！退後 2 格",p);say("進隧道了，退後兩格");setTimeout(()=>move(p,-2,()=>setTimeout(nextTurn,700)),900);return}
+    setTimeout(nextTurn,900);
+  }
+  function nextTurn(){if(phase==="over")return;turn=1-turn;startTurn()}
+  function finish(w){
+    phase="over";sfx.win();placeTokens();setInfo(`🏆 ${NAMES[w]} 贏了！`);
+    ui.forEach((u,p)=>{u.el.classList.remove("wait");u.ov.hidden=false;u.h2.textContent=p===w?"你贏了！🏆":"再接再厲！";
+      u.lvs[0].parentElement.hidden=true;u.vbtn.parentElement.hidden=true;u.ready.textContent="再玩一次";u.ready.classList.remove("on")});
+    say(`${NAMES[w]}的小火車先回到終點，${NAMES[w]}贏了！`);
+  }
+  showReady();
+})();
+</script>
+</body>
+</html>
