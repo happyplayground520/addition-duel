@@ -418,7 +418,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     {ch:[67,71,74],mel:[86,83]}    // G
   ];
   const ARP=[0,2,1,2,0,2,1,2];      // 分解和弦的順序：根、五、三、五……
-  const STEP=60/92/2;               // 每分鐘 92 拍的八分音符
+  const STEP=60/70/2;               // 每分鐘 70 拍的八分音符（慢一點）
   const hz=m=>440*Math.pow(2,(m-69)/12);
   // 音樂盒的「叮」：基音 + 一個高泛音，瞬間起音、慢慢消失
   function bell(m,t,vel,len){
@@ -435,9 +435,9 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     if(M.next<ac.currentTime)M.next=ac.currentTime+.05;
     while(M.next<ac.currentTime+.3){
       const t=M.next,s=M.step%8,bar=BARS[Math.floor(M.step/8)%BARS.length];
-      bell(bar.ch[ARP[s]],t,.16,1.1);
-      if(s===0)bell(bar.mel[0],t,.26,1.8);
-      if(s===4)bell(bar.mel[1],t,.26,1.8);
+      bell(bar.ch[ARP[s]],t,.16,1.4);
+      if(s===0)bell(bar.mel[0],t,.26,2.2);
+      if(s===4)bell(bar.mel[1],t,.26,2.2);
       M.next+=STEP;M.step++;
     }
   }
