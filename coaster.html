@@ -315,7 +315,7 @@ body{background:linear-gradient(#ffd9a8,#ffeedd 55%,#fff6ec);color:var(--ink);fo
   }
   function setTarget(t){
     S.target=t;const b=$("target");b.textContent=t;b.classList.remove("bump");void b.offsetWidth;b.classList.add("bump");
-    say(String(t));
+    say(`找出等於${t}的車廂`);
   }
   function clearCards(){cards.forEach(c=>c.el.remove());cards=[];field.querySelectorAll(".float").forEach(f=>f.remove())}
 
