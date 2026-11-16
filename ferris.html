@@ -29,7 +29,7 @@ body{background:linear-gradient(#7cc8f5,#cdeeff 62%,#bfe7a0 62%);color:var(--ink
 .title{justify-self:center;font-weight:800;font-size:clamp(18px,3.2vmin,28px)}
 .right{display:flex;gap:10px;align-items:center}
 .score{font-family:var(--num);font-weight:800;font-size:clamp(18px,3.2vmin,28px);background:rgba(255,255,255,.9);border-radius:999px;padding:4px 14px;white-space:nowrap}
-main{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:clamp(10px,3vmin,36px);align-items:center;
+main{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:minmax(0,1fr);grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:clamp(10px,3vmin,36px);align-items:center;
   padding:0 max(16px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 @media (orientation:portrait){main{grid-template-columns:1fr;grid-template-rows:minmax(0,1.3fr) auto}}
 .wheel{height:100%;min-height:0;display:grid;place-items:center}
@@ -78,6 +78,9 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:mi
   #start .box>p{display:none}
   .cover .stars{font-size:36px}
 }
+/* 圖一定要縮在畫面內，手機橫放也不會超出去 */
+.wheel,.ride{position:relative;height:100%;min-height:0}
+.wheel svg,.ride svg{position:absolute;inset:0;width:100%;height:100%;max-height:none}
 </style>
 </head>
 <body>
@@ -87,7 +90,7 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:mi
   <div class="right"><span class="score" id="score">⭐ 0</span><button type="button" class="ibtn" id="again" aria-label="再念一次題目">🔊</button></div>
 </header>
 <main>
-  <div class="wheel"><svg id="svg" viewBox="0 0 400 430" role="img" aria-label="摩天輪"></svg></div>
+  <div class="wheel"><svg id="svg" viewBox="0 0 400 470" role="img" aria-label="摩天輪"></svg></div>
   <div class="panel">
     <div class="story" id="story"></div>
     <div class="eq" id="eq"></div>
@@ -156,8 +159,8 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:mi
   const ANIMALS=["🐻","🐰","🐱","🐶","🐼","🐸","🐷","🦊","🐯","🐨"];
   const COLORS=["#e0477b","#f08a24","#f2c12e","#3fb56a","#2f8fdb","#8a5cd6","#1fb5a8","#e25555","#d1478f"];
   // 支架與底座
-  mk("path",{d:`M${CX} ${CY} L95 410 M${CX} ${CY} L305 410`,stroke:"#5a6b75","stroke-width":12,"stroke-linecap":"round"});
-  mk("rect",{x:60,y:404,width:280,height:18,rx:9,fill:"#5a6b75"});
+  mk("path",{d:`M${CX} ${CY} L95 452 M${CX} ${CY} L305 452`,stroke:"#5a6b75","stroke-width":12,"stroke-linecap":"round"});
+  mk("rect",{x:60,y:446,width:280,height:18,rx:9,fill:"#5a6b75"});
   const spin=mk("g",{});
   mk("circle",{cx:CX,cy:CY,r:R,fill:"none",stroke:"#ffffff","stroke-width":8},spin);
   mk("circle",{cx:CX,cy:CY,r:R-14,fill:"none",stroke:"#ffffff","stroke-width":3,"stroke-dasharray":"4 10"},spin);
