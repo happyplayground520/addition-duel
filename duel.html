@@ -167,11 +167,17 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
 .menu-btn{position:fixed;z-index:20;left:calc(env(safe-area-inset-left,0px) + 10px);top:50%;transform:translateY(-50%);
   width:44px;height:44px;border-radius:12px;border:1px solid var(--band-line);background:var(--band-soft);color:var(--band-ink);
   font-size:22px;line-height:1;cursor:pointer;display:grid;place-items:center}
+/* 選單按鈕上下各一顆：上面 ☰ 設定、下面 🏠 回遊樂園 */
+.menu-btn{transform:translateY(calc(-100% - 6px))}
+.home-btn{position:fixed;z-index:20;left:calc(env(safe-area-inset-left,0px) + 10px);top:calc(50% + 6px);
+  width:44px;height:44px;border-radius:12px;border:1px solid var(--band-line);background:var(--band-soft);
+  font-size:22px;line-height:1;display:grid;place-items:center;text-decoration:none}
+.home-btn:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .menu-btn:focus-visible{outline:2px solid #fff;outline-offset:2px}
 /* 新手導覽：指向左側選單按鈕的提示卡 */
 .menu-btn.pulse{animation:pulse 1.4s ease-out infinite}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,200,60,.85)}100%{box-shadow:0 0 0 16px rgba(255,200,60,0)}}
-.tour{position:fixed;z-index:25;left:calc(env(safe-area-inset-left,0px) + 70px);top:50%;transform:translateY(-50%);
+.tour{position:fixed;z-index:25;left:calc(env(safe-area-inset-left,0px) + 70px);top:calc(50% - 28px);transform:translateY(-50%);
   width:min(320px,calc(100vw - 96px));background:#fff;color:var(--ink);border-radius:16px;padding:16px 18px;
   box-shadow:0 10px 30px rgba(0,0,0,.25);display:flex;flex-direction:column;gap:10px}
 .tour[hidden]{display:none}
@@ -242,12 +248,13 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
 <button type="button" class="menu-btn" id="menuBtn" aria-label="開啟設定選單" aria-controls="drawer" aria-expanded="false">☰</button>
 <div class="tour" id="tour" role="dialog" aria-labelledby="tourTitle" hidden>
   <h3 id="tourTitle">👈 設定在這裡</h3>
-  <p>點左邊的 ☰ 可以選擇加法／減法、數字題或應用題、題數、語音和背景音樂。</p>
+  <p>點左邊的 ☰ 可以選擇加法／減法、數字題或應用題、題數、語音和背景音樂。下面的 🏠 可以回遊樂園。</p>
   <div class="row">
     <label><input type="checkbox" id="tourOff"> 不要再顯示</label>
     <button type="button" class="ok" id="tourOk">知道了</button>
   </div>
 </div>
+<a class="home-btn" href="./" aria-label="回遊樂園地圖">🏠</a>
 <div class="scrim" id="scrim" hidden></div>
 <aside class="drawer" id="drawer" aria-label="設定" aria-hidden="true">
   <header><h2>設定</h2><button type="button" class="x" id="closeMenu" aria-label="關閉選單">×</button></header>
