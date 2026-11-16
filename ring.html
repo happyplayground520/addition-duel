@@ -132,8 +132,8 @@ body{background:linear-gradient(#ffe3ef,#fff3f8 58%,#ffd9a8 58%);color:var(--ink
     <p>看上面的乘法題，把圈圈丟到寫著答案的瓶子上！<br>時間內套中越多個越厲害。</p>
     <span class="lbl">難度</span>
     <div class="row" id="levels">
-      <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small>2、5、4、8 的乘法</small></button>
-      <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small>3、6、9、7 的乘法</small></button>
+      <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small>2、5 的乘法</small></button>
+      <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small>2、5、4、8 的乘法</small></button>
       <button type="button" class="opt" data-lv="3" aria-label="高級"><span class="lvst">⭐⭐⭐</span><small>九九乘法</small></button>
     </div>
     <span class="lbl">時間</span>
@@ -165,7 +165,7 @@ body{background:linear-gradient(#ffe3ef,#fff3f8 58%,#ffd9a8 58%);color:var(--ink
   const $=id=>document.getElementById(id);
   const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
   const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
-  const LV={1:{ks:[2,5,4,8],name:"初級"},2:{ks:[3,6,9,7],name:"進階"},3:{ks:[2,3,4,5,6,7,8,9],name:"高級"}};
+  const LV={1:{ks:[2,5],name:"初級"},2:{ks:[2,5,4,8],name:"進階"},3:{ks:[2,3,4,5,6,7,8,9],name:"高級"}};
   const S={lv:LV[+pref("park-level")]?+pref("park-level"):1,time:[30,60,90].includes(+pref("ring-time"))?+pref("ring-time"):60,
     phase:"start",k:0,n:0,score:0,miss:0,endAt:0,lastSec:-1,last:""};
   const bestKey=()=>`ring-best-${S.lv}-${S.time}`,getBest=()=>+pref(bestKey())||0;
