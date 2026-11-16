@@ -49,6 +49,12 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
 @keyframes bump{40%{transform:scale(1.35)}}
 .pad{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:clamp(6px,1.2vmin,12px);align-content:center;min-height:0}
 @media (orientation:landscape) and (min-width:700px){.pad{grid-template-columns:repeat(11,minmax(0,1fr))}}
+.pad.wide{grid-template-columns:repeat(7,minmax(0,1fr))}
+.pad.wide .key{font-size:clamp(20px,4vmin,40px)}
+@media (orientation:landscape) and (min-width:700px){.pad.wide{grid-template-columns:repeat(11,minmax(0,1fr))}}
+.pad.choices,.pad.choices.wide{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (min-width:600px){.pad.choices{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.pad.choices .key{font-size:clamp(32px,7vmin,70px);max-height:min(140px,20vmin)}
 .key{font-family:var(--num);font-weight:800;font-size:clamp(24px,5.2vmin,54px);line-height:1;
   min-height:44px;height:100%;max-height:min(110px,15vmin);border:0;border-radius:16px;background:var(--key);color:var(--ink);
   box-shadow:0 4px 0 color-mix(in srgb,var(--c) 45%,#c9d2d6);cursor:pointer;touch-action:manipulation;transition:transform .06s,background .15s}
@@ -207,10 +213,18 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     <span class="note" id="opNote">兩個都勾就是加減混合出題。</span>
   </div>
   <div class="group">
+    <span class="lbl">難度</span>
+    <div class="seg lockable" id="levels">
+      <button type="button" class="opt" data-lv="1">初級 1–10</button>
+      <button type="button" class="opt" data-lv="2">進階 1–20</button>
+      <button type="button" class="opt" data-lv="3">高級 1–100</button>
+    </div>
+  </div>
+  <div class="group">
     <span class="lbl">題型</span>
     <div class="seg lockable" id="modes">
       <button type="button" class="opt" data-mode="num" aria-pressed="true">數字題</button>
-      <button type="button" class="opt" data-mode="word" aria-pressed="false">應用題（進階）</button>
+      <button type="button" class="opt" data-mode="word" aria-pressed="false">應用題</button>
     </div>
     <div class="seg"><button type="button" class="opt" id="pics" aria-pressed="true">應用題圖案提示：開</button></div>
   </div>
@@ -259,7 +273,8 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
 <script>
 (function(){
   const NAMES=["玩家 1","玩家 2"];
-  const S={total:10,round:0,score:[0,0],phase:"ready",ready:[false,false],locked:[false,false],q:null,last:"",lastT:-1,voice:true,mode:"num",pics:true,ops:{add:true,sub:false}};
+  const LV={1:{max:10,name:"初級"},2:{max:20,name:"進階"},3:{max:100,name:"高級"}};
+  const S={lv:1,total:10,round:0,score:[0,0],phase:"ready",ready:[false,false],locked:[false,false],q:null,last:"",lastT:-1,voice:true,mode:"num",pics:true,ops:{add:true,sub:false}};
 
   // ---- 應用題題庫：兩樣東西相加 ----
   const CN=["零","一","兩","三","四","五","六","七","八","九","十"];
@@ -294,11 +309,16 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     {t:(a,b)=>`小狗有${a}根骨頭，吃掉了${b}根，還剩下幾根骨頭？`,e:"🦴"},
     {t:(a,b)=>`小明有${a}顆草莓，分給媽媽${b}顆，還剩下幾顆草莓？`,e:"🍓"}
   ];
-  const cn=n=>n===2?"兩":CN[n];
+  // 國字數字：2 念「兩」，11–99 念「十一、二十三」，100 念「一百」
+  const cn=n=>{
+    if(n===2)return"兩";if(n<=10)return CN[n];if(n===100)return"一百";
+    const t=Math.floor(n/10),o=n%10,D="零一二三四五六七八九";
+    return(t===1?"":D[t])+"十"+(o?D[o]:"");
+  };
 
   // ---- 注音 ----
   const ZHUYIN={
-    零:"ㄌㄧㄥˊ",一:"ㄧ",兩:"ㄌㄧㄤˇ",三:"ㄙㄢ",四:"ㄙˋ",五:"ㄨˇ",六:"ㄌㄧㄡˋ",七:"ㄑㄧ",八:"ㄅㄚ",九:"ㄐㄧㄡˇ",十:"ㄕˊ",
+    零:"ㄌㄧㄥˊ",一:"ㄧ",兩:"ㄌㄧㄤˇ",三:"ㄙㄢ",四:"ㄙˋ",五:"ㄨˇ",六:"ㄌㄧㄡˋ",七:"ㄑㄧ",八:"ㄅㄚ",九:"ㄐㄧㄡˇ",十:"ㄕˊ",二:"ㄦˋ",百:"ㄅㄞˇ",
     農:"ㄋㄨㄥˊ",場:"ㄔㄤˇ",裡:"ㄌㄧˇ",有:"ㄧㄡˇ",隻:"ㄓ",小:"ㄒㄧㄠˇ",雞:"ㄐㄧ",和:"ㄏㄜˊ",鴨:"ㄧㄚ",總:"ㄗㄨㄥˇ",
     共:"ㄍㄨㄥˋ",幾:"ㄐㄧˇ",動:"ㄉㄨㄥˋ",物:"ㄨˋ",樹:"ㄕㄨˋ",上:"ㄕㄤˋ",鳥:"ㄋㄧㄠˇ",又:"ㄧㄡˋ",飛:"ㄈㄟ",來:"ㄌㄞˊ",
     了:"˙ㄌㄜ",現:"ㄒㄧㄢˋ",在:"ㄗㄞˋ",籃:"ㄌㄢˊ",子:"˙ㄗ",顆:"ㄎㄜ",蘋:"ㄆㄧㄥˊ",果:"ㄍㄨㄛˇ",橘:"ㄐㄩˊ",水:"ㄕㄨㄟˇ",
@@ -342,18 +362,37 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
   sides.forEach((el,p)=>{
     el.innerHTML=`
       <div class="head"><span class="name">${NAMES[p]}</span><span class="msg"></span><span class="score"><b>0</b><small>分</small></span></div>
-      <div class="pad">${Array.from({length:11},(_,n)=>`<button type="button" class="key" data-v="${n}" aria-label="${n}">${n}</button>`).join("")}</div>
+      <div class="pad"></div>
       <div class="overlay"><h2></h2><p></p><div class="final" hidden></div><button type="button" class="ready">準備好了</button></div>`;
     const u={el,msg:el.querySelector(".msg"),score:el.querySelector(".score"),scoreB:el.querySelector(".score b"),
-      keys:[...el.querySelectorAll(".key")],ov:el.querySelector(".overlay"),ovH:el.querySelector(".overlay h2"),
+      pad:el.querySelector(".pad"),keys:[],ov:el.querySelector(".overlay"),ovH:el.querySelector(".overlay h2"),
       ovP:el.querySelector(".overlay p"),final:el.querySelector(".final"),readyBtn:el.querySelector(".ready")};
     ui[p]=u;
     const tap=(node,fn)=>{node.addEventListener("pointerdown",e=>{e.preventDefault();fn()});
       node.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();fn()}})};
-    u.keys.forEach(k=>tap(k,()=>answer(p,+k.dataset.v,k)));
+    u.tap=tap;
     // 「準備好了」用 click（手指放開時觸發），平板才會允許之後的語音
     u.readyBtn.addEventListener("click",()=>toggleReady(p));
   });
+  // 按鍵：初級 0–10、進階 0–20 是數字鍵；高級（到 100）改成四個選項，每題換一次
+  function renderPads(){
+    ui.forEach((u,p)=>{
+      const choice=S.lv===3,n=choice?4:LV[S.lv].max+1;
+      u.pad.className="pad"+(choice?" choices":S.lv===2?" wide":"");
+      u.pad.innerHTML=Array.from({length:n},(_,i)=>`<button type="button" class="key" data-v="${choice?"":i}">${choice?"?":i}</button>`).join("");
+      u.keys=[...u.pad.querySelectorAll(".key")];
+      u.keys.forEach(k=>u.tap(k,()=>{if(k.dataset.v!=="")answer(p,+k.dataset.v,k)}));
+    });
+  }
+  // 高級：正確答案加三個接近的數字，兩邊順序一樣
+  function setChoices(){
+    if(S.lv!==3)return;
+    const ans=S.q.sum,set=new Set([ans]);
+    while(set.size<4){const v=ans+(Math.random()<.5?-1:1)*rnd(1,10);if(v>=0&&v<=100)set.add(v)}
+    const list=[...set].sort(()=>Math.random()-.5);
+    ui.forEach(u=>u.keys.forEach((k,i)=>{k.dataset.v=list[i];k.textContent=list[i]}));
+  }
+  function blankChoices(){if(S.lv===3)ui.forEach(u=>u.keys.forEach(k=>{k.dataset.v="";k.textContent="?"}))}
 
   // ---- 語音 ----
   const synth=window.speechSynthesis;
@@ -536,8 +575,9 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     let a,b,op,k;
     do{
       op=ops[rnd(0,ops.length-1)];
-      if(op==="+"){a=rnd(1,9);b=rnd(1,10-a)}   // 和不超過 10
-      else{a=rnd(2,10);b=rnd(1,a-1)}           // 10 以內，答案至少 1
+      const N=LV[S.lv].max;
+      if(op==="+"){a=rnd(1,N-1);b=rnd(1,N-a)}   // 和不超過難度上限
+      else{a=rnd(2,N);b=rnd(1,a-1)}             // 上限以內，答案至少 1
       k=a+op+b;
     }while(k===S.last);
     const add=op==="+";
@@ -547,7 +587,9 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
       let ti;do{ti=rnd(0,list.length-1)}while(op+ti===S.lastT&&list.length>1);
       S.lastT=op+ti;const tp=list[ti];
       S.q.text=tp.t(cn(a),cn(b));
-      S.q.pics=add?tp.ea.repeat(a)+" ＋ "+tp.eb.repeat(b)
+      // 數字大於 10 時圖案太多，就不畫圖案
+      S.q.pics=(add?a+b:a)>10?""
+        :add?tp.ea.repeat(a)+" ＋ "+tp.eb.repeat(b)
         :Array.from({length:a},(_,i)=>i<a-b?`<span>${tp.e}</span>`:`<span class="gone">${tp.e}</span>`).join("");
     }
   }
@@ -568,11 +610,11 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     ui.forEach((u,p)=>{
       updateScore(p);u.ov.hidden=false;u.ovH.textContent=NAMES[p];u.ovP.hidden=false;u.final.hidden=true;
       const opName=S.ops.add&&S.ops.sub?"加減混合":S.ops.sub?"減法":"加法";
-      u.ovP.textContent=`${opName}・${S.mode==="word"?"應用題":"數字題"}：題目會出現在中間並念出來，先按對的人得分。共 ${S.total} 題。`;
+      u.ovP.textContent=`${LV[S.lv].name}・${opName}・${S.mode==="word"?"應用題":"數字題"}：題目會出現在中間並念出來，先按對的人得分。共 ${S.total} 題。`;
       u.readyBtn.textContent="準備好了";u.readyBtn.classList.remove("on");
       setMsg(p,"");u.el.classList.remove("locked");u.keys.forEach(k=>k.classList.remove("wrong","right"));
     });
-    showQ("?","?","?");updateRound();syncOpts();
+    showQ("?","?","?");updateRound();syncOpts();blankChoices();
   }
   function toggleReady(p){
     hideTour();
@@ -598,7 +640,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
   function nextRound(){
     clearTimeout(timer);
     if(S.round>=S.total){finish();return}
-    S.round++;S.phase="play";S.locked=[false,false];newQuestion();
+    S.round++;S.phase="play";S.locked=[false,false];newQuestion();setChoices();
     if(S.mode==="word")showWord();else showQ(S.q.a,S.q.b,"?",S.q.sym);
     updateRound();
     ui.forEach((u,p)=>{u.el.classList.remove("locked");setMsg(p,"快搶答！");u.keys.forEach(k=>k.classList.remove("wrong","right"))});
@@ -676,7 +718,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     e.currentTarget.setAttribute("aria-pressed",S.pics);
     e.currentTarget.textContent=S.pics?"應用題圖案提示：開":"應用題圖案提示：關";
   });
-  $("say").addEventListener("click",()=>{if(S.q&&S.phase!=="ready")readQ();else say("十以內的加減法搶答")});
+  $("say").addEventListener("click",()=>{if(S.q&&S.phase!=="ready")readQ();else say("加減法搶答對決")});
   // 背景音樂設定
   const $music=$("music"),$musicVol=$("musicVol");
   const syncMusicBtn=()=>{$music.setAttribute("aria-pressed",M.on);$music.textContent=M.on?"輕音樂：開":"輕音樂：關"};
@@ -718,6 +760,14 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
   pickVoice();
   if(!synth)$("voiceGroup").hidden=true;
 
+  // 難度：和其他小遊戲共用同一個設定
+  S.lv=LV[+pref("park-level")]?+pref("park-level"):1;
+  const syncLevels=()=>all("#levels button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
+  all("#levels button").forEach(btn=>btn.addEventListener("click",()=>{
+    if(S.phase!=="ready")return;
+    S.lv=+btn.dataset.lv;pref("park-level",S.lv);syncLevels();renderPads();showReadyScreen();
+  }));
+  syncLevels();renderPads();
   showReadyScreen();
 })();
 </script>

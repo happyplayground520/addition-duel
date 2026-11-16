@@ -42,6 +42,7 @@ body{background:linear-gradient(#8fd3ff,#d9f1ff 70%,#c3eaa8 70%);color:var(--ink
 .b .body::after{content:"";position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);
   border:7px solid transparent;border-bottom:9px solid var(--c);border-top:0}
 .b::after{content:"";position:absolute;left:50%;top:100%;width:2px;height:calc(var(--w)*.7);background:rgba(31,43,51,.35);margin-top:8px}
+.b .body.long{font-size:calc(var(--w)*.36)}
 .b.wrong .body{animation:shake .4s;filter:saturate(.3) brightness(1.1)}
 .b.pop{pointer-events:none}
 .b.pop .body{animation:pop .3s forwards}
@@ -87,6 +88,12 @@ body{background:linear-gradient(#8fd3ff,#d9f1ff 70%,#c3eaa8 70%);color:var(--ink
     <div class="card">
       <h2>🎈 射氣球</h2>
       <p>聽題目，找到寫著正確答案的氣球，點它把它戳破！</p>
+      <span class="lbl">難度</span>
+      <div class="row" id="levels">
+        <button type="button" class="opt" data-lv="1">初級 1–10</button>
+        <button type="button" class="opt" data-lv="2">進階 1–20</button>
+        <button type="button" class="opt" data-lv="3">高級 1–100</button>
+      </div>
       <span class="lbl">運算</span>
       <div class="row">
         <label class="chk"><input type="checkbox" id="opAdd" checked> 加法 ＋</label>
@@ -121,10 +128,14 @@ body{background:linear-gradient(#8fd3ff,#d9f1ff 70%,#c3eaa8 70%);color:var(--ink
   const $=id=>document.getElementById(id);
   const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
   const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
-  const S={total:10,round:0,score:0,firstTry:0,missed:false,q:null,phase:"start",ops:{add:true,sub:false},last:""};
+  const LV={1:10,2:20,3:100};
+  const S={lv:LV[+pref("park-level")]?+pref("park-level"):1,total:10,round:0,score:0,firstTry:0,missed:false,q:null,phase:"start",ops:{add:true,sub:false},last:""};
   try{const o=JSON.parse(pref("duel-ops")||"null");if(o&&(o.add||o.sub))S.ops={add:!!o.add,sub:!!o.sub}}catch(e){}
   $("opAdd").checked=S.ops.add;$("opSub").checked=S.ops.sub;
   const n0=+pref("balloon-total");if([5,10,15].includes(n0))S.total=n0;
+  const levels=[...document.querySelectorAll("#levels button")];
+  const syncLv=()=>levels.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));syncLv();
+  levels.forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("park-level",S.lv);syncLv()}));
   const counts=[...document.querySelectorAll("#counts button")];
   const syncCounts=()=>counts.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===S.total));syncCounts();
   counts.forEach(b=>b.addEventListener("click",()=>{S.total=+b.dataset.n;pref("balloon-total",S.total);syncCounts()}));
@@ -184,8 +195,9 @@ body{background:linear-gradient(#8fd3ff,#d9f1ff 70%,#c3eaa8 70%);color:var(--ink
     let q,key,tries=0;
     do{
       const op=ops[rnd(0,ops.length-1)];
-      if(op==="add"){const a=rnd(1,9),b=rnd(1,10-a);q={a,b,ans:a+b,sym:"+",word:"加"}}
-      else{const a=rnd(2,10),b=rnd(1,a-1);q={a,b,ans:a-b,sym:"−",word:"減"}}
+      const N=LV[S.lv];
+      if(op==="add"){const a=rnd(1,N-1),b=rnd(1,N-a);q={a,b,ans:a+b,sym:"+",word:"加"}}
+      else{const a=rnd(2,N),b=rnd(1,a-1);q={a,b,ans:a-b,sym:"−",word:"減"}}
       key=q.a+q.sym+q.b;
     }while(key===S.last&&++tries<10);
     S.last=key;return q;
@@ -200,13 +212,15 @@ body{background:linear-gradient(#8fd3ff,#d9f1ff 70%,#c3eaa8 70%);color:var(--ink
   function makeBalloons(){
     clearBalloons();
     const nums=new Set([S.q.ans]);
-    while(nums.size<6)nums.add(rnd(0,10));
+    // 其他氣球的數字接近答案，比較需要動腦
+    const N=LV[S.lv],sp=S.lv===1?10:S.lv===2?6:12;
+    while(nums.size<6){const v=S.q.ans+rnd(-sp,sp);if(v>=0&&v<=N)nums.add(v)}
     const list=[...nums].sort(()=>Math.random()-.5);
     const W=sky.clientWidth,H=sky.clientHeight,w=size(),lanes=list.length,laneW=(W-w)/(lanes-1||1);
     list.forEach((n,i)=>{
       const el=document.createElement("button");el.type="button";el.className="b";
       el.style.setProperty("--w",w+"px");el.style.setProperty("--c",COLORS[(i+rnd(0,7))%COLORS.length]);
-      el.innerHTML=`<span class="body">${n}</span>`;el.setAttribute("aria-label",`氣球 ${n}`);
+      el.innerHTML=`<span class="body${n>=100?" long":""}">${n}</span>`;el.setAttribute("aria-label",`氣球 ${n}`);
       const b={el,n,x:i*laneW,baseX:i*laneW,y:rnd(H*.3,H*1.15),v:H/rnd(9,13),ph:Math.random()*6.28,w,dead:false};
       el.addEventListener("pointerdown",e=>{e.preventDefault();hit(b)});
       el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" ")hit(b)});

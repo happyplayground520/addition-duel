@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>雲霄飛車速算</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
+<style>
+/* 單人計時遊戲：上方顯示目標數字與倒數，算式卡片從上面掉下來，點到答案等於目標的卡片就得分 */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --ink:#1f2b33; --muted:#5d6b72; --good:#1f9d61; --bad:#d23c3c; --accent:#7a4fd6; --accent-dark:#55349e;
+  --num:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
+  --text:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{margin:0;height:100%}
+body{background:linear-gradient(#ffd9a8,#ffeedd 55%,#fff6ec);color:var(--ink);font-family:var(--text);overflow:hidden;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  display:flex;flex-direction:column}
+[hidden]{display:none!important}
+.top{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;
+  padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.ibtn{width:48px;height:48px;border-radius:14px;border:0;background:rgba(255,255,255,.9);font-size:24px;cursor:pointer;
+  display:grid;place-items:center;text-decoration:none;color:inherit;box-shadow:0 3px 0 rgba(0,0,0,.1)}
+.target{justify-self:center;display:flex;align-items:center;gap:.4em;background:#fff;border-radius:22px;padding:4px 24px;
+  box-shadow:0 4px 0 rgba(0,0,0,.08)}
+.target .lbl{font-size:clamp(14px,2.4vmin,20px);font-weight:700;color:var(--muted)}
+.target b{font-family:var(--num);font-weight:800;font-size:clamp(40px,9vmin,86px);line-height:1.05;color:var(--accent);
+  font-variant-numeric:tabular-nums;min-width:1.2em;text-align:center}
+.target b.bump{animation:bump .35s}
+@keyframes bump{40%{transform:scale(1.25)}}
+.stats{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-family:var(--num);font-weight:800}
+.stats .sc{font-size:clamp(20px,3.6vmin,32px)}
+.stats .best{font-family:var(--text);font-size:13px;color:var(--muted);font-weight:700}
+.timebar{height:14px;margin:0 max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px));
+  background:rgba(255,255,255,.8);border-radius:999px;overflow:hidden;position:relative}
+.timebar i{position:absolute;inset:0;transform-origin:left;background:linear-gradient(90deg,#1f9d61,#f2c12e);border-radius:999px}
+.timebar.low i{background:var(--bad)}
+.timeTxt{text-align:center;font-family:var(--num);font-weight:800;font-size:clamp(16px,2.6vmin,22px);color:var(--muted);margin-top:2px}
+.field{position:relative;flex:1;min-height:0;overflow:hidden}
+/* 背景的雲霄飛車軌道 */
+.field svg.track{position:absolute;left:0;right:0;bottom:0;width:100%;height:45%;opacity:.35;pointer-events:none}
+/* 衝下來的雲霄飛車車廂：車身寫算式，上面坐著乘客，下面兩個輪子 */
+.card{position:absolute;left:0;top:0;border:0;padding:0 .7em;height:var(--h);min-width:calc(var(--h)*2.4);
+  border-radius:calc(var(--h)*.18) calc(var(--h)*.18) calc(var(--h)*.45) calc(var(--h)*.45);
+  background:var(--c);color:#fff;font-family:var(--num);font-weight:800;font-size:calc(var(--h)*.48);line-height:1;
+  text-shadow:0 2px 0 rgba(0,0,0,.25);box-shadow:inset 0 -6px 0 rgba(0,0,0,.18),0 8px 16px rgba(0,0,0,.15);cursor:pointer;
+  touch-action:manipulation;will-change:transform;white-space:nowrap;font-variant-numeric:tabular-nums;
+  margin-top:calc(var(--h)*.45)}
+.card .rider{position:absolute;left:50%;bottom:100%;transform:translateX(-50%);font-size:calc(var(--h)*.5);line-height:1;
+  letter-spacing:.1em;text-shadow:none;pointer-events:none}
+.card::before,.card::after{content:"";position:absolute;bottom:calc(var(--h)*-.18);width:calc(var(--h)*.32);height:calc(var(--h)*.32);
+  border-radius:50%;background:#33414a;border:3px solid #cfd8dc}
+.card::before{left:18%} .card::after{right:18%}
+.card.wrong{filter:grayscale(.8);animation:shake .35s}
+.card.right{background:var(--good);color:#fff;transition:opacity .35s,scale .35s;opacity:0;scale:1.3}
+.card.gone{transition:opacity .25s;opacity:0;pointer-events:none}
+@keyframes shake{25%{translate:-8px 0}75%{translate:8px 0}}
+.float{position:absolute;font-family:var(--num);font-weight:800;font-size:28px;pointer-events:none;animation:up .8s forwards}
+.float.plus{color:var(--good)} .float.minus{color:var(--bad)}
+@keyframes up{to{transform:translateY(-50px);opacity:0}}
+/* 開始／結束畫面 */
+.panel{position:absolute;inset:0;display:grid;place-items:center;background:rgba(255,238,221,.8);padding:16px;z-index:5;overflow:auto}
+.box{background:#fff;border-radius:24px;padding:clamp(18px,4vmin,32px);width:min(500px,100%);box-shadow:0 12px 40px rgba(0,0,0,.18);
+  display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center}
+.box h2{margin:0;font-size:clamp(26px,5.5vmin,42px)}
+.box p{margin:0;color:var(--muted);font-size:clamp(15px,2.5vmin,19px);line-height:1.5}
+.row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.lbl2{font-size:14px;font-weight:700;color:var(--muted);margin-top:4px}
+.chk{display:flex;align-items:center;gap:8px;font-size:18px;font-weight:700;border:2px solid #cfd8dc;border-radius:14px;padding:9px 16px;cursor:pointer}
+.chk input{width:22px;height:22px;margin:0;accent-color:var(--ink)}
+.chk:has(input:checked){border-color:var(--ink);background:#eef3f1}
+.opt{font:inherit;font-size:17px;font-weight:700;border:2px solid #cfd8dc;background:#fff;border-radius:14px;padding:9px 16px;cursor:pointer;color:inherit}
+.opt small{display:block;font-size:12px;font-weight:600;opacity:.75}
+.opt[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:#fff}
+.big{font-family:var(--text);font-weight:800;font-size:clamp(20px,4vmin,30px);border:0;border-radius:999px;padding:.5em 1.6em;
+  background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 5px 0 var(--accent-dark);text-decoration:none;display:inline-block}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 var(--accent-dark)}
+.big.alt{background:#fff;color:var(--ink);box-shadow:0 5px 0 #cfd8dc;border:2px solid #cfd8dc}
+.result{font-family:var(--num);font-weight:800;font-size:clamp(56px,13vmin,110px);line-height:1;color:var(--accent)}
+.result small{font-family:var(--text);font-size:.3em;color:var(--muted)}
+.newrec{font-weight:800;color:#fff;background:var(--good);border-radius:999px;padding:4px 16px;font-size:18px}
+.note{font-size:13px;color:var(--muted)}
+.count{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--num);font-weight:800;font-size:clamp(90px,24vmin,200px);
+  color:var(--accent);pointer-events:none;z-index:4}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="ibtn" href="./" aria-label="回遊樂園地圖">🏠</a>
+  <div class="target"><span class="lbl">🎢 找出等於</span><b id="target">?</b><span class="lbl">的車廂</span></div>
+  <div class="stats"><span class="sc" id="score">✔ 0</span><span class="best" id="bestTop"></span></div>
+</header>
+<div class="timebar" id="timebar"><i id="timefill"></i></div>
+<div class="timeTxt" id="timeTxt"></div>
+<main class="field" id="field">
+  <svg class="track" viewBox="0 0 400 100" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 80 C40 80 50 20 90 20 C130 20 130 90 170 90 C210 90 220 10 260 10 C300 10 310 70 350 70 C380 70 390 50 400 50"
+      fill="none" stroke="#c0462f" stroke-width="5"/>
+    <path d="M0 88 C40 88 50 28 90 28 C130 28 130 98 170 98 C210 98 220 18 260 18 C300 18 310 78 350 78 C380 78 390 58 400 58"
+      fill="none" stroke="#c0462f" stroke-width="3"/>
+  </svg>
+  <div class="count" id="count" hidden></div>
+
+  <section class="panel" id="start">
+    <div class="box">
+      <h2>🎢 雲霄飛車速算</h2>
+      <p>雲霄飛車衝下來了！上面會出現一個數字，<br>點出車廂上算式答案等於這個數字的車廂。<br>時間內答對越多題越厲害。</p>
+      <span class="lbl2">難度</span>
+      <div class="row" id="levels">
+        <button type="button" class="opt" data-lv="1">初級<small>1–10</small></button>
+        <button type="button" class="opt" data-lv="2">進階<small>1–20</small></button>
+        <button type="button" class="opt" data-lv="3">高級<small>1–100</small></button>
+      </div>
+      <span class="lbl2">運算</span>
+      <div class="row">
+        <label class="chk"><input type="checkbox" id="opAdd" checked> 加法 ＋</label>
+        <label class="chk"><input type="checkbox" id="opSub"> 減法 −</label>
+      </div>
+      <span class="lbl2">時間</span>
+      <div class="row" id="times">
+        <button type="button" class="opt" data-t="30">30 秒</button>
+        <button type="button" class="opt" data-t="60">60 秒</button>
+        <button type="button" class="opt" data-t="90">90 秒</button>
+      </div>
+      <span class="note" id="bestStart"></span>
+      <button type="button" class="big" id="go">出發！</button>
+      <span class="note" id="note"></span>
+    </div>
+  </section>
+
+  <section class="panel" id="end" hidden>
+    <div class="box">
+      <h2>⏰ 時間到！</h2>
+      <div class="result" id="result">0<small> 題</small></div>
+      <span class="newrec" id="newrec" hidden>🏆 新紀錄！</span>
+      <p id="endText"></p>
+      <div class="row">
+        <button type="button" class="big" id="replay">再玩一次</button>
+        <button type="button" class="big alt" id="change">換設定</button>
+        <a class="big alt" href="./">回遊樂園</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
+  const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  const LV={1:{max:10,name:"初級"},2:{max:20,name:"進階"},3:{max:100,name:"高級"}};
+  const S={lv:+pref("park-level")||1,time:+pref("coaster-time")||60,ops:{add:true,sub:false},phase:"start",
+    target:0,score:0,miss:0,left:0,endAt:0};
+  if(!LV[S.lv])S.lv=1;if(![30,60,90].includes(S.time))S.time=60;
+  try{const o=JSON.parse(pref("duel-ops")||"null");if(o&&(o.add||o.sub))S.ops={add:!!o.add,sub:!!o.sub}}catch(e){}
+  $("opAdd").checked=S.ops.add;$("opSub").checked=S.ops.sub;
+
+  // 最佳成績：依難度、運算、時間分開記
+  const bestKey=()=>`coaster-best-${S.lv}-${S.ops.add?"a":""}${S.ops.sub?"s":""}-${S.time}`;
+  const getBest=()=>+pref(bestKey())||0;
+  const opName=()=>S.ops.add&&S.ops.sub?"加減混合":S.ops.sub?"減法":"加法";
+  function syncSetup(){
+    document.querySelectorAll("#levels button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
+    document.querySelectorAll("#times button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.t===S.time));
+    const best=getBest(),label=`${LV[S.lv].name}・${opName()}・${S.time} 秒`;
+    $("bestStart").textContent=best?`🏆 最佳成績（${label}）：${best} 題`:`（${label}）還沒有紀錄，來挑戰吧！`;
+    $("bestTop").textContent=`最佳 ${best}`;
+  }
+  document.querySelectorAll("#levels button").forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("park-level",S.lv);syncSetup()}));
+  document.querySelectorAll("#times button").forEach(b=>b.addEventListener("click",()=>{S.time=+b.dataset.t;pref("coaster-time",S.time);syncSetup()}));
+  [["opAdd","add"],["opSub","sub"]].forEach(([id,k])=>$(id).addEventListener("change",e=>{
+    const next={...S.ops,[k]:e.target.checked};
+    if(!next.add&&!next.sub){e.target.checked=true;$("note").textContent="至少要勾選一種運算。";return}
+    $("note").textContent="";S.ops=next;pref("duel-ops",JSON.stringify(S.ops));syncSetup();
+  }));
+  syncSetup();
+
+  // ---- 語音：沿用搶答對決選好的聲音與語速 ----
+  const synth=window.speechSynthesis;let voice=null;
+  const rate=+(pref("duel-rate")||.9)||.9;
+  const quality=v=>{const u=v.voiceURI||"";return /eloquence|speech\.synthesis\.voice/i.test(u)?0:/\.premium\./i.test(u)?3:/enhanced|-premium/i.test(u)?2:1};
+  function pickVoice(){
+    if(!synth)return;
+    const vs=synth.getVoices().filter(v=>/^(zh|cmn)/i.test(v.lang));
+    const want=pref("duel-voice");
+    const tw=vs.filter(v=>/TW|Hant/i.test(v.lang)&&quality(v)>0).sort((a,b)=>quality(b)-quality(a));
+    voice=(want&&vs.find(v=>(v.voiceURI||v.name)===want))||tw[0]||vs.find(v=>quality(v)>0)||vs[0]||null;
+  }
+  if(synth){pickVoice();try{synth.addEventListener("voiceschanged",pickVoice)}catch(e){}}
+  function say(text){
+    if(!synth)return;
+    try{
+      const u=new SpeechSynthesisUtterance(text);
+      u.lang=voice?voice.lang.replace("_","-"):"zh-TW";if(voice)u.voice=voice;u.rate=Math.max(rate,1);u.pitch=1.1;
+      if(synth.speaking||synth.pending){synth.cancel();setTimeout(()=>{try{synth.speak(u)}catch(e){}},90)}else synth.speak(u);
+    }catch(e){}
+  }
+  // ---- 音效 ----
+  let ac=null;
+  function tone(fs,dur=.12,type="triangle",vol=.15){
+    try{
+      ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume();
+      fs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*dur;
+        o.type=type;o.frequency.value=f;g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);
+        o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)});
+    }catch(e){}
+  }
+  const sfx={good:()=>tone([700,1050],.09),bad:()=>tone([220,170],.13,"square",.07),tick:()=>tone([600],.08),go:()=>tone([900],.25),
+    end:()=>tone([784,659,523,784,1047],.14)};
+  function unlock(){
+    try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
+    try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}
+  }
+
+  // ---- 題目：目標數字與算式 ----
+  const ops=()=>[S.ops.add&&"add",S.ops.sub&&"sub"].filter(Boolean);
+  const max=()=>LV[S.lv].max;
+  // 某個結果 r 能不能用這種運算寫出來（數字都在 1~max 之間）
+  const canMake=(op,r)=>op==="add"?r>=2&&r<=max():r>=1&&r<=max()-1;
+  function exprFor(r){
+    const list=ops().filter(op=>canMake(op,r));if(!list.length)return null;
+    const op=list[rnd(0,list.length-1)];
+    if(op==="add"){const a=rnd(1,r-1);return{text:`${a} + ${r-a}`,val:r}}
+    const a=rnd(r+1,max());return{text:`${a} − ${a-r}`,val:r};
+  }
+  function newTarget(){
+    let t,tries=0;
+    do{t=rnd(2,max())}while((t===S.target||!ops().some(op=>canMake(op,t)))&&++tries<30);
+    return t;
+  }
+  // 干擾選項：答案接近目標，但不相等
+  function decoy(){
+    const spread=S.lv===3?10:S.lv===2?4:3;
+    for(let i=0;i<20;i++){
+      const r=S.target+(Math.random()<.5?-1:1)*rnd(1,spread);
+      const e=r>=1&&exprFor(r);if(e)return e;
+    }
+    return exprFor(newTarget())||exprFor(S.target);
+  }
+
+  // ---- 掉落的卡片 ----
+  const field=$("field"),COLORS=["#e0477b","#f08a24","#2f8fdb","#3fb56a","#7a4fd6","#1fb5a8"];
+  const RIDERS=["🙌","😆","🐻","🐰","🐱","🐶","🦊","🐼","🐯","🐸"];
+  let cards=[],raf=0,lastT=0,spawnIn=0,lastLane=-1;
+  const cardH=()=>Math.max(54,Math.min(92,Math.min(field.clientWidth,field.clientHeight)*.12));
+  const speed=()=>field.clientHeight/(7.5-Math.min(3,S.score*.12));   // 越答越快一點
+  function spawn(forceRight){
+    const hasRight=cards.some(c=>!c.done&&c.val===S.target);
+    const right=forceRight||!hasRight||Math.random()<.3;
+    const e=right?exprFor(S.target):decoy();if(!e)return;
+    const h=cardH(),lanes=Math.max(3,Math.floor(field.clientWidth/(h*2.8)));
+    let lane;do{lane=rnd(0,lanes-1)}while(lane===lastLane&&lanes>1);lastLane=lane;
+    const el=document.createElement("button");el.type="button";el.className="card";
+    el.innerHTML=`<span class="rider" aria-hidden="true">${RIDERS[rnd(0,RIDERS.length-1)]}</span>${e.text}`;el.setAttribute("aria-label",e.text);
+    el.style.setProperty("--h",h+"px");el.style.setProperty("--c",COLORS[rnd(0,COLORS.length-1)]);
+    field.appendChild(el);
+    const laneW=field.clientWidth/lanes,x=lane*laneW+Math.max(4,(laneW-el.offsetWidth)/2);
+    const c={el,val:e.val,x:Math.min(x,field.clientWidth-el.offsetWidth-4),y:-h-10,done:false};
+    el.style.transform=`translate(${c.x}px,${c.y}px)`;
+    el.addEventListener("pointerdown",ev=>{ev.preventDefault();hit(c)});
+    el.addEventListener("keydown",ev=>{if(ev.key==="Enter"||ev.key===" ")hit(c)});
+    cards.push(c);
+  }
+  function tick(now){
+    const dt=Math.min(.05,(now-lastT)/1000);lastT=now;
+    if(S.phase!=="play")return;
+    const H=field.clientHeight,v=speed();
+    cards.forEach(c=>{
+      if(c.done)return;
+      c.y+=v*dt;c.el.style.transform=`translate(${c.x}px,${c.y}px)`;
+      if(c.y>H){c.done=true;c.el.remove()}
+    });
+    cards=cards.filter(c=>!c.done||c.el.isConnected);
+    spawnIn-=dt;if(spawnIn<=0){spawn(false);spawnIn=Math.max(.55,1.05-S.score*.02)}
+    // 時間
+    S.left=Math.max(0,(S.endAt-now)/1000);
+    $("timefill").style.transform=`scaleX(${S.left/S.time})`;
+    $("timebar").classList.toggle("low",S.left<=10);
+    const sec=Math.ceil(S.left);
+    if(sec!==S.lastSec){S.lastSec=sec;$("timeTxt").textContent=`剩下 ${sec} 秒`;if(sec<=5&&sec>0)sfx.tick()}
+    if(S.left<=0)return finish();
+    raf=requestAnimationFrame(tick);
+  }
+  function floatTxt(c,txt,cls){
+    const f=document.createElement("span");f.className="float "+cls;f.textContent=txt;
+    f.style.left=c.x+c.el.offsetWidth/2-12+"px";f.style.top=c.y-10+"px";field.appendChild(f);setTimeout(()=>f.remove(),800);
+  }
+  function hit(c){
+    if(S.phase!=="play"||c.done)return;
+    if(c.val===S.target){
+      c.done=true;S.score++;sfx.good();c.el.classList.add("right");floatTxt(c,"+1","plus");setTimeout(()=>c.el.remove(),360);
+      $("score").textContent=`✔ ${S.score}`;
+      // 換下一個目標：畫面上的舊卡片淡出，馬上掉一張新的正確卡片
+      cards.forEach(o=>{if(!o.done){o.done=true;o.el.classList.add("gone");setTimeout(()=>o.el.remove(),260)}});
+      setTarget(newTarget());spawn(true);spawnIn=.5;
+    }else{
+      S.miss++;sfx.bad();c.el.classList.remove("wrong");void c.el.offsetWidth;c.el.classList.add("wrong");
+      S.endAt-=2000;floatTxt(c,"−2 秒","minus");
+    }
+  }
+  function setTarget(t){
+    S.target=t;const b=$("target");b.textContent=t;b.classList.remove("bump");void b.offsetWidth;b.classList.add("bump");
+    say(String(t));
+  }
+  function clearCards(){cards.forEach(c=>c.el.remove());cards=[];field.querySelectorAll(".float").forEach(f=>f.remove())}
+
+  // ---- 流程 ----
+  function start(){
+    unlock();
+    $("start").hidden=true;$("end").hidden=true;clearCards();
+    S.score=0;S.miss=0;S.target=0;S.lastSec=-1;$("score").textContent="✔ 0";$("target").textContent="?";
+    $("timefill").style.transform="scaleX(1)";$("timebar").classList.remove("low");$("timeTxt").textContent=`${S.time} 秒`;
+    S.phase="count";const cnt=$("count");let n=3;cnt.hidden=false;cnt.textContent=n;sfx.tick();
+    const iv=setInterval(()=>{
+      n--;
+      if(n>0){cnt.textContent=n;sfx.tick();return}
+      clearInterval(iv);cnt.hidden=true;sfx.go();
+      S.phase="play";S.endAt=performance.now()+S.time*1000;lastT=performance.now();spawnIn=.2;
+      setTarget(newTarget());spawn(true);
+      cancelAnimationFrame(raf);raf=requestAnimationFrame(tick);
+    },800);
+    try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}
+  }
+  function finish(){
+    S.phase="end";cancelAnimationFrame(raf);clearCards();sfx.end();
+    $("timefill").style.transform="scaleX(0)";$("timeTxt").textContent="時間到";
+    const best=getBest(),rec=S.score>best;
+    if(rec)pref(bestKey(),S.score);
+    $("result").innerHTML=`${S.score}<small> 題</small>`;
+    $("newrec").hidden=!rec||S.score===0;
+    $("endText").textContent=`${LV[S.lv].name}・${opName()}・${S.time} 秒　最佳成績：${Math.max(best,S.score)} 題`+(S.miss?`（點錯 ${S.miss} 次）`:"");
+    $("end").hidden=false;syncSetup();
+    say(rec&&S.score?`新紀錄！答對 ${S.score} 題`:`時間到！答對 ${S.score} 題`);
+  }
+  $("go").addEventListener("click",start);
+  $("replay").addEventListener("click",start);
+  $("change").addEventListener("click",()=>{$("end").hidden=true;$("start").hidden=false;S.phase="start"});
+})();
+</script>
+</body>
+</html>
