@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>套圈圈九九快答</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
+<style>
+/* 單人計時遊戲：上方出乘法題，攤位上擺著寫數字的獎品瓶，點答案那一瓶，圈圈就飛過去套住 */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --ink:#1f2b33; --muted:#5d6b72; --good:#1f9d61; --bad:#d23c3c;
+  --accent:#1fb5a8; --accent-dark:#13786f; --wood:#c98a52; --wood-dark:#9b6236;
+  --num:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
+  --text:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{margin:0;height:100%}
+body{background:linear-gradient(#2a3a6b,#46578f 55%,#6b4a2f 55%);color:var(--ink);font-family:var(--text);overflow:hidden;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;display:flex;flex-direction:column}
+[hidden]{display:none!important}
+.top{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;
+  padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 6px max(16px,env(safe-area-inset-left,0px))}
+.ibtn{width:48px;height:48px;border-radius:14px;border:0;background:#fff;font-size:24px;cursor:pointer;
+  display:grid;place-items:center;text-decoration:none;color:inherit;box-shadow:0 3px 0 rgba(0,0,0,.2)}
+.q{justify-self:center;background:#fff;border-radius:20px;padding:.05em .6em;font-family:var(--num);font-weight:800;
+  font-size:clamp(40px,8.5vmin,86px);line-height:1.15;white-space:nowrap;box-shadow:0 5px 0 rgba(0,0,0,.2)}
+.q .ans{color:var(--accent)}
+.q.bump{animation:bump .35s}
+@keyframes bump{40%{transform:scale(1.15)}}
+.stats{display:flex;flex-direction:column;align-items:flex-end;gap:2px;font-family:var(--num);font-weight:800;color:#fff}
+.stats .sc{font-size:clamp(20px,3.6vmin,32px)}
+.stats .best{font-family:var(--text);font-size:13px;opacity:.85}
+.timebar{height:14px;margin:0 max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px));background:rgba(255,255,255,.3);border-radius:999px;overflow:hidden;position:relative}
+.timebar i{position:absolute;inset:0;transform-origin:left;background:linear-gradient(90deg,#1fb5a8,#f2c12e);border-radius:999px}
+.timebar.low i{background:var(--bad)}
+.timeTxt{text-align:center;font-family:var(--num);font-weight:800;font-size:clamp(16px,2.6vmin,22px);color:#fff;margin-top:2px}
+/* 攤位：燈泡招牌＋三層木架上的瓶子 */
+.booth{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:8px max(16px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.shelves{display:grid;grid-template-rows:repeat(2,auto);gap:clamp(10px,2.4vmin,24px);width:min(900px,100%)}
+.shelf{display:flex;justify-content:space-around;align-items:flex-end;padding:0 10px;border-bottom:14px solid var(--wood);
+  border-radius:0 0 6px 6px;box-shadow:0 6px 0 var(--wood-dark)}
+.bottle{position:relative;border:0;background:none;padding:0;cursor:pointer;touch-action:manipulation;width:clamp(70px,13vmin,130px);
+  display:flex;flex-direction:column;align-items:center}
+.bottle .neck{width:28%;height:clamp(18px,4vmin,36px);background:var(--c);border-radius:6px 6px 0 0;opacity:.9}
+.bottle .body{width:100%;aspect-ratio:1/1.05;background:var(--c);border-radius:28% 28% 14% 14%;display:grid;place-items:center;
+  box-shadow:inset -8px -8px 0 rgba(0,0,0,.15),inset 8px 6px 0 rgba(255,255,255,.25)}
+.bottle .label{background:#fff;border-radius:12px;padding:0 .2em;min-width:72%;font-family:var(--num);font-weight:800;
+  font-size:clamp(26px,5.6vmin,54px);line-height:1.15;color:var(--ink)}
+.bottle:active .body{transform:translateY(2px)}
+.bottle.wrong .body{animation:shake .35s}
+.bottle.hit .label{background:var(--good);color:#fff}
+@keyframes shake{25%{translate:-6px 0}75%{translate:6px 0}}
+/* 飛出去的圈圈 */
+.ring{position:fixed;width:clamp(60px,11vmin,110px);aspect-ratio:2.2/1;border:clamp(7px,1.3vmin,12px) solid #ff5ea0;border-radius:50%;
+  pointer-events:none;z-index:10;box-shadow:0 3px 0 rgba(0,0,0,.25)}
+.float{position:fixed;font-family:var(--num);font-weight:800;font-size:28px;pointer-events:none;animation:up .8s forwards;z-index:11}
+.float.plus{color:#7dffb0} .float.minus{color:#ff8a8a}
+@keyframes up{to{transform:translateY(-50px);opacity:0}}
+.count{position:fixed;inset:0;display:grid;place-items:center;font-family:var(--num);font-weight:800;font-size:clamp(90px,24vmin,200px);
+  color:#fff;pointer-events:none;z-index:15;text-shadow:0 6px 0 rgba(0,0,0,.25)}
+/* 開始／結束畫面 */
+.cover{position:fixed;inset:0;z-index:20;display:grid;place-items:start center;overflow-y:auto;background:rgba(42,58,107,.85);
+  padding:max(12px,env(safe-area-inset-top,0px)) 16px max(12px,env(safe-area-inset-bottom,0px))}
+.box{margin:auto 0;background:#fff;border-radius:24px;padding:clamp(18px,4vmin,32px);width:min(520px,100%);box-shadow:0 12px 40px rgba(0,0,0,.3);
+  display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center}
+.box h2{margin:0;font-size:clamp(26px,5.5vmin,42px)}
+.box p{margin:0;color:var(--muted);font-size:clamp(15px,2.5vmin,19px);line-height:1.5}
+#start .box>.big{position:sticky;bottom:0}
+.row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.lbl{font-size:14px;font-weight:700;color:var(--muted);margin-top:4px}
+.opt{font:inherit;font-size:17px;font-weight:700;border:2px solid #cfd8dc;background:#fff;border-radius:14px;padding:9px 14px;cursor:pointer;color:inherit}
+.opt small{display:block;font-size:12px;font-weight:600;opacity:.75}
+.opt[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:#fff}
+.big{font-family:var(--text);font-weight:800;font-size:clamp(20px,4vmin,30px);border:0;border-radius:999px;padding:.45em 1.6em;
+  background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 5px 0 var(--accent-dark);text-decoration:none;display:inline-block}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 var(--accent-dark)}
+.big.alt{background:#fff;color:var(--ink);box-shadow:0 5px 0 #cfd8dc;border:2px solid #cfd8dc}
+.result{font-family:var(--num);font-weight:800;font-size:clamp(56px,13vmin,110px);line-height:1;color:var(--accent)}
+.result small{font-family:var(--text);font-size:.3em;color:var(--muted)}
+.newrec{font-weight:800;color:#fff;background:var(--good);border-radius:999px;padding:4px 16px;font-size:18px}
+.note{font-size:13px;color:var(--muted)}
+@media (max-height:560px){.box{gap:8px;padding:14px 18px}.box h2{font-size:24px}#start .box>p{display:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="ibtn" href="./" aria-label="回遊樂園地圖">🏠</a>
+  <div class="q" id="q">🎯 套圈圈</div>
+  <div class="stats"><span class="sc" id="score">✔ 0</span><span class="best" id="bestTop"></span></div>
+</header>
+<div class="timebar" id="timebar"><i id="timefill"></i></div>
+<div class="timeTxt" id="timeTxt"></div>
+<main class="booth">
+  <div class="shelves" id="shelves"></div>
+</main>
+<div class="count" id="count" hidden></div>
+
+<section class="cover" id="start">
+  <div class="box">
+    <h2>🎯 套圈圈九九快答</h2>
+    <p>看上面的乘法題，把圈圈丟到寫著答案的瓶子上！<br>時間內套中越多個越厲害。</p>
+    <span class="lbl">難度</span>
+    <div class="row" id="levels">
+      <button type="button" class="opt" data-lv="1">初級<small>2、5 的乘法</small></button>
+      <button type="button" class="opt" data-lv="2">進階<small>2、3、4、5 的乘法</small></button>
+      <button type="button" class="opt" data-lv="3">高級<small>九九乘法</small></button>
+    </div>
+    <span class="lbl">時間</span>
+    <div class="row" id="times">
+      <button type="button" class="opt" data-t="30">30 秒</button>
+      <button type="button" class="opt" data-t="60">60 秒</button>
+      <button type="button" class="opt" data-t="90">90 秒</button>
+    </div>
+    <span class="note" id="bestStart"></span>
+    <button type="button" class="big" id="go">開始丟圈圈！</button>
+  </div>
+</section>
+<section class="cover" id="end" hidden>
+  <div class="box">
+    <h2>⏰ 時間到！</h2>
+    <div class="result" id="result">0<small> 個</small></div>
+    <span class="newrec" id="newrec" hidden>🏆 新紀錄！</span>
+    <p id="endText"></p>
+    <div class="row">
+      <button type="button" class="big" id="replay">再玩一次</button>
+      <button type="button" class="big alt" id="change">換設定</button>
+      <a class="big alt" href="./">回遊樂園</a>
+    </div>
+  </div>
+</section>
+
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
+  const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  const LV={1:{ks:[2,5],name:"初級"},2:{ks:[2,3,4,5],name:"進階"},3:{ks:[2,3,4,5,6,7,8,9],name:"高級"}};
+  const S={lv:LV[+pref("park-level")]?+pref("park-level"):1,time:[30,60,90].includes(+pref("ring-time"))?+pref("ring-time"):60,
+    phase:"start",k:0,n:0,score:0,miss:0,endAt:0,lastSec:-1,last:""};
+  const bestKey=()=>`ring-best-${S.lv}-${S.time}`,getBest=()=>+pref(bestKey())||0;
+  function syncSetup(){
+    document.querySelectorAll("#levels button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
+    document.querySelectorAll("#times button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.t===S.time));
+    const best=getBest(),label=`${LV[S.lv].name}・${S.time} 秒`;
+    $("bestStart").textContent=best?`🏆 最佳成績（${label}）：${best} 個`:`（${label}）還沒有紀錄，來挑戰吧！`;
+    $("bestTop").textContent=`最佳 ${best}`;
+  }
+  document.querySelectorAll("#levels button").forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("park-level",S.lv);syncSetup()}));
+  document.querySelectorAll("#times button").forEach(b=>b.addEventListener("click",()=>{S.time=+b.dataset.t;pref("ring-time",S.time);syncSetup()}));
+  syncSetup();
+
+  // ---- 語音與音效 ----
+  const synth=window.speechSynthesis;let voice=null;const rate=+(pref("duel-rate")||.9)||.9;
+  const quality=v=>{const u=v.voiceURI||"";return /eloquence|speech\.synthesis\.voice/i.test(u)?0:/\.premium\./i.test(u)?3:/enhanced|-premium/i.test(u)?2:1};
+  function pickVoice(){if(!synth)return;const vs=synth.getVoices().filter(v=>/^(zh|cmn)/i.test(v.lang));const want=pref("duel-voice");
+    const tw=vs.filter(v=>/TW|Hant/i.test(v.lang)&&quality(v)>0).sort((a,b)=>quality(b)-quality(a));
+    voice=(want&&vs.find(v=>(v.voiceURI||v.name)===want))||tw[0]||vs.find(v=>quality(v)>0)||vs[0]||null}
+  if(synth){pickVoice();try{synth.addEventListener("voiceschanged",pickVoice)}catch(e){}}
+  function say(t){if(!synth)return;try{const u=new SpeechSynthesisUtterance(t);u.lang=voice?voice.lang.replace("_","-"):"zh-TW";if(voice)u.voice=voice;u.rate=Math.max(rate,1);u.pitch=1.1;
+    if(synth.speaking||synth.pending){synth.cancel();setTimeout(()=>{try{synth.speak(u)}catch(e){}},90)}else synth.speak(u)}catch(e){}}
+  let ac=null;
+  function tone(fs,dur=.12,type="triangle",vol=.15){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume();
+    fs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*dur;o.type=type;o.frequency.value=f;
+      g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)})}catch(e){}}
+  const sfx={good:()=>tone([784,1175],.12,"sine",.3),bad:()=>tone([150],.3,"square",.16),toss:()=>tone([500,700],.06,"sine",.06),
+    tick:()=>tone([600],.08),go:()=>tone([900],.25),end:()=>tone([784,659,523,784,1047],.14)};
+  function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
+    try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}}
+
+  // ---- 出題與瓶子 ----
+  const COLORS=["#e0477b","#f08a24","#3fb56a","#2f8fdb","#8a5cd6","#1fb5a8","#e25555","#d1a21f"];
+  function newQ(){
+    const ks=LV[S.lv].ks;let k,n,key,t=0;
+    do{k=ks[rnd(0,ks.length-1)];n=rnd(1,9);key=k+"x"+n}while(key===S.last&&++t<10);
+    S.last=key;S.k=k;S.n=n;
+  }
+  // 六個瓶子：答案＋常見的算錯（多一份、少一份、隔壁的乘法、加法）
+  function values(){
+    const ans=S.k*S.n,set=new Set([ans]);
+    [S.k*(S.n+1),S.k*(S.n-1),(S.k+1)*S.n,(S.k-1)*S.n,S.k+S.n,S.k*(S.n+2),ans+1,ans-1].sort(()=>Math.random()-.5)
+      .forEach(v=>{if(set.size<6&&v>0)set.add(v)});
+    while(set.size<6){const v=ans+rnd(-6,6);if(v>0)set.add(v)}   // 補的數字也靠近答案
+    return[...set].sort(()=>Math.random()-.5);
+  }
+  function setQ(){
+    newQ();
+    const q=$("q");q.innerHTML=`${S.k} × ${S.n} = <span class="ans">?</span>`;q.classList.remove("bump");void q.offsetWidth;q.classList.add("bump");
+    const v=values();
+    $("shelves").innerHTML=[v.slice(0,3),v.slice(3)].map(row=>`<div class="shelf">${row.map(x=>
+      `<button type="button" class="bottle" data-v="${x}" style="--c:${COLORS[rnd(0,COLORS.length-1)]}" aria-label="${x}"><span class="neck"></span><span class="body"><span class="label">${x}</span></span></button>`).join("")}</div>`).join("");
+    $("shelves").querySelectorAll(".bottle").forEach(b=>b.addEventListener("pointerdown",e=>{e.preventDefault();toss(b)}));
+    say(`${S.k}乘以${S.n}`);
+  }
+  // 圈圈從畫面下方飛到瓶頸
+  function toss(b){
+    if(S.phase!=="play")return;
+    sfx.toss();
+    const r=b.querySelector(".neck").getBoundingClientRect(),ring=document.createElement("span");ring.className="ring";document.body.appendChild(ring);
+    const w=ring.offsetWidth,h=ring.offsetHeight,sx=innerWidth/2-w/2,sy=innerHeight-h-10,ex=r.left+r.width/2-w/2,ey=r.top+r.height*.6-h/2;
+    const right=+b.dataset.v===S.k*S.n;
+    const anim=ring.animate([
+      {transform:`translate(${sx}px,${sy}px) rotateX(60deg) scale(1.2)`},
+      {transform:`translate(${(sx+ex)/2}px,${Math.min(sy,ey)-80}px) rotateX(65deg) scale(1)`,offset:.55},
+      {transform:`translate(${ex}px,${ey}px) rotateX(70deg) scale(.9)`}
+    ],{duration:380,easing:"ease-out",fill:"forwards"});
+    S.phase="toss";
+    // 用計時器判斷結果，不依賴動畫事件（畫面在背景時動畫可能不會跑完）
+    setTimeout(()=>{
+      if(right){
+        S.score++;sfx.good();b.classList.add("hit");$("score").textContent=`✔ ${S.score}`;floatTxt(r,"+1","plus");
+        $("q").querySelector(".ans").textContent=S.k*S.n;
+        setTimeout(()=>{ring.remove();if(S.phase==="toss"){S.phase="play";setQ()}},420);
+      }else{
+        S.miss++;sfx.bad();b.classList.remove("wrong");void b.offsetWidth;b.classList.add("wrong");S.endAt-=2000;floatTxt(r,"−2 秒","minus");
+        ring.animate([{transform:`translate(${ex}px,${ey}px) rotateX(70deg)`},{transform:`translate(${ex+40}px,${innerHeight}px) rotateX(70deg) rotate(90deg)`,opacity:0}],{duration:450,fill:"forwards"});
+        setTimeout(()=>ring.remove(),480);
+        if(S.phase==="toss")S.phase="play";
+      }
+    },400);
+  }
+  function floatTxt(r,txt,cls){const f=document.createElement("span");f.className="float "+cls;f.textContent=txt;
+    f.style.left=r.left-10+"px";f.style.top=r.top-30+"px";document.body.appendChild(f);setTimeout(()=>f.remove(),800)}
+
+  // ---- 計時 ----
+  let raf=0;
+  function tick(now){
+    if(S.phase!=="play"&&S.phase!=="toss")return;
+    const left=Math.max(0,(S.endAt-now)/1000);
+    $("timefill").style.transform=`scaleX(${left/S.time})`;$("timebar").classList.toggle("low",left<=10);
+    const sec=Math.ceil(left);if(sec!==S.lastSec){S.lastSec=sec;$("timeTxt").textContent=`剩下 ${sec} 秒`;if(sec<=5&&sec>0)sfx.tick()}
+    if(left<=0)return finish();
+    raf=requestAnimationFrame(tick);
+  }
+  function start(){
+    unlock();$("start").hidden=true;$("end").hidden=true;
+    S.score=0;S.miss=0;S.lastSec=-1;S.last="";$("score").textContent="✔ 0";$("shelves").innerHTML="";
+    $("timefill").style.transform="scaleX(1)";$("timebar").classList.remove("low");$("timeTxt").textContent=`${S.time} 秒`;
+    S.phase="count";const cnt=$("count");let n=3;cnt.hidden=false;cnt.textContent=n;sfx.tick();
+    const iv=setInterval(()=>{n--;if(n>0){cnt.textContent=n;sfx.tick();return}
+      clearInterval(iv);cnt.hidden=true;sfx.go();S.phase="play";S.endAt=performance.now()+S.time*1000;setQ();
+      cancelAnimationFrame(raf);raf=requestAnimationFrame(tick)},800);
+    try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}
+  }
+  function finish(){
+    S.phase="end";cancelAnimationFrame(raf);sfx.end();document.querySelectorAll(".ring").forEach(r=>r.remove());
+    $("timefill").style.transform="scaleX(0)";$("timeTxt").textContent="時間到";
+    const best=getBest(),rec=S.score>best;if(rec)pref(bestKey(),S.score);
+    $("result").innerHTML=`${S.score}<small> 個</small>`;$("newrec").hidden=!rec||S.score===0;
+    $("endText").textContent=`${LV[S.lv].name}・${S.time} 秒　最佳成績：${Math.max(best,S.score)} 個`+(S.miss?`（丟歪 ${S.miss} 次）`:"");
+    $("end").hidden=false;syncSetup();
+    say(rec&&S.score?`新紀錄！套中${S.score}個`:`時間到！套中${S.score}個`);
+  }
+  $("go").addEventListener("click",start);$("replay").addEventListener("click",start);
+  $("change").addEventListener("click",()=>{$("end").hidden=true;$("start").hidden=false;S.phase="start"});
+})();
+</script>
+</body>
+</html>

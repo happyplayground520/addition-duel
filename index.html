@@ -23,11 +23,11 @@ body{background:linear-gradient(var(--sky) 0 22%,var(--grass) 22%);color:var(--i
   overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(6px,1.5vmin,14px);
   padding:max(12px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
-h1{margin:0;font-size:clamp(28px,6vmin,58px);font-weight:800;letter-spacing:.06em;color:#fff;
+h1{margin:0;font-size:clamp(28px,5.4vmin,54px);line-height:1.1;font-weight:800;letter-spacing:.06em;color:#fff;
   text-shadow:0 3px 0 #e0772b,0 6px 14px rgba(0,0,0,.18);display:flex;align-items:center;gap:.3em}
-.sub{margin:0;font-size:clamp(14px,2.4vmin,20px);color:var(--ink);font-weight:700;opacity:.75}
+.sub{margin:0;font-size:clamp(16px,2.6vmin,22px);color:var(--ink);font-weight:700;opacity:.75}
 /* 地圖畫布：橫向 16:10，直拿平板時縮小到寬度剛好 */
-.map{position:relative;width:min(100%,calc((100dvh - 180px) * 1.6));aspect-ratio:16/10;
+.map{position:relative;width:min(100%,calc((100dvh - 120px) * 1.6));aspect-ratio:16/10;
   background:radial-gradient(circle at 20% 30%,var(--grass-dark) 0 6%,transparent 6.5%),
              radial-gradient(circle at 75% 80%,var(--grass-dark) 0 5%,transparent 5.5%),var(--grass);
   border-radius:28px;box-shadow:inset 0 0 0 6px rgba(255,255,255,.55),0 10px 30px rgba(0,0,0,.15);overflow:hidden}
@@ -43,7 +43,7 @@ h1{margin:0;font-size:clamp(28px,6vmin,58px);font-weight:800;letter-spacing:.06e
 .spot:focus-visible .icon{outline:4px solid #fff;outline-offset:3px}
 .spot .name{background:var(--sign);border:2px solid var(--c);border-radius:12px;padding:3px 12px;
   font-weight:800;font-size:clamp(14px,2.6vmin,24px);white-space:nowrap;box-shadow:0 3px 0 rgba(0,0,0,.08)}
-.spot .tag{font-size:clamp(11px,1.8vmin,15px);font-weight:700;color:#fff;background:var(--c);border-radius:999px;padding:1px 10px}
+.spot .tag{white-space:nowrap;font-size:clamp(11px,1.8vmin,15px);font-weight:700;color:#fff;background:var(--c);border-radius:999px;padding:1px 10px}
 .spot.open .icon{animation:bob 2.4s ease-in-out infinite}
 .spot.open:nth-of-type(2) .icon{animation-delay:-1.2s}
 @keyframes bob{50%{transform:translateY(-6px)}}
@@ -61,15 +61,19 @@ h1{margin:0;font-size:clamp(28px,6vmin,58px);font-weight:800;letter-spacing:.06e
 /* 設施大小跟著地圖寬度縮放，小螢幕也不會擠在一起 */
 @supports (container-type:inline-size){
   .map{container-type:inline-size}
-  .spot .icon{width:clamp(36px,11cqw,140px);font-size:clamp(20px,6.6cqw,84px);border-width:clamp(3px,.5cqw,5px)}
-  .spot .name{font-size:clamp(10px,2.2cqw,24px);padding:2px clamp(6px,1.2cqw,12px)}
-  .spot .tag{font-size:clamp(9px,1.4cqw,15px);padding:1px clamp(5px,1cqw,10px)}
+  .spot .icon{width:clamp(40px,11.5cqw,160px);font-size:clamp(22px,7cqw,96px);border-width:clamp(3px,.5cqw,6px)}
+  .spot .name{font-size:clamp(13px,2.8cqw,34px);padding:2px clamp(6px,1.2cqw,14px)}
+  .spot .tag{font-size:clamp(11px,1.9cqw,22px);padding:1px clamp(5px,1cqw,12px)}
   .deco{font-size:clamp(14px,3.4cqw,40px)}
+}
+/* 直拿平板：地圖改成直的，把畫面填滿 */
+@media (orientation:portrait){
+  .map{aspect-ratio:4/5;width:min(100%,calc((100dvh - 140px) * .8))}
 }
 /* 手機橫放：標題縮小，讓地圖大一點 */
 @media (max-height:500px){
   h1{font-size:24px} .sub{display:none}
-  .map{width:min(100%,calc((100dvh - 70px) * 1.6))}
+  .map{width:min(100%,calc((100dvh - 56px) * 1.6))}
 }
 </style>
 </head>
@@ -88,28 +92,34 @@ h1{margin:0;font-size:clamp(28px,6vmin,58px);font-weight:800;letter-spacing:.06e
   </svg>
   <span class="deco" style="left:6%;top:14%">🌳</span>
   <span class="deco" style="left:26%;top:90%">🌳</span>
-  <span class="deco" style="left:95%;top:22%">🌲</span>
-  <span class="deco" style="left:58%;top:62%">🌷</span>
+  <span class="deco" style="left:96%;top:44%">🌲</span>
+  <span class="deco" style="left:48%;top:56%">🌷</span>
   <span class="deco" style="left:8%;top:88%">🌼</span>
   <span class="deco" style="left:96%;top:90%">🎈</span>
-  <span class="deco" style="left:40%;top:14%">☁️</span>
+  <span class="deco" style="left:36%;top:8%">☁️</span>
 
-  <a class="spot open" href="duel.html" style="--c:#7a3fa0;left:15%;top:58%">
+  <a class="spot open" href="duel.html" style="--c:#7a3fa0;left:13%;top:55%">
     <span class="icon">🎪</span><span class="name">搶答對決</span><span class="tag">2 人・加減法</span>
   </a>
-  <a class="spot open" href="balloon.html" style="--c:#e0477b;left:85%;top:58%">
+  <a class="spot open" href="balloon.html" style="--c:#e0477b;left:85%;top:64%">
     <span class="icon">🎈</span><span class="name">射氣球</span><span class="tag">1 人・加減法</span>
   </a>
-  <a class="spot open" href="carousel.html" style="--c:#d1478f;left:50%;top:22%">
+  <a class="spot open" href="carousel.html" style="--c:#d1478f;left:50%;top:20%">
     <span class="icon">🎠</span><span class="name">旋轉木馬</span><span class="tag">1 人・認識時鐘</span>
   </a>
-  <a class="spot open" href="ferris.html" style="--c:#2f8fdb;left:32%;top:36%">
+  <a class="spot open" href="ferris.html" style="--c:#2f8fdb;left:29%;top:30%">
     <span class="icon">🎡</span><span class="name">摩天輪</span><span class="tag">1 人・乘法</span>
   </a>
-  <a class="spot open" href="booth.html" style="--c:#e0772b;left:38%;top:73%">
+  <a class="spot open" href="booth.html" style="--c:#e0772b;left:33%;top:74%">
     <span class="icon">🎟️</span><span class="name">售票亭</span><span class="tag">1 人・認識錢幣</span>
   </a>
-  <a class="spot open" href="coaster.html" style="--c:#7a4fd6;left:63%;top:75%">
+  <a class="spot open" href="donut.html" style="--c:#c2551f;left:69%;top:43%">
+    <span class="icon">🍩</span><span class="name">甜甜圈攤</span><span class="tag">1 人・排排看乘法</span>
+  </a>
+  <a class="spot open" href="ring.html" style="--c:#1fb5a8;left:84%;top:21%">
+    <span class="icon">🎯</span><span class="name">套圈圈</span><span class="tag">1 人・九九快答</span>
+  </a>
+  <a class="spot open" href="coaster.html" style="--c:#7a4fd6;left:61%;top:76%">
     <span class="icon">🎢</span><span class="name">雲霄飛車</span><span class="tag">1 人・計時</span>
   </a>
 </div>

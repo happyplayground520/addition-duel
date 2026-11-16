@@ -165,7 +165,7 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
   function goNext(){if(S.phase!=="reveal")return;clearTimeout(advTimer);try{synth&&synth.cancel()}catch(e){}next()}
 
   // ---- 新臺幣示意圖：硬幣照實物的金屬顏色與大小比例（1、5、10、50 元 = 20、22、26、28 公釐），
-  //      有齒紋邊、凸起外圈、弧形「中華民國」字樣與浮雕數字；紙鈔照主色，加浮水印、防偽線與底紋。不畫人像與官方圖案 ----
+  //      有齒紋邊、凸起外圈、弧形「數學遊樂園」字樣與浮雕數字；紙鈔照主色，加浮水印、防偽線與底紋。不畫人像與官方圖案 ----
   const COIN={1:{mm:20,metal:"cu",ink:"#6b3a14",hi:"#f3c79a",word:"壹圓"},
               5:{mm:22,metal:"ag",ink:"#4d565c",hi:"#ffffff",word:"伍圓"},
               10:{mm:26,metal:"ag",ink:"#4d565c",hi:"#ffffff",word:"拾圓"},
@@ -195,7 +195,7 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
         <circle cx="${m}" cy="${m}" r="${r-1}" fill="none" stroke="${c.ink}" stroke-opacity=".45" stroke-width="${Math.max(1.5,r*.06)}" stroke-dasharray="1.2 2.2"/>
         <circle cx="${m}" cy="${m}" r="${r*.88}" fill="none" stroke="url(#m-edge)" stroke-width="${r*.07}"/>
         <circle cx="${m}" cy="${m}" r="${r*.84}" fill="url(#m-${c.metal})"/>
-        <text font-family="${T}" font-weight="700" font-size="${(r*.17).toFixed(1)}" fill="${c.ink}" letter-spacing="${(r*.05).toFixed(1)}"><textPath href="#${id}" startOffset="50%" text-anchor="middle">中華民國</textPath></text>
+        <text font-family="${T}" font-weight="700" font-size="${(r*.15).toFixed(1)}" fill="${c.ink}" letter-spacing="${(r*.02).toFixed(1)}"><textPath href="#${id}" startOffset="50%" text-anchor="middle">數學遊樂園</textPath></text>
         ${plum(m-r*.63,m+r*.1,r*.1,c.ink)}${plum(m+r*.63,m+r*.1,r*.1,c.ink)}
         <text x="${m+1}" y="${m+r*.1+1}" text-anchor="middle" dominant-baseline="central" font-size="${(r*(v>=10?.62:.78)).toFixed(1)}" font-weight="800" fill="${c.hi}" opacity=".8" font-family="${F}">${v}</text>
         <text x="${m}" y="${m+r*.1}" text-anchor="middle" dominant-baseline="central" font-size="${(r*(v>=10?.62:.78)).toFixed(1)}" font-weight="800" fill="${c.ink}" font-family="${F}">${v}</text>
@@ -214,9 +214,9 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
       <ellipse cx="140" cy="43" rx="22" ry="26" fill="none" stroke="${b.mid}" stroke-width="1"/>
       ${plum(140,43,14,b.dark)}
       <rect x="110" y="6" width="3" height="74" fill="${b.dark}" opacity=".45"/>
-      <text x="68" y="31" text-anchor="middle" font-size="9" font-weight="700" fill="${b.dark}" font-family="${T}" letter-spacing="2">中華民國</text>
+      <text x="68" y="31" text-anchor="middle" font-size="9" font-weight="700" fill="${b.dark}" font-family="${T}" letter-spacing="1">數學遊樂園</text>
       <text x="66" y="50" text-anchor="middle" font-size="18" font-weight="800" fill="${b.dark}" font-family="${T}">${b.word}</text>
-      <text x="66" y="66" text-anchor="middle" font-size="8" font-weight="700" fill="${b.dark}" font-family="${T}" letter-spacing="1">中央銀行</text>
+      <text x="66" y="66" text-anchor="middle" font-size="8" font-weight="700" fill="${b.dark}" font-family="${T}" letter-spacing="1">遊樂園銀行</text>
       <text x="12" y="19" font-size="11" font-weight="800" fill="${b.dark}" font-family="${F}">${v}</text>
       <text x="104" y="77" text-anchor="end" font-size="14" font-weight="800" fill="${b.dark}" font-family="${F}">${v}</text>
       <text x="167" y="21" text-anchor="end" font-size="11" font-weight="800" fill="${b.dark}" font-family="${F}">${v}</text>
