@@ -36,7 +36,7 @@ body{background:#fdeef3;color:var(--ink);font-family:var(--text);overflow:hidden
 main{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr);
   gap:clamp(10px,3vmin,32px);align-items:center;
   padding:6px max(16px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
-@media (orientation:portrait){main{grid-template-columns:1fr;grid-template-rows:minmax(0,1.2fr) auto}}
+@media (orientation:portrait){main{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1.2fr) auto}}
 /* 盤子 */
 .stage{position:relative;height:100%;min-height:0;display:grid;place-items:center}
 .tray{display:grid;gap:var(--gap);padding:calc(var(--cell)*.3);background:var(--tray);border:6px solid var(--tray-edge);border-radius:24px;
@@ -46,6 +46,17 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:mi
 .build .cell{background:#f3e3d0;cursor:pointer}
 .build .cell.on{background:none}
 .cell.lit{animation:lit .5s}
+/* 甜甜圈：麵包圈 + 糖霜 + 彩色糖粒，口味由 --ic（糖霜）和 --s1/--s2/--s3（糖粒）決定 */
+.dn{display:block;width:88%;aspect-ratio:1;border-radius:50%;
+  background:
+    radial-gradient(circle at 32% 26%,var(--s1) 0 3.2%,transparent 3.8%),
+    radial-gradient(circle at 68% 30%,var(--s2) 0 3.2%,transparent 3.8%),
+    radial-gradient(circle at 22% 58%,var(--s3) 0 3.2%,transparent 3.8%),
+    radial-gradient(circle at 78% 62%,var(--s1) 0 3.2%,transparent 3.8%),
+    radial-gradient(circle at 46% 80%,var(--s2) 0 3.2%,transparent 3.8%),
+    radial-gradient(circle at 55% 16%,var(--s3) 0 3.2%,transparent 3.8%),
+    radial-gradient(closest-side,transparent 0 27%,#d9893f 28% 33%,var(--ic) 34% 80%,#e9a862 81% 100%);
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.12),0 2px 3px rgba(0,0,0,.15)}
 @keyframes lit{40%{transform:scale(1.3)}}
 .rowlbl{font-family:var(--num);font-weight:800;color:var(--accent-dark);font-size:calc(var(--cell)*.42);display:grid;place-items:center}
 /* 右邊 */
@@ -86,6 +97,7 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:mi
 .stars{font-size:clamp(40px,9vmin,72px);letter-spacing:.1em;line-height:1}
 @media (max-height:560px){.box{gap:8px;padding:14px 18px}.box h2{font-size:24px}#start .box>p{display:none}}
 </style>
+<script src="zhuyin.js"></script>
 </head>
 <body>
 <div class="awning" aria-hidden="true"></div>
@@ -97,7 +109,7 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:mi
 <main>
   <div class="stage" id="stage"><div class="tray" id="tray"></div></div>
   <div class="panel">
-    <div class="story" id="story"></div>
+    <div class="story" id="story" data-zy></div>
     <div class="eq" id="eq"></div>
     <div class="now" id="now" hidden></div>
     <div class="skip" id="skip" aria-live="polite"></div>
@@ -189,7 +201,7 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:mi
   // 看盤子算：n 排、每排 k 個
   function drawRead(){
     tray.className="tray";tray.style.gridTemplateColumns=`repeat(${S.k},var(--cell))`;fit(S.n,S.k);
-    tray.innerHTML=Array.from({length:S.n*S.k},(_,i)=>`<span class="cell" data-r="${Math.floor(i/S.k)}">🍩</span>`).join("");
+    tray.innerHTML=Array.from({length:S.n*S.k},(_,i)=>`<span class="cell" data-r="${Math.floor(i/S.k)}"><i class="dn"></i></span>`).join("");
   }
   // 排排看：空盤子，點一格放一個甜甜圈，再點一次拿走
   const maxCols=()=>Math.max(...LV[S.lv]),maxRows=()=>S.lv===1?5:9;
@@ -207,12 +219,27 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:mi
     return[...m.entries()].sort((a,b)=>a[0]-b[0]);
   }
   function paint(){
-    tray.querySelectorAll(".cell").forEach(c=>{const on=S.on.has(c.dataset.r+","+c.dataset.c);c.classList.toggle("on",on);c.textContent=on?"🍩":""});
+    tray.querySelectorAll(".cell").forEach(c=>{const on=S.on.has(c.dataset.r+","+c.dataset.c);c.classList.toggle("on",on);c.innerHTML=on?'<i class="dn"></i>':""});
     const rows=rowCounts();
     $("now").textContent=S.on.size?`現在：${rows.length} 排，一共 ${S.on.size} 個`:"點一格放一個甜甜圈";
   }
   addEventListener("resize",()=>{if(S.phase==="start"||S.phase==="end")return;S.kind==="build"?(fit(maxRows(),maxCols())):fit(S.n,S.k)});
 
+  // ---- 口味：每題換一種 ----
+  const FLAVORS=[
+    {name:"草莓",ic:"#ff8fb8",s:["#fff","#ffe066","#7bd3f7"]},
+    {name:"巧克力",ic:"#7a4527",s:["#ff6b9a","#fff","#ffd23f"]},
+    {name:"抹茶",ic:"#8cc66b",s:["#fff","#ff9fc0","#f7e27a"]},
+    {name:"香草",ic:"#fff4d9",s:["#ff6b9a","#4dc3ff","#7bd389"]},
+    {name:"藍莓",ic:"#8b8df0",s:["#fff","#ffd23f","#ff9fc0"]},
+    {name:"焦糖",ic:"#e2a04c",s:["#7a4527","#fff","#7a4527"]},
+    {name:"檸檬",ic:"#ffe066",s:["#fff","#8cc66b","#ff9fc0"]}
+  ];
+  function pickFlavor(){
+    let i;do{i=rnd(0,FLAVORS.length-1)}while(FLAVORS[i]===S.fl&&FLAVORS.length>1);
+    S.fl=FLAVORS[i];const f=S.fl;
+    tray.style.setProperty("--ic",f.ic);f.s.forEach((c,j)=>tray.style.setProperty("--s"+(j+1),c));
+  }
   // ---- 出題 ----
   function newQ(){
     const ks=LV[S.lv];let k,n,key,t=0;
@@ -226,25 +253,25 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:mi
     while(set.size<4)set.add(Math.max(1,ans+rnd(-9,9)));
     return[...set].sort(()=>Math.random()-.5);
   }
-  const ask=()=>S.kind==="read"?`盤子上有${S.n}排甜甜圈，每排${S.k}個，一共有幾個？`:`請排出${S.k}乘以${S.n}：每排${S.k}個，排${S.n}排`;
+  const ask=()=>S.kind==="read"?`盤子上有${S.n}排${S.fl.name}甜甜圈，每排${S.k}個，一共有幾個？`:`請排出${S.k}乘以${S.n}：每排${S.k}個${S.fl.name}甜甜圈，排${S.n}排`;
   function start(){unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.score=0;S.last="";upd();next();
     try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}}
   const upd=()=>{$("score").textContent=`⭐ ${S.score} / ${S.total}`};
   function next(){
     if(S.round>=S.total)return finish();
-    S.round++;S.tries=0;S.phase="play";newQ();
+    S.round++;S.tries=0;S.phase="play";newQ();pickFlavor();
     S.kind=S.mode==="mix"?(S.round%2?"read":"build"):S.mode;
     $("skip").textContent="";$("msg").textContent="";$("msg").className="msg";
     if(S.kind==="read"){
       drawRead();
-      $("story").innerHTML=`盤子上有 <b>${S.n}</b> 排甜甜圈，<br>每排 <b>${S.k}</b> 個，一共有幾個？`;
+      $("story").innerHTML=`盤子上有 <b>${S.n}</b> 排${S.fl.name}甜甜圈，<br>每排 <b>${S.k}</b> 個，一共有幾個？`;
       $("eq").innerHTML=`${S.k} × ${S.n} = <span class="ans">?</span>`;
       $("choices").innerHTML=options().map(v=>`<button type="button" class="ch" data-v="${v}">${v}</button>`).join("");
       $("choices").querySelectorAll(".ch").forEach(b=>b.addEventListener("click",()=>pick(b)));
       $("choices").hidden=false;$("buildBtns").hidden=true;$("now").hidden=true;
     }else{
       drawBuild();
-      $("story").innerHTML=`請把甜甜圈排成<br>每排 <b>${S.k}</b> 個，排 <b>${S.n}</b> 排`;
+      $("story").innerHTML=`請把${S.fl.name}甜甜圈排成<br>每排 <b>${S.k}</b> 個，排 <b>${S.n}</b> 排`;
       $("eq").innerHTML=`${S.k} × ${S.n}`;
       $("choices").hidden=true;$("buildBtns").hidden=false;$("now").hidden=false;
     }
@@ -259,7 +286,7 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:mi
     $("msg").textContent=["答對了！","排得好棒！","好好吃的樣子！"][rnd(0,2)];$("msg").className="msg good";
     const list=S.kind==="read"?Array.from({length:S.n},(_,i)=>i):rowCounts().map(e=>e[0]),rows=list.length,per=S.kind==="read"?S.k:S.on.size/rows;
     list.forEach((row,r)=>setTimeout(()=>{
-      tray.querySelectorAll(`.cell[data-r="${row}"]`).forEach(c=>{if(c.textContent){c.classList.remove("lit");void c.offsetWidth;c.classList.add("lit")}});
+      tray.querySelectorAll(`.cell[data-r="${row}"]`).forEach(c=>{if(c.querySelector(".dn")){c.classList.remove("lit");void c.offsetWidth;c.classList.add("lit")}});
       seq.push(per*(r+1));$("skip").textContent=seq.join("、");sfx.pip(r);
     },400*r));
     say(`${S.k}乘以${S.n}等於${ans}`);

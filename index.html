@@ -33,6 +33,17 @@ body{background:linear-gradient(var(--sky1),var(--sky2) 30%,var(--grass3) 30.1%,
 .cloud.c2{top:9%;animation-duration:52s;animation-delay:-20s;font-size:clamp(22px,4.4vmin,44px)}
 @keyframes drift{from{transform:translateX(-15vw)}to{transform:translateX(115vw)}}
 header,.map,.toast{position:relative;z-index:1}
+/* 右上角：注音開關（所有小遊戲一起套用） */
+.zybtn{position:fixed;z-index:5;top:max(10px,env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));
+  display:flex;align-items:center;gap:8px;font:inherit;font-weight:800;font-size:clamp(15px,2.2vmin,19px);color:var(--ink);
+  background:#fff;border:3px solid #fff;border-radius:999px;padding:6px 8px 6px 14px;cursor:pointer;box-shadow:0 4px 0 #b9dff5,0 8px 16px rgba(0,0,0,.12)}
+.zybtn .sw{position:relative;width:52px;height:30px;border-radius:999px;background:#cfd8dc;transition:background .2s}
+.zybtn .sw::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;
+  box-shadow:0 2px 4px rgba(0,0,0,.25);transition:transform .2s}
+.zybtn[aria-pressed="true"] .sw{background:#1f9d61}
+.zybtn[aria-pressed="true"] .sw::after{transform:translateX(22px)}
+.zybtn .st{min-width:1.2em;color:var(--muted)}
+@media (orientation:portrait){.zybtn{top:auto;bottom:max(10px,env(safe-area-inset-bottom,0px))}}
 /* 標題招牌：紅白條紋的帳篷布，下面一條緞帶 */
 header{display:flex;flex-direction:column;align-items:center;gap:4px}
 h1{margin:0;font-size:clamp(26px,5vmin,52px);line-height:1.15;font-weight:800;letter-spacing:.08em;color:#fff;
@@ -64,7 +75,7 @@ h1 .star{font-size:.7em;text-shadow:none}
 .gate{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:20%;height:9%;pointer-events:none;z-index:2;
   display:flex;justify-content:space-between;align-items:flex-start}
 .gate::before,.gate::after{content:"";width:9%;height:100%;border-radius:6px 6px 0 0;background:repeating-linear-gradient(#e8434f 0 8px,#fff 8px 16px)}
-.gate b{position:absolute;left:-6%;right:-6%;top:-38%;display:grid;place-items:center;padding:.1em 0;border-radius:999px;
+.gate b{position:absolute;left:-6%;right:-6%;top:-38%;display:flex;align-items:center;justify-content:center;gap:.2em;padding:.1em 0;border-radius:999px;
   background:#ffe27a;border:3px solid #fff;color:#7a4b12;font-weight:800;font-size:clamp(12px,1.9cqw,24px);box-shadow:0 3px 0 #e2b23b;white-space:nowrap}
 /* 設施 */
 .spot{position:absolute;transform:translate(-50%,-38%);display:flex;flex-direction:column;align-items:center;gap:3px;z-index:3;
@@ -115,12 +126,13 @@ h1 .star{font-size:.7em;text-shadow:none}
   .map{width:min(100%,calc((100dvh - 56px) * 1.6))}
 }
 </style>
+<script src="zhuyin.js"></script>
 </head>
 <body>
 <div class="sky" aria-hidden="true"><div class="sun"></div><span class="cloud" style="top:3%">☁️</span><span class="cloud c2">☁️</span></div>
 <header>
   <h1><span class="star">⭐</span>數學遊樂園<span class="star">⭐</span></h1>
-  <p class="sub">點一個設施開始玩！</p>
+  <p class="sub" data-zy>點一個設施開始玩！</p>
 </header>
 
 <div class="map" role="navigation" aria-label="遊樂園地圖">
@@ -129,40 +141,41 @@ h1 .star{font-size:.7em;text-shadow:none}
     <path class="road-edge" id="roadEdge"/><path class="road" id="road"/><path class="road-dash" id="roadDash"/>
   </svg>
   <div class="bunting" aria-hidden="true"></div>
-  <div class="gate" aria-hidden="true"><b>🎉 入口</b></div>
+  <div class="gate" aria-hidden="true"><b data-zy>🎉 入口</b></div>
   <div id="decos" aria-hidden="true"></div>
 
   <a class="spot open" data-k="booth" href="booth.html" style="--c:#e0772b">
-    <span class="icon">🎟️</span><span class="name">售票亭</span><span class="tag">👤 認識錢幣</span>
+    <span class="icon">🎟️</span><span class="name" data-zy>售票亭</span><span class="tag">👤 認識錢幣</span>
   </a>
   <a class="spot open" data-k="train" href="train.html" style="--c:#c0392b">
-    <span class="icon">🚂</span><span class="name">小火車</span><span class="tag">👥 大富翁</span>
+    <span class="icon">🚂</span><span class="name" data-zy>小火車</span><span class="tag">👥 大富翁</span>
   </a>
   <a class="spot open" data-k="bumper" href="bumper.html" style="--c:#2f6fdb">
-    <span class="icon">🚗</span><span class="name">碰碰車</span><span class="tag">👥 賽跑對戰</span>
+    <span class="icon">🚗</span><span class="name" data-zy>碰碰車</span><span class="tag">👥 賽跑對戰</span>
   </a>
   <a class="spot open" data-k="ferris" href="ferris.html" style="--c:#2f8fdb">
-    <span class="icon">🎡</span><span class="name">摩天輪</span><span class="tag">👤 乘法</span>
+    <span class="icon">🎡</span><span class="name" data-zy>摩天輪</span><span class="tag">👤 乘法</span>
   </a>
   <a class="spot open" data-k="carousel" href="carousel.html" style="--c:#d1478f">
-    <span class="icon">🎠</span><span class="name">旋轉木馬</span><span class="tag">👤 認識時鐘</span>
+    <span class="icon">🎠</span><span class="name" data-zy>旋轉木馬</span><span class="tag">👤 認識時鐘</span>
   </a>
   <a class="spot open" data-k="ring" href="ring.html" style="--c:#14a99c">
-    <span class="icon">🎯</span><span class="name">套圈圈</span><span class="tag">👤 九九快答</span>
+    <span class="icon">🎯</span><span class="name" data-zy>套圈圈</span><span class="tag">👤 九九快答</span>
   </a>
   <a class="spot open" data-k="balloon" href="balloon.html" style="--c:#e0477b">
-    <span class="icon">🎈</span><span class="name">射氣球</span><span class="tag">👤 加減法</span>
+    <span class="icon">🎈</span><span class="name" data-zy>射氣球</span><span class="tag">👤 加減法</span>
   </a>
   <a class="spot open" data-k="donut" href="donut.html" style="--c:#c2551f">
-    <span class="icon">🍩</span><span class="name">甜甜圈攤</span><span class="tag">👤 排排看乘法</span>
+    <span class="icon">🍩</span><span class="name" data-zy>甜甜圈攤</span><span class="tag">👤 排排看乘法</span>
   </a>
   <a class="spot open" data-k="coaster" href="coaster.html" style="--c:#7a4fd6">
-    <span class="icon">🎢</span><span class="name">雲霄飛車</span><span class="tag">👤 計時挑戰</span>
+    <span class="icon">🎢</span><span class="name" data-zy>雲霄飛車</span><span class="tag">👤 計時挑戰</span>
   </a>
   <a class="spot open big" data-k="duel" href="duel.html" style="--c:#8e3fb0">
-    <span class="icon">🎪</span><span class="name">搶答對決</span><span class="tag">👥 加減法</span>
+    <span class="icon">🎪</span><span class="name" data-zy>搶答對決</span><span class="tag">👥 加減法</span>
   </a>
 </div>
+<button type="button" class="zybtn" id="zyBtn" aria-pressed="true" data-zy-skip>ㄅㄆㄇ 注音<span class="sw" aria-hidden="true"></span><span class="st" id="zySt">開</span></button>
 <div class="toast" id="toast" role="status" hidden></div>
 
 <script>
@@ -205,6 +218,12 @@ h1 .star{font-size:.7em;text-shadow:none}
   }
   layout();
   matchMedia("(orientation:portrait)").addEventListener?.("change",layout);
+  // 注音開關：存起來，所有小遊戲一起套用
+  const zb=document.getElementById("zyBtn"),zs=document.getElementById("zySt");
+  const syncZy=()=>{const on=window.parkZhuyin?parkZhuyin.isOn():true;zb.setAttribute("aria-pressed",on);zs.textContent=on?"開":"關";
+    zb.setAttribute("aria-label",on?"注音：開，點一下關閉":"注音：關，點一下開啟")};
+  zb.addEventListener("click",()=>{if(!window.parkZhuyin)return;parkZhuyin.set(!parkZhuyin.isOn());syncZy()});
+  syncZy();addEventListener("pageshow",syncZy);
   // 彩色小旗
   const COLORS=["#ff6b6b","#ffd23f","#4dc3ff","#7bd389","#c58cff","#ff9f43"];
   document.querySelector(".bunting").innerHTML=Array.from({length:18},(_,i)=>`<i style="background:${COLORS[i%COLORS.length]}"></i>`).join("");
