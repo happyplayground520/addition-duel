@@ -92,6 +92,10 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
 }
 </style>
 <script src="zhuyin.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="park.css">
+<script src="park.js"></script>
+<style>body{background:radial-gradient(circle,rgba(224,119,43,.13) 2.5px,transparent 3px) 0 0/30px 30px,linear-gradient(#ffe7c4,#fff4e2)}</style>
 </head>
 <body>
 <header class="top">
@@ -108,8 +112,8 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
     <div class="paid" id="paid" data-zy-skip></div>
     <div class="msg" id="msg" aria-live="polite"></div>
     <div class="actions">
-      <button type="button" class="big alt" id="clear">全部拿回</button>
-      <button type="button" class="big" id="pay">付錢！</button>
+      <button type="button" class="big alt ico-btn" id="clear" aria-label="全部拿回">🧹</button>
+      <button type="button" class="big" id="pay" aria-label="付錢">OK</button>
       <button type="button" class="big" id="nextBtn" hidden>下一題 ▶</button>
     </div>
   </div>
@@ -121,16 +125,16 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
       <p>想玩遊樂園的設施要先買門票！<br>從錢包拿出硬幣和紙鈔，付<b>剛好</b>的錢。</p>
       <span class="lbl">難度</span>
       <div class="row" id="levels">
-        <button type="button" class="opt" data-lv="1">初級<small>20 元以內</small></button>
-        <button type="button" class="opt" data-lv="2">進階<small>100 元以內</small></button>
-        <button type="button" class="opt" data-lv="3">高級<small>1000 元以內</small></button>
+        <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small>20 元以內</small></button>
+        <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small>100 元以內</small></button>
+        <button type="button" class="opt" data-lv="3" aria-label="高級"><span class="lvst">⭐⭐⭐</span><small>1000 元以內</small></button>
       </div>
       <span class="lbl">答對後換下一題</span>
       <div class="row" id="advance">
         <button type="button" class="opt" data-adv="auto">自動<small>稱讚說完再換</small></button>
         <button type="button" class="opt" data-adv="manual">手動<small>按「下一題」才換</small></button>
       </div>
-      <button type="button" class="big" id="go">開始！</button>
+      <button type="button" class="big" id="go" aria-label="開始">READY</button>
       <span class="note">錢幣是依照新臺幣的顏色和大小畫的示意圖</span>
     </div>
   </section>
@@ -140,8 +144,8 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
       <h2 id="endTitle"></h2>
       <p id="endText"></p>
       <div class="row">
-        <button type="button" class="big" id="replay">再玩一次</button>
-        <a class="big alt" href="./">回遊樂園</a>
+        <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+        <a class="big alt ico-btn" href="./" aria-label="回遊樂園">🏠</a>
       </div>
     </div>
   </section>
@@ -245,6 +249,7 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
       g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)})}catch(e){}}
   const sfx={coin:()=>tone([1800,2400],.04,"sine",.08),paper:()=>tone([300],.05,"triangle",.05),good:()=>tone([784,1175],.14,"sine",.3),
     bad:()=>tone([150],.3,"square",.16),win:()=>tone([523,659,784,1047],.16)};
+  {const _g=sfx.good;sfx.good=(...a)=>{try{window.parkBurst&&parkBurst()}catch(err){}return _g(...a)}}
   function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
     try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}}
 

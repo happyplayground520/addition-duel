@@ -87,6 +87,10 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
 @media (prefers-reduced-motion:reduce){.car{transition:none}}
 </style>
 <script src="zhuyin.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="park.css">
+<script src="park.js"></script>
+<style>:root{--theme:#2f6fdb}</style>
 </head>
 <body>
 <div class="board">
@@ -107,6 +111,7 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
   const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
   const NAMES=["藍色","橘色"],GOAL=10;
+  const STAR={1:"⭐",2:"⭐⭐",3:"⭐⭐⭐"};
   const LV={1:{name:"初級",sub:"10 以內加減"},2:{name:"進階",sub:"20 以內加減"},3:{name:"高級",sub:"100 以內加減、九九乘法"}};
   const base=LV[+pref("park-level")]?+pref("park-level"):1;
   // 每一邊：難度、語音、準備好了沒、位置、題目
@@ -140,6 +145,7 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
       g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)})}catch(e){}}
   const sfx={good:()=>tone([784,1175],.12,"sine",.28),bad:()=>tone([150],.3,"square",.15),tick:()=>tone([600],.1),go:()=>tone([900],.25),
     honk:()=>tone([440,440],.09,"square",.08),win:()=>tone([523,659,784,1047],.16)};
+  {const _g=sfx.good;sfx.good=(...a)=>{try{window.parkBurst&&parkBurst()}catch(err){}return _g(...a)}}
   function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
     try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}}
 
@@ -168,10 +174,10 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
       <div class="choices">${"<button type='button' class='ch'></button>".repeat(4)}</div>
       <div class="overlay">
         <h2>${NAMES[p]}的碰碰車</h2>
-        <div class="row lvs">${[1,2,3].map(l=>`<button type="button" class="opt" data-lv="${l}">${LV[l].name}<small>${LV[l].sub}</small></button>`).join("")}</div>
+        <div class="row lvs">${[1,2,3].map(l=>`<button type="button" class="opt" data-lv="${l}" aria-label="${LV[l].name}"><span class="lvst">${STAR[l]}</span><small>${LV[l].sub}</small></button>`).join("")}</div>
         <div class="row"><button type="button" class="opt vbtn"></button></div>
         <div class="big" hidden></div>
-        <button type="button" class="ready">準備好了</button>
+        <button type="button" class="ready">READY</button>
       </div>`;
     const u={el,msg:el.querySelector(".msg"),q:el.querySelector(".q"),lvtag:el.querySelector(".lvtag"),spk:el.querySelector(".spk"),
       chs:[...el.querySelectorAll(".ch")],ov:el.querySelector(".overlay"),h2:el.querySelector(".overlay h2"),big:el.querySelector(".overlay .big"),
@@ -191,8 +197,8 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   function syncSetup(){
     ui.forEach((u,p)=>{
       u.lvs.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===P[p].lv));
-      u.vbtn.textContent=P[p].voice?"🔊 念題目：開":"🔇 念題目：關";u.vbtn.setAttribute("aria-pressed",P[p].voice);
-      u.lvtag.textContent=LV[P[p].lv].name;u.spk.classList.toggle("off",!P[p].voice);
+      u.vbtn.textContent=P[p].voice?"🔊":"🔇";u.vbtn.setAttribute("aria-label",P[p].voice?"念題目：開":"念題目：關");u.vbtn.setAttribute("aria-pressed",P[p].voice);
+      u.lvtag.textContent=STAR[P[p].lv];u.lvtag.setAttribute("aria-label",LV[P[p].lv].name);u.spk.classList.toggle("off",!P[p].voice);
     });
   }
   function placeCars(){ui.forEach((u,p)=>{u.car.style.left=`${P[p].pos/GOAL*100}%`})}
@@ -201,7 +207,7 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   function showReady(){
     clearTimeout(timer);phase="ready";queue.length=0;try{synth&&synth.cancel()}catch(e){}
     P.forEach(x=>{x.ready=false;x.pos=0;x.q=null;x.locked=false});placeCars();
-    ui.forEach((u,p)=>{u.ov.hidden=false;u.h2.textContent=`${NAMES[p]}的碰碰車`;u.big.hidden=true;u.ready.textContent="準備好了";u.ready.classList.remove("on");
+    ui.forEach((u,p)=>{u.ov.hidden=false;u.h2.textContent=`${NAMES[p]}的碰碰車`;u.big.hidden=true;u.ready.textContent="READY";u.ready.classList.remove("on");
       u.lvs.forEach(b=>b.parentElement.hidden=false);u.vbtn.parentElement.hidden=false;u.q.textContent="";u.msg.textContent="";u.el.classList.remove("locked")});
     syncSetup();
   }
@@ -209,7 +215,7 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
     unlock();
     if(phase==="over"){showReady();return}
     if(phase!=="ready")return;
-    P[p].ready=!P[p].ready;const b=ui[p].ready;b.classList.toggle("on",P[p].ready);b.textContent=P[p].ready?"等待對手…":"準備好了";sfx.tick();
+    P[p].ready=!P[p].ready;const b=ui[p].ready;b.classList.toggle("on",P[p].ready);b.textContent=P[p].ready?"✅":"READY";sfx.tick();
     if(P[0].ready&&P[1].ready)countdown();
   }
   function countdown(){
@@ -245,7 +251,7 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   function finish(w){
     phase="over";sfx.win();sfx.honk();
     ui.forEach((u,p)=>{u.ov.hidden=false;u.h2.textContent=p===w?"你贏了！🏆":"再接再厲！";u.big.hidden=false;u.big.textContent=`${P[p].pos} / ${GOAL}`;
-      u.lvs.forEach(b=>b.parentElement.hidden=true);u.vbtn.parentElement.hidden=true;u.ready.textContent="再玩一次";u.ready.classList.remove("on")});
+      u.lvs.forEach(b=>b.parentElement.hidden=true);u.vbtn.parentElement.hidden=true;u.ready.textContent="🔁";u.ready.classList.remove("on")});
     sayNow(`${NAMES[w]}的碰碰車先到終點，${NAMES[w]}贏了！`);
   }
   autoVoice();showReady();

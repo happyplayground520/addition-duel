@@ -89,6 +89,9 @@ body{background:linear-gradient(#8fd3ff,#d9f1ff 70%,#c3eaa8 70%);color:var(--ink
 }
 </style>
 <script src="zhuyin.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="park.css">
+<script src="park.js"></script>
 </head>
 <body>
 <header class="top">
@@ -107,22 +110,22 @@ body{background:linear-gradient(#8fd3ff,#d9f1ff 70%,#c3eaa8 70%);color:var(--ink
       <p>聽題目，找到寫著正確答案的氣球，點它把它戳破！</p>
       <span class="lbl">難度</span>
       <div class="row" id="levels">
-        <button type="button" class="opt" data-lv="1">初級 1–10</button>
-        <button type="button" class="opt" data-lv="2">進階 1–20</button>
-        <button type="button" class="opt" data-lv="3">高級 1–100</button>
+        <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small>1–10</small></button>
+        <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small>1–20</small></button>
+        <button type="button" class="opt" data-lv="3" aria-label="高級"><span class="lvst">⭐⭐⭐</span><small>1–100</small></button>
       </div>
       <span class="lbl">運算</span>
       <div class="row">
-        <label class="chk"><input type="checkbox" id="opAdd" checked> 加法 ＋</label>
-        <label class="chk"><input type="checkbox" id="opSub"> 減法 −</label>
+        <label class="chk sym" aria-label="加法"><input type="checkbox" id="opAdd" checked><span>＋</span></label>
+        <label class="chk sym" aria-label="減法"><input type="checkbox" id="opSub"><span>−</span></label>
       </div>
       <span class="lbl">題數</span>
       <div class="row" id="counts">
-        <button type="button" class="opt" data-n="5" aria-pressed="false">5 題</button>
-        <button type="button" class="opt" data-n="10" aria-pressed="true">10 題</button>
-        <button type="button" class="opt" data-n="15" aria-pressed="false">15 題</button>
+        <button type="button" class="opt" data-n="5" aria-pressed="false" aria-label="5 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button>
+        <button type="button" class="opt" data-n="10" aria-pressed="true" aria-label="10 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>10</small></button>
+        <button type="button" class="opt" data-n="15" aria-pressed="false" aria-label="15 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>15</small></button>
       </div>
-      <button type="button" class="big" id="go">開始！</button>
+      <button type="button" class="big" id="go" aria-label="開始">READY</button>
       <span class="note" id="note"></span>
     </div>
   </section>
@@ -133,8 +136,8 @@ body{background:linear-gradient(#8fd3ff,#d9f1ff 70%,#c3eaa8 70%);color:var(--ink
       <h2 id="endTitle"></h2>
       <p id="endText"></p>
       <div class="row">
-        <button type="button" class="big" id="replay">再玩一次</button>
-        <a class="big alt" href="./">回遊樂園</a>
+        <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+        <a class="big alt ico-btn" href="./" aria-label="回遊樂園">🏠</a>
       </div>
     </div>
   </section>
@@ -201,6 +204,7 @@ body{background:linear-gradient(#8fd3ff,#d9f1ff 70%,#c3eaa8 70%);color:var(--ink
     }catch(e){}
   }
   const sfx={good:()=>{popSound();tone([784,1175],.16,"sine",.32)},bad:()=>tone([150],.32,"square",.16),win:()=>tone([523,659,784,1047],.16)};
+  {const _g=sfx.good;sfx.good=(...a)=>{try{window.parkBurst&&parkBurst()}catch(err){}return _g(...a)}}
   function unlock(){
     try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
     try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}

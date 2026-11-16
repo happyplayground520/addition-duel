@@ -21,7 +21,7 @@ body{background:linear-gradient(#ffd9a8,#ffeedd 55%,#fff6ec);color:var(--ink);fo
   -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
   display:flex;flex-direction:column}
 [hidden]{display:none!important}
-.top{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;
+.top{display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:12px;
   padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
 .ibtn{width:48px;height:48px;border-radius:14px;border:0;background:rgba(255,255,255,.9);font-size:24px;cursor:pointer;
   display:grid;place-items:center;text-decoration:none;color:inherit;box-shadow:0 3px 0 rgba(0,0,0,.1)}
@@ -99,12 +99,16 @@ body{background:linear-gradient(#ffd9a8,#ffeedd 55%,#fff6ec);color:var(--ink);fo
 }
 </style>
 <script src="zhuyin.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="park.css">
+<script src="park.js"></script>
 </head>
 <body>
 <header class="top">
   <a class="ibtn" href="./" aria-label="回遊樂園地圖">🏠</a>
   <div class="target" data-zy><span class="lbl">🎢 找出等於</span><b id="target">?</b><span class="lbl">的車廂</span></div>
-  <div class="stats"><span class="sc" id="score">✔ 0</span><span class="best" id="bestTop"></span></div>
+  <div class="stats"><span class="sc" id="score">⭐ 0</span><span class="best" id="bestTop"></span></div>
+  <button type="button" class="ibtn" id="again" aria-label="再念一次題目">🔊</button>
 </header>
 <div class="timebar" id="timebar"><i id="timefill"></i></div>
 <div class="timeTxt" id="timeTxt"></div>
@@ -123,14 +127,14 @@ body{background:linear-gradient(#ffd9a8,#ffeedd 55%,#fff6ec);color:var(--ink);fo
       <p>雲霄飛車衝下來了！上面會出現一個數字，<br>點出車廂上算式答案等於這個數字的車廂。<br>時間內答對越多題越厲害。</p>
       <span class="lbl2">難度</span>
       <div class="row" id="levels">
-        <button type="button" class="opt" data-lv="1">初級<small>1–10</small></button>
-        <button type="button" class="opt" data-lv="2">進階<small>1–20</small></button>
-        <button type="button" class="opt" data-lv="3">高級<small>1–100</small></button>
+        <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small>1–10</small></button>
+        <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small>1–20</small></button>
+        <button type="button" class="opt" data-lv="3" aria-label="高級"><span class="lvst">⭐⭐⭐</span><small>1–100</small></button>
       </div>
       <span class="lbl2">運算</span>
       <div class="row">
-        <label class="chk"><input type="checkbox" id="opAdd" checked> 加法 ＋</label>
-        <label class="chk"><input type="checkbox" id="opSub"> 減法 −</label>
+        <label class="chk sym" aria-label="加法"><input type="checkbox" id="opAdd" checked><span>＋</span></label>
+        <label class="chk sym" aria-label="減法"><input type="checkbox" id="opSub"><span>−</span></label>
       </div>
       <span class="lbl2">時間</span>
       <div class="row" id="times">
@@ -139,7 +143,7 @@ body{background:linear-gradient(#ffd9a8,#ffeedd 55%,#fff6ec);color:var(--ink);fo
         <button type="button" class="opt" data-t="90">90 秒</button>
       </div>
       <span class="note" id="bestStart"></span>
-      <button type="button" class="big" id="go">出發！</button>
+      <button type="button" class="big" id="go" aria-label="出發">READY</button>
       <span class="note" id="note"></span>
     </div>
   </section>
@@ -151,9 +155,9 @@ body{background:linear-gradient(#ffd9a8,#ffeedd 55%,#fff6ec);color:var(--ink);fo
       <span class="newrec" id="newrec" hidden>🏆 新紀錄！</span>
       <p id="endText"></p>
       <div class="row">
-        <button type="button" class="big" id="replay">再玩一次</button>
+        <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
         <button type="button" class="big alt" id="change">換設定</button>
-        <a class="big alt" href="./">回遊樂園</a>
+        <a class="big alt ico-btn" href="./" aria-label="回遊樂園">🏠</a>
       </div>
     </div>
   </section>
@@ -223,6 +227,8 @@ body{background:linear-gradient(#ffd9a8,#ffeedd 55%,#fff6ec);color:var(--ink);fo
   }
   const sfx={good:()=>tone([784,1175],.14,"sine",.3),bad:()=>tone([150],.3,"square",.16),tick:()=>tone([600],.08),go:()=>tone([900],.25),
     end:()=>tone([784,659,523,784,1047],.14)};
+  {const ag=document.getElementById("again");ag&&ag.addEventListener("click",()=>{if(S.target)say(`找出等於${S.target}的車廂`)})}
+  {const _g=sfx.good;sfx.good=(...a)=>{try{window.parkBurst&&parkBurst()}catch(err){}return _g(...a)}}
   function unlock(){
     try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
     try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}
@@ -305,7 +311,7 @@ body{background:linear-gradient(#ffd9a8,#ffeedd 55%,#fff6ec);color:var(--ink);fo
     if(S.phase!=="play"||c.done)return;
     if(c.val===S.target){
       c.done=true;S.score++;sfx.good();c.el.classList.add("right");floatTxt(c,"+1","plus");setTimeout(()=>c.el.remove(),360);
-      $("score").textContent=`✔ ${S.score}`;
+      $("score").textContent=`⭐ ${S.score}`;
       // 換下一個目標：畫面上的舊卡片淡出，馬上掉一張新的正確卡片
       cards.forEach(o=>{if(!o.done){o.done=true;o.el.classList.add("gone");setTimeout(()=>o.el.remove(),260)}});
       setTarget(newTarget());spawn(true);spawnIn=.5;
@@ -324,7 +330,7 @@ body{background:linear-gradient(#ffd9a8,#ffeedd 55%,#fff6ec);color:var(--ink);fo
   function start(){
     unlock();
     $("start").hidden=true;$("end").hidden=true;clearCards();
-    S.score=0;S.miss=0;S.target=0;S.lastSec=-1;$("score").textContent="✔ 0";$("target").textContent="?";
+    S.score=0;S.miss=0;S.target=0;S.lastSec=-1;$("score").textContent="⭐ 0";$("target").textContent="?";
     $("timefill").style.transform="scaleX(1)";$("timebar").classList.remove("low");$("timeTxt").textContent=`${S.time} 秒`;
     S.phase="count";const cnt=$("count");let n=3;cnt.hidden=false;cnt.textContent=n;sfx.tick();
     const iv=setInterval(()=>{

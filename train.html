@@ -96,6 +96,10 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
 .toast.flip{transform:translate(-50%,-50%) rotate(180deg)}
 </style>
 <script src="zhuyin.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="park.css">
+<script src="park.js"></script>
+<style>:root{--theme:#c0392b}</style>
 </head>
 <body>
 <div class="board">
@@ -111,6 +115,7 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
   const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
   const NAMES=["藍色","橘色"],COLORS=["#2f6fdb","#e0772b"],N=20;
+  const STAR={1:"⭐",2:"⭐⭐",3:"⭐⭐⭐"};
   const LV={1:{name:"初級",sub:"10 以內加減"},2:{name:"進階",sub:"20 以內加減"},3:{name:"高級",sub:"100 以內加減、九九乘法"}};
   const base=LV[+pref("park-level")]?+pref("park-level"):1;
   const P=[0,1].map(p=>({lv:+pref("train-lv"+p)||base,voice:true,ready:false,pos:0,q:null}));
@@ -134,6 +139,7 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
       g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)})}catch(e){}}
   const sfx={good:()=>tone([784,1175],.12,"sine",.28),bad:()=>tone([150],.3,"square",.15),tick:()=>tone([600],.08),step:()=>tone([700],.05,"square",.05),
     roll:()=>tone([300,400,500],.04,"square",.05),choo:()=>tone([523,659],.18,"sawtooth",.06),win:()=>tone([523,659,784,1047],.16)};
+  {const _g=sfx.good;sfx.good=(...a)=>{try{window.parkBurst&&parkBurst()}catch(err){}return _g(...a)}}
   function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
     try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}}
 
@@ -192,9 +198,9 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
       </div>
       <div class="overlay">
         <h2>${NAMES[p]}的小火車</h2>
-        <div class="row lvs">${[1,2,3].map(l=>`<button type="button" class="opt" data-lv="${l}">${LV[l].name}<small>${LV[l].sub}</small></button>`).join("")}</div>
+        <div class="row lvs">${[1,2,3].map(l=>`<button type="button" class="opt" data-lv="${l}" aria-label="${LV[l].name}"><span class="lvst">${STAR[l]}</span><small>${LV[l].sub}</small></button>`).join("")}</div>
         <div class="row"><button type="button" class="opt vbtn"></button></div>
-        <button type="button" class="ready">準備好了</button>
+        <button type="button" class="ready">READY</button>
       </div>`;
     const u={el,msg:el.querySelector(".msg"),lvtag:el.querySelector(".lvtag"),spk:el.querySelector(".spk"),roll:el.querySelector(".roll"),
       qline:el.querySelector(".qline"),die:el.querySelector(".die"),q:el.querySelector(".q"),choices:el.querySelector(".choices"),chs:[...el.querySelectorAll(".ch")],
@@ -210,8 +216,8 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   const qText=p=>`${NAMES[p]}擲到${die}，${P[p].q.a}${P[p].q.word}${P[p].q.b}，等於多少？`;
   function syncSetup(){
     ui.forEach((u,p)=>{u.lvs.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===P[p].lv));
-      u.vbtn.textContent=P[p].voice?"🔊 念題目：開":"🔇 念題目：關";u.vbtn.setAttribute("aria-pressed",P[p].voice);
-      u.lvtag.textContent=LV[P[p].lv].name;u.spk.classList.toggle("off",!P[p].voice)});
+      u.vbtn.textContent=P[p].voice?"🔊":"🔇";u.vbtn.setAttribute("aria-label",P[p].voice?"念題目：開":"念題目：關");u.vbtn.setAttribute("aria-pressed",P[p].voice);
+      u.lvtag.textContent=STAR[P[p].lv];u.lvtag.setAttribute("aria-label",LV[P[p].lv].name);u.spk.classList.toggle("off",!P[p].voice)});
   }
   function toast(t,p){const el=$("toast");el.textContent=t;el.classList.toggle("flip",p===1);el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,1500)}
 
@@ -219,7 +225,7 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   function showReady(){
     phase="ready";try{synth&&synth.cancel()}catch(e){}
     P.forEach(x=>{x.ready=false;x.pos=0;x.q=null});placeTokens();setInfo("🚂 小火車大富翁");
-    ui.forEach((u,p)=>{u.ov.hidden=false;u.h2.textContent=`${NAMES[p]}的小火車`;u.ready.textContent="準備好了";u.ready.classList.remove("on");
+    ui.forEach((u,p)=>{u.ov.hidden=false;u.h2.textContent=`${NAMES[p]}的小火車`;u.ready.textContent="READY";u.ready.classList.remove("on");
       u.lvs[0].parentElement.hidden=false;u.vbtn.parentElement.hidden=false;u.msg.textContent=""});
     syncSetup();
   }
@@ -227,7 +233,7 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
     unlock();
     if(phase==="over"){showReady();return}
     if(phase!=="ready")return;
-    P[p].ready=!P[p].ready;const b=ui[p].ready;b.classList.toggle("on",P[p].ready);b.textContent=P[p].ready?"等待對手…":"準備好了";sfx.tick();
+    P[p].ready=!P[p].ready;const b=ui[p].ready;b.classList.toggle("on",P[p].ready);b.textContent=P[p].ready?"✅":"READY";sfx.tick();
     if(P[0].ready&&P[1].ready){ui.forEach(u=>u.ov.hidden=true);sfx.choo();turn=rnd(0,1);startTurn()}
   }
   function startTurn(){
@@ -281,7 +287,7 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   function finish(w){
     phase="over";sfx.win();placeTokens();setInfo(`🏆 ${NAMES[w]} 贏了！`);
     ui.forEach((u,p)=>{u.el.classList.remove("wait");u.ov.hidden=false;u.h2.textContent=p===w?"你贏了！🏆":"再接再厲！";
-      u.lvs[0].parentElement.hidden=true;u.vbtn.parentElement.hidden=true;u.ready.textContent="再玩一次";u.ready.classList.remove("on")});
+      u.lvs[0].parentElement.hidden=true;u.vbtn.parentElement.hidden=true;u.ready.textContent="🔁";u.ready.classList.remove("on")});
     say(`${NAMES[w]}的小火車先回到終點，${NAMES[w]}贏了！`);
   }
   showReady();

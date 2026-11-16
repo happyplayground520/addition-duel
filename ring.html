@@ -21,7 +21,7 @@ html,body{margin:0;height:100%}
 body{background:linear-gradient(#ffe3ef,#fff3f8 58%,#ffd9a8 58%);color:var(--ink);font-family:var(--text);overflow:hidden;
   -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;display:flex;flex-direction:column}
 [hidden]{display:none!important}
-.top{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;
+.top{display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:12px;
   padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 6px max(16px,env(safe-area-inset-left,0px))}
 .ibtn{width:48px;height:48px;border-radius:14px;border:0;background:#fff;font-size:24px;cursor:pointer;
   display:grid;place-items:center;text-decoration:none;color:inherit;box-shadow:0 3px 0 rgba(0,0,0,.2)}
@@ -107,12 +107,16 @@ body{background:linear-gradient(#ffe3ef,#fff3f8 58%,#ffd9a8 58%);color:var(--ink
 @media (max-height:560px){.box{gap:8px;padding:14px 18px}.box h2{font-size:24px}#start .box>p{display:none}}
 </style>
 <script src="zhuyin.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="park.css">
+<script src="park.js"></script>
 </head>
 <body>
 <header class="top">
   <a class="ibtn" href="./" aria-label="回遊樂園地圖">🏠</a>
   <div class="q" id="q" data-zy>🎯 套圈圈</div>
-  <div class="stats"><span class="sc" id="score">✔ 0</span><span class="best" id="bestTop"></span></div>
+  <div class="stats"><span class="sc" id="score">⭐ 0</span><span class="best" id="bestTop"></span></div>
+  <button type="button" class="ibtn" id="again" aria-label="再念一次題目">🔊</button>
 </header>
 <div class="timebar" id="timebar"><i id="timefill"></i></div>
 <div class="timeTxt" id="timeTxt"></div>
@@ -128,9 +132,9 @@ body{background:linear-gradient(#ffe3ef,#fff3f8 58%,#ffd9a8 58%);color:var(--ink
     <p>看上面的乘法題，把圈圈丟到寫著答案的瓶子上！<br>時間內套中越多個越厲害。</p>
     <span class="lbl">難度</span>
     <div class="row" id="levels">
-      <button type="button" class="opt" data-lv="1">初級<small>2、5 的乘法</small></button>
-      <button type="button" class="opt" data-lv="2">進階<small>2、3、4、5 的乘法</small></button>
-      <button type="button" class="opt" data-lv="3">高級<small>九九乘法</small></button>
+      <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small>2、5、4、8 的乘法</small></button>
+      <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small>3、6、9、7 的乘法</small></button>
+      <button type="button" class="opt" data-lv="3" aria-label="高級"><span class="lvst">⭐⭐⭐</span><small>九九乘法</small></button>
     </div>
     <span class="lbl">時間</span>
     <div class="row" id="times">
@@ -139,7 +143,7 @@ body{background:linear-gradient(#ffe3ef,#fff3f8 58%,#ffd9a8 58%);color:var(--ink
       <button type="button" class="opt" data-t="90">90 秒</button>
     </div>
     <span class="note" id="bestStart"></span>
-    <button type="button" class="big" id="go">開始丟圈圈！</button>
+    <button type="button" class="big" id="go" aria-label="開始丟圈圈">READY</button>
   </div>
 </section>
 <section class="cover" id="end" hidden>
@@ -149,9 +153,9 @@ body{background:linear-gradient(#ffe3ef,#fff3f8 58%,#ffd9a8 58%);color:var(--ink
     <span class="newrec" id="newrec" hidden>🏆 新紀錄！</span>
     <p id="endText"></p>
     <div class="row">
-      <button type="button" class="big" id="replay">再玩一次</button>
+      <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
       <button type="button" class="big alt" id="change">換設定</button>
-      <a class="big alt" href="./">回遊樂園</a>
+      <a class="big alt ico-btn" href="./" aria-label="回遊樂園">🏠</a>
     </div>
   </div>
 </section>
@@ -161,7 +165,7 @@ body{background:linear-gradient(#ffe3ef,#fff3f8 58%,#ffd9a8 58%);color:var(--ink
   const $=id=>document.getElementById(id);
   const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
   const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
-  const LV={1:{ks:[2,5],name:"初級"},2:{ks:[2,3,4,5],name:"進階"},3:{ks:[2,3,4,5,6,7,8,9],name:"高級"}};
+  const LV={1:{ks:[2,5,4,8],name:"初級"},2:{ks:[3,6,9,7],name:"進階"},3:{ks:[2,3,4,5,6,7,8,9],name:"高級"}};
   const S={lv:LV[+pref("park-level")]?+pref("park-level"):1,time:[30,60,90].includes(+pref("ring-time"))?+pref("ring-time"):60,
     phase:"start",k:0,n:0,score:0,miss:0,endAt:0,lastSec:-1,last:""};
   const bestKey=()=>`ring-best-${S.lv}-${S.time}`,getBest=()=>+pref(bestKey())||0;
@@ -191,6 +195,8 @@ body{background:linear-gradient(#ffe3ef,#fff3f8 58%,#ffd9a8 58%);color:var(--ink
       g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)})}catch(e){}}
   const sfx={good:()=>tone([784,1175],.12,"sine",.3),bad:()=>tone([150],.3,"square",.16),toss:()=>tone([500,700],.06,"sine",.06),
     tick:()=>tone([600],.08),go:()=>tone([900],.25),end:()=>tone([784,659,523,784,1047],.14)};
+  {const ag=document.getElementById("again");ag&&ag.addEventListener("click",()=>{if(S.k&&S.n)say(`${S.k}乘以${S.n}`)})}
+  {const _g=sfx.good;sfx.good=(...a)=>{try{window.parkBurst&&parkBurst()}catch(err){}return _g(...a)}}
   function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
     try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}}
 
@@ -234,7 +240,7 @@ body{background:linear-gradient(#ffe3ef,#fff3f8 58%,#ffd9a8 58%);color:var(--ink
     // 用計時器判斷結果，不依賴動畫事件（畫面在背景時動畫可能不會跑完）
     setTimeout(()=>{
       if(right){
-        S.score++;sfx.good();b.classList.add("hit");$("score").textContent=`✔ ${S.score}`;floatTxt(r,"+1","plus");
+        S.score++;sfx.good();b.classList.add("hit");$("score").textContent=`⭐ ${S.score}`;floatTxt(r,"+1","plus");
         $("q").querySelector(".ans").textContent=S.k*S.n;
         setTimeout(()=>{ring.remove();if(S.phase==="toss"){S.phase="play";setQ()}},420);
       }else{
@@ -260,7 +266,7 @@ body{background:linear-gradient(#ffe3ef,#fff3f8 58%,#ffd9a8 58%);color:var(--ink
   }
   function start(){
     unlock();$("start").hidden=true;$("end").hidden=true;
-    S.score=0;S.miss=0;S.lastSec=-1;S.last="";$("score").textContent="✔ 0";$("shelves").innerHTML="";
+    S.score=0;S.miss=0;S.lastSec=-1;S.last="";$("score").textContent="⭐ 0";$("shelves").innerHTML="";
     $("timefill").style.transform="scaleX(1)";$("timebar").classList.remove("low");$("timeTxt").textContent=`${S.time} 秒`;
     S.phase="count";const cnt=$("count");let n=3;cnt.hidden=false;cnt.textContent=n;sfx.tick();
     const iv=setInterval(()=>{n--;if(n>0){cnt.textContent=n;sfx.tick();return}

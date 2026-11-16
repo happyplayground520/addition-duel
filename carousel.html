@@ -99,6 +99,10 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:minma
 .wheel svg,.ride svg{position:absolute;inset:0;width:100%;height:100%;max-height:none}
 </style>
 <script src="zhuyin.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="park.css">
+<script src="park.js"></script>
+<style>body{background:repeating-linear-gradient(115deg,rgba(255,255,255,.35) 0 22px,transparent 22px 44px),radial-gradient(circle at 50% 30%,#fff3f8,#ffe0ec 60%,#f9cfe0)}</style>
 </head>
 <body>
 <header class="top">
@@ -147,10 +151,10 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:minma
     <div id="setter" hidden style="display:flex;flex-direction:column;align-items:center;gap:12px">
       <div class="now" id="now" data-zy></div>
       <div class="adj">
-        <button type="button" id="hMinus" aria-label="時針往回">−</button><span>時（短針）</span><button type="button" id="hPlus" aria-label="時針往前">＋</button>
-        <button type="button" id="mMinus" aria-label="分針往回">−</button><span>分（長針）</span><button type="button" id="mPlus" aria-label="分針往前">＋</button>
+        <button type="button" id="hMinus" aria-label="時針往回">−</button><svg class="hand-ico" viewBox="0 0 40 40" role="img" aria-label="時針（短針）"><circle cx="20" cy="20" r="17" fill="#fff" stroke="#9c2c69" stroke-width="3"/><line x1="20" y1="21" x2="20" y2="11" stroke="#1f2b33" stroke-width="5" stroke-linecap="round"/><circle cx="20" cy="20" r="3" fill="#f2b705"/></svg><button type="button" id="hPlus" aria-label="時針往前">＋</button>
+        <button type="button" id="mMinus" aria-label="分針往回">−</button><svg class="hand-ico" viewBox="0 0 40 40" role="img" aria-label="分針（長針）"><circle cx="20" cy="20" r="17" fill="#fff" stroke="#9c2c69" stroke-width="3"/><line x1="20" y1="22" x2="20" y2="5" stroke="#d1478f" stroke-width="3" stroke-linecap="round"/><circle cx="20" cy="20" r="3" fill="#f2b705"/></svg><button type="button" id="mPlus" aria-label="分針往前">＋</button>
       </div>
-      <button type="button" class="big" id="check">撥好了！</button>
+      <button type="button" class="big" id="check" aria-label="撥好了">OK</button>
     </div>
     <div class="msg" id="msg" aria-live="polite"></div>
     <div class="hint" id="hint">短針是時針、長針是分針</div>
@@ -168,11 +172,11 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:minma
       </div>
       <span class="lbl">難度</span>
       <div class="row" id="levels">
-        <button type="button" class="opt" data-lv="1">初級<small>幾點、幾點半</small></button>
-        <button type="button" class="opt" data-lv="2">進階<small>幾點幾分（5 分）</small></button>
-        <button type="button" class="opt" data-lv="3">高級<small>幾點幾分（1 分）</small></button>
+        <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small>幾點、幾點半</small></button>
+        <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small>幾點幾分（5 分）</small></button>
+        <button type="button" class="opt" data-lv="3" aria-label="高級"><span class="lvst">⭐⭐⭐</span><small>幾點幾分（1 分）</small></button>
       </div>
-      <button type="button" class="big" id="go">開始！</button>
+      <button type="button" class="big" id="go" aria-label="開始">READY</button>
     </div>
   </section>
   <section class="cover" id="end" hidden>
@@ -181,8 +185,8 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:minma
       <h2 id="endTitle"></h2>
       <p id="endText"></p>
       <div class="row">
-        <button type="button" class="big" id="replay">再玩一次</button>
-        <a class="big alt" href="./">回遊樂園</a>
+        <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+        <a class="big alt ico-btn" href="./" aria-label="回遊樂園">🏠</a>
       </div>
     </div>
   </section>
@@ -238,6 +242,7 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:minma
     fs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*dur;o.type=type;o.frequency.value=f;
       g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)})}catch(e){}}
   const sfx={good:()=>tone([784,1175],.14,"sine",.3),bad:()=>tone([150],.3,"square",.16),click:()=>tone([1200],.03,"square",.03),win:()=>tone([523,659,784,1047],.16)};
+  {const _g=sfx.good;sfx.good=(...a)=>{try{window.parkBurst&&parkBurst()}catch(err){}return _g(...a)}}
   function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
     try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}}
 
@@ -282,7 +287,7 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:minma
       say("現在是幾點？");
     }else{
       // 起始時間：和答案不一樣
-      let s;do{s=newTime()}while(s.h===S.target.h&&s.m===S.target.m);S.h=s.h;S.m=s.m;draw();
+      let s;do{s=newTime()}while(s.h===S.target.h&&s.m===S.target.m);S.h=s.h;S.m=s.m;S.start={h:s.h,m:s.m};draw();
       $("ask").innerHTML=`請把時鐘撥到<br><b>${fmt(S.target.h,S.target.m)}</b>`;
       $("choices").hidden=true;$("setter").hidden=false;
       say(`請把時鐘撥到${speak(S.target.h,S.target.m)}`);
@@ -311,9 +316,10 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:minma
     const tip=!mOK?`長針（分針）要指到 ${S.target.m===0?"12":S.target.m%5===0?"數字 "+S.target.m/5:S.target.m+" 分的位置"}`
       :"短針（時針）的位置再看一下";
     wrong(tip);say(tip.replace(/（|）/g,""));
-    // 錯兩次就示範一次
-    if(S.tries>=2){S.phase="reveal";setTimeout(()=>{animateTo(S.target.h,S.target.m);$("msg").textContent=`看，這就是 ${fmt(S.target.h,S.target.m)}`;$("msg").className="msg";
-      say(`這就是${speak(S.target.h,S.target.m)}`);setTimeout(next,3000)},900)}
+    // 錯三次就示範一次，再把針撥回原來的位置，讓孩子自己再撥一次（答對才換題）
+    if(S.tries>=3){S.phase="demo";const back=S.start;setTimeout(()=>{animateTo(S.target.h,S.target.m);$("msg").textContent=`看，這就是 ${fmt(S.target.h,S.target.m)}`;$("msg").className="msg";
+      say(`這就是${speak(S.target.h,S.target.m)}`);
+      setTimeout(()=>{animateTo(back.h,back.m);setTimeout(()=>{S.phase="play";S.tries=1;$("msg").textContent="換你撥撥看！";$("msg").className="msg";say("換你撥撥看")},1400)},2800)},900)}
   });
   function animateTo(h,m){
     const from=(S.h%12)*60+S.m,to=(h%12)*60+m;let d=to-from;if(d<0)d+=720;

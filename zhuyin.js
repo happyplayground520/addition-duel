@@ -34,16 +34,16 @@
 
   const st=document.createElement("style");
   st.textContent=`
-.zy{display:inline-flex;align-items:center;vertical-align:middle;line-height:1;margin-right:.05em;white-space:nowrap}
-.zy .h{display:inline-block}
+.zy{display:inline-flex;align-items:center;vertical-align:middle;line-height:1;margin-right:.1em;white-space:nowrap;letter-spacing:0}
+.zy-h{display:inline-block;letter-spacing:0}
 .zg{white-space:nowrap}
-.zy .b{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;margin-left:.05em;
+.zy-b{position:static;width:auto;height:auto;padding:0;border:0;background:none;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;margin-left:.05em;
   font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;font-weight:400;font-size:max(.36em,9px);
   line-height:1.02;letter-spacing:0;font-style:normal;text-shadow:none}
-.zy .b>span{position:relative;display:block}
-.zy .t{position:absolute;left:92%;top:-.45em;font-size:1em}
-.zy .lt{line-height:.7}
-html.zy-off .zy .b{display:none}
+.zy-b>span{position:relative;display:block}
+.zy-t{position:absolute;left:92%;top:-.45em;font-size:1em}
+.zy-lt{line-height:.7}
+html.zy-off .zy-b,html.zy-off .zy .b{display:none}
 html.zy-off .zy{margin-right:0}`;
   (document.head||root).appendChild(st);
 
@@ -53,8 +53,8 @@ html.zy-off .zy{margin-right:0}`;
     const light=z[0]==="˙";
     const syms=[...(light?z.slice(1):z)];
     const tone=/[ˊˇˋ]/.test(syms[syms.length-1])?syms.pop():"";
-    const col=syms.map((s,k)=>`<span>${s}${k===syms.length-1&&tone?`<span class="t">${tone}</span>`:""}</span>`).join("");
-    return `<span class="zy"><span class="h">${ch}</span><span class="b" aria-hidden="true">${light?'<span class="lt">˙</span>':""}${col}</span></span>`;
+    const col=syms.map((s,k)=>`<span>${s}${k===syms.length-1&&tone?`<span class="zy-t">${tone}</span>`:""}</span>`).join("");
+    return `<span class="zy"><span class="zy-h">${ch}</span><span class="zy-b" aria-hidden="true">${light?'<span class="zy-lt">˙</span>':""}${col}</span></span>`;
   }
   const HAN=/[一-鿿]/;
   function textHTML(text){

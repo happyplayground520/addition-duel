@@ -1,0 +1,66 @@
+/* 數學遊樂園：所有小遊戲共用的外觀（圓體字、封面布條、圖示按鈕、星星動畫、結束獎章） */
+:root{--text:"Chiron GoRound TC","PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;--theme:var(--accent,#e0477b)}
+body{font-family:var(--text)}
+
+/* ---- 開始／結束卡片：上方一條設施顏色的帳篷布條 ---- */
+#start>.box,#start>.card,#end>.box,#end>.card{position:relative;overflow:hidden;padding-top:52px!important;
+  border:4px solid #fff;box-shadow:0 0 0 4px var(--theme),0 18px 40px rgba(0,0,0,.18)}
+#start>.box::before,#start>.card::before,#end>.box::before,#end>.card::before{content:"";position:absolute;left:0;right:0;top:0;height:24px;
+  background:repeating-linear-gradient(90deg,var(--theme) 0 28px,#fff 28px 56px)}
+#start>.box::after,#start>.card::after,#end>.box::after,#end>.card::after{content:"";position:absolute;left:0;right:0;top:24px;height:14px;
+  background:radial-gradient(circle at 14px 0,var(--theme) 13px,transparent 13.5px) 0 0/56px 14px repeat-x,
+             radial-gradient(circle at 14px 0,#fff 13px,transparent 13.5px) 28px 0/56px 14px repeat-x;
+  filter:drop-shadow(0 2px 0 rgba(0,0,0,.08))}
+#start h2,#end h2{color:var(--theme)}
+@media (max-height:560px){#start>.box,#start>.card,#end>.box,#end>.card{padding-top:44px!important}}
+
+/* ---- 難度：星星 ---- */
+.lvst{display:block;font-size:1.25em;line-height:1.15;letter-spacing:-.08em;white-space:nowrap}
+.lvtag{letter-spacing:-.08em}
+
+/* ---- 加法 ＋ ／ 減法 −：大符號按鈕 ---- */
+label.chk.sym{position:relative;justify-content:center;min-width:76px;min-height:60px;padding:4px 18px;font-family:"Baloo 2",var(--text);
+  font-size:38px;font-weight:800;line-height:1;border-radius:16px}
+label.chk.sym input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+label.chk.sym:has(input:checked){background:var(--theme);border-color:var(--theme);color:#fff;box-shadow:0 4px 0 color-mix(in srgb,var(--theme) 60%,#000)}
+label.chk.sym:has(input:focus-visible){outline:3px solid var(--theme);outline-offset:3px}
+
+/* ---- 題數：點點 ---- */
+.dots{display:grid;grid-template-columns:repeat(5,9px);gap:4px;justify-content:center;padding:3px 0}
+.dots i{width:9px;height:9px;border-radius:50%;background:currentColor;opacity:.85}
+.opt .dots+small{display:block;font-size:.72em;opacity:.75;margin-top:2px}
+
+/* ---- 念題目開關、回地圖、再玩一次：只用圖示 ---- */
+.vbtn{font-size:30px!important;line-height:1!important;min-width:68px;padding:8px 16px!important}
+.ico-btn{font-size:clamp(30px,5vmin,44px)!important;line-height:1!important;min-width:86px;padding:.32em .9em!important}
+.ready.ico,.ready[data-ico]{font-size:clamp(30px,5vmin,44px)}
+
+/* ---- 時針／分針小圖 ---- */
+.hand-ico{width:clamp(46px,7vmin,60px);height:clamp(46px,7vmin,60px);display:block}
+
+/* ---- 答對：從手指的位置噴出星星 ---- */
+.pk-burst{position:fixed;width:0;height:0;pointer-events:none;z-index:999}
+.pk-burst span{position:absolute;left:0;top:0;font-size:26px;transform:translate(-50%,-50%);animation:pkfly .9s ease-out forwards}
+@keyframes pkfly{0%{transform:translate(-50%,-50%) scale(.3);opacity:1}
+  70%{opacity:1}100%{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.1) rotate(160deg);opacity:0}}
+
+/* ---- 結束畫面：金色獎章，星星一顆一顆跳出來 ---- */
+#stars{display:inline-flex;align-items:center;justify-content:center;gap:6px;align-self:center;font-size:clamp(40px,8vmin,64px);line-height:1;
+  padding:.28em .5em;border-radius:999px;background:radial-gradient(circle at 50% 35%,#fff8d6,#ffe27a);border:4px solid #fff;
+  box-shadow:0 0 0 4px #f2b705,0 8px 18px rgba(0,0,0,.15)}
+#stars::before,#stars::after{content:"🎉";font-size:.55em}
+#stars::after{transform:scaleX(-1)}
+#stars span{display:inline-block;animation:pkstar .55s cubic-bezier(.3,1.6,.5,1) both;animation-delay:calc(var(--i) * .35s + .2s)}
+#stars span.off{filter:grayscale(1);opacity:.45}
+@keyframes pkstar{0%{transform:scale(0) rotate(-90deg);opacity:0}100%{transform:none;opacity:1}}
+#result{animation:pkstar .6s cubic-bezier(.3,1.6,.5,1) both .15s}
+@media (prefers-reduced-motion:reduce){#stars span,#result,.pk-burst span{animation:none}}
+
+/* ---- 上方標題列：所有遊戲一樣（左 🏠、中間標題、右邊 ⭐ 分數和 🔊） ---- */
+.top .ibtn{width:52px;height:52px;border-radius:16px;background:#fff;border:0;font-size:26px;box-shadow:0 4px 0 rgba(0,0,0,.12)}
+.top .score,.top .sc{display:inline-flex;align-items:center;gap:4px;background:#fff;border-radius:999px;padding:4px 14px;
+  font-family:"Baloo 2",var(--text);font-weight:800;box-shadow:0 3px 0 rgba(0,0,0,.08)}
+.top .right{display:flex;align-items:center;gap:10px}
+
+/* 雙人遊戲的準備畫面：底色不透明，後面的按鈕不會透出來 */
+.board .side>.overlay{background:linear-gradient(to top,var(--soft,#eef3f1),#eef3f1)}
