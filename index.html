@@ -129,6 +129,13 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
 .drawer button.opt[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
 .drawer button.opt:disabled{opacity:.45;cursor:not-allowed}
 .drawer button.wide{width:100%;text-align:left}
+.chk{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;border:1.5px solid #cfd8dc;border-radius:12px;
+  padding:10px 14px;cursor:pointer;background:#fff;color:var(--ink)}
+.chk input{width:22px;height:22px;margin:0;accent-color:var(--ink)}
+.chk:has(input:checked){border-color:var(--ink);background:#eef3f1}
+.chk:has(input:disabled){opacity:.45;cursor:not-allowed}
+.pics .gone{position:relative;display:inline-block;opacity:.4}
+.pics .gone::after{content:"✕";position:absolute;inset:0;display:grid;place-items:center;color:#ff6b6b;font-weight:800;opacity:1}
 .lbl2{font-size:14px;font-weight:700;color:var(--ink);margin-top:4px}
 .sel{font:inherit;font-size:16px;width:100%;padding:10px 12px;border-radius:12px;border:1.5px solid #cfd8dc;background:#fff;color:var(--ink)}
 .sel:focus-visible{outline:3px solid var(--p1);outline-offset:2px}
@@ -140,12 +147,12 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
   <section class="side p2" data-p="1" aria-label="玩家 2"></section>
   <div class="band">
     <div class="qwrap flip" aria-hidden="true">
-      <div class="q"><span class="qa">?</span><span class="op">+</span><span class="qb">?</span><span class="op">=</span><span class="ans">?</span></div>
+      <div class="q"><span class="qa">?</span><span class="op qop">+</span><span class="qb">?</span><span class="op">=</span><span class="ans">?</span></div>
       <div class="wq"><p class="sent"></p><div class="wrow"><p class="pics"></p><span class="wans">答案：？</span></div></div>
     </div>
     <div class="mid"><span class="round" id="round">共 10 題</span></div>
     <div class="qwrap" aria-live="polite">
-      <div class="q"><span class="qa">?</span><span class="op">+</span><span class="qb">?</span><span class="op">=</span><span class="ans">?</span></div>
+      <div class="q"><span class="qa">?</span><span class="op qop">+</span><span class="qb">?</span><span class="op">=</span><span class="ans">?</span></div>
       <div class="wq"><p class="sent"></p><div class="wrow"><p class="pics"></p><span class="wans">答案：？</span></div></div>
     </div>
   </div>
@@ -156,6 +163,14 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
 <div class="scrim" id="scrim" hidden></div>
 <aside class="drawer" id="drawer" aria-label="設定" aria-hidden="true">
   <header><h2>設定</h2><button type="button" class="x" id="closeMenu" aria-label="關閉選單">×</button></header>
+  <div class="group">
+    <span class="lbl">運算（可複選）</span>
+    <div class="seg lockable">
+      <label class="chk"><input type="checkbox" id="opAdd" checked> 加法 ＋</label>
+      <label class="chk"><input type="checkbox" id="opSub"> 減法 −</label>
+    </div>
+    <span class="note" id="opNote">兩個都勾就是加減混合出題。</span>
+  </div>
   <div class="group">
     <span class="lbl">題型</span>
     <div class="seg lockable" id="modes">
@@ -197,7 +212,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
 <script>
 (function(){
   const NAMES=["玩家 1","玩家 2"];
-  const S={total:10,round:0,score:[0,0],phase:"ready",ready:[false,false],locked:[false,false],q:null,last:"",lastT:-1,voice:true,mode:"num",pics:true};
+  const S={total:10,round:0,score:[0,0],phase:"ready",ready:[false,false],locked:[false,false],q:null,last:"",lastT:-1,voice:true,mode:"num",pics:true,ops:{add:true,sub:false}};
 
   // ---- 應用題題庫：兩樣東西相加 ----
   const CN=["零","一","兩","三","四","五","六","七","八","九","十"];
@@ -217,6 +232,21 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     {t:(a,b)=>`公園裡有${a}隻小狗和${b}隻小貓，總共有幾隻動物？`,ea:"🐶",eb:"🐱"},
     {t:(a,b)=>`桌上有${a}個紅氣球和${b}個藍氣球，總共有幾個氣球？`,ea:"🎈",eb:"🔵"}
   ];
+  // 減法應用題：拿走、飛走、吃掉……還剩下幾個
+  const TPL_SUB=[
+    {t:(a,b)=>`樹上有${a}隻小鳥，飛走了${b}隻，還剩下幾隻小鳥？`,e:"🐦"},
+    {t:(a,b)=>`籃子裡有${a}顆蘋果，吃掉了${b}顆，還剩下幾顆蘋果？`,e:"🍎"},
+    {t:(a,b)=>`盤子上有${a}塊餅乾，小明吃了${b}塊，還剩下幾塊餅乾？`,e:"🍪"},
+    {t:(a,b)=>`池塘裡有${a}隻青蛙，跳走了${b}隻，還剩下幾隻青蛙？`,e:"🐸"},
+    {t:(a,b)=>`桌上有${a}個氣球，破了${b}個，還剩下幾個氣球？`,e:"🎈"},
+    {t:(a,b)=>`花園裡開了${a}朵花，媽媽摘了${b}朵，還剩下幾朵花？`,e:"🌼"},
+    {t:(a,b)=>`停車場有${a}輛汽車，開走了${b}輛，還剩下幾輛汽車？`,e:"🚗"},
+    {t:(a,b)=>`小美有${a}枝鉛筆，送給弟弟${b}枝，還剩下幾枝鉛筆？`,e:"✏️"},
+    {t:(a,b)=>`書架上有${a}本書，借走了${b}本，還剩下幾本書？`,e:"📕"},
+    {t:(a,b)=>`農場裡有${a}隻小雞，跑走了${b}隻，還剩下幾隻小雞？`,e:"🐥"},
+    {t:(a,b)=>`小狗有${a}根骨頭，吃掉了${b}根，還剩下幾根骨頭？`,e:"🦴"},
+    {t:(a,b)=>`小明有${a}顆草莓，分給媽媽${b}顆，還剩下幾顆草莓？`,e:"🍓"}
+  ];
   const cn=n=>n===2?"兩":CN[n];
 
   // ---- 注音 ----
@@ -230,9 +260,11 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     餅:"ㄅㄧㄥˇ",乾:"ㄍㄢ",蛋:"ㄉㄢˋ",糕:"ㄍㄠ",點:"ㄉㄧㄢˇ",心:"ㄒㄧㄣ",停:"ㄊㄧㄥˊ",車:"ㄔㄜ",輛:"ㄌㄧㄤˋ",汽:"ㄑㄧˋ",
     公:"ㄍㄨㄥ",書:"ㄕㄨ",架:"ㄐㄧㄚˋ",本:"ㄅㄣˇ",故:"ㄍㄨˋ",事:"ㄕˋ",圖:"ㄊㄨˊ",畫:"ㄏㄨㄚˋ",天:"ㄊㄧㄢ",星:"ㄒㄧㄥ",
     出:"ㄔㄨ",魚:"ㄩˊ",缸:"ㄍㄤ",條:"ㄊㄧㄠˊ",美:"ㄇㄟˇ",先:"ㄒㄧㄢ",吃:"ㄔ",草:"ㄘㄠˇ",莓:"ㄇㄟˊ",狗:"ㄍㄡˇ",
-    貓:"ㄇㄠ",桌:"ㄓㄨㄛ",個:"ㄍㄜˋ",氣:"ㄑㄧˋ",球:"ㄑㄧㄡˊ",藍:"ㄌㄢˊ"
+    貓:"ㄇㄠ",桌:"ㄓㄨㄛ",個:"ㄍㄜˋ",氣:"ㄑㄧˋ",球:"ㄑㄧㄡˊ",藍:"ㄌㄢˊ",
+    走:"ㄗㄡˇ",還:"ㄏㄞˊ",剩:"ㄕㄥˋ",下:"ㄒㄧㄚˋ",掉:"ㄉㄧㄠˋ",破:"ㄆㄛˋ",摘:"ㄓㄞ",送:"ㄙㄨㄥˋ",弟:"ㄉㄧˋ",
+    借:"ㄐㄧㄝˋ",跑:"ㄆㄠˇ",根:"ㄍㄣ",骨:"ㄍㄨˇ",頭:"ㄊㄡˊ",分:"ㄈㄣ"
   };
-  const ZY_WORDS={"媽媽":["ㄇㄚ","˙ㄇㄚ"]};   // 詞語裡要念輕聲的字
+  const ZY_WORDS={"媽媽":["ㄇㄚ","˙ㄇㄚ"],"弟弟":["ㄉㄧˋ","˙ㄉㄧ"],"骨頭":["ㄍㄨˇ","˙ㄊㄡ"]};   // 詞語裡要念輕聲的字
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   function zyChar(ch,z){
     if(!z)return esc(ch);
@@ -341,7 +373,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}
   }
   ["touchend","pointerup","click","keydown"].forEach(ev=>document.addEventListener(ev,unlockAudio,{capture:true,passive:true}));
-  const readQ=()=>{if(S.q)say(S.q.text||`${S.q.a} 加 ${S.q.b}，等於多少？`)};
+  const readQ=()=>{if(S.q)say(S.q.text||`${S.q.a} ${S.q.word} ${S.q.b}，等於多少？`)};
 
   // ---- 音效 ----
   let ac=null;
@@ -361,32 +393,44 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
 
   // ---- 題目顯示（正反兩行同步） ----
   const pop=()=>wrapEls.forEach(e=>{e.classList.remove("pop");void e.offsetWidth;e.classList.add("pop")});
-  function showQ(a,b,ans){
+  const qopEls=all(".band .qop");
+  function showQ(a,b,ans,sym="+"){
     band.classList.remove("word");
+    qopEls.forEach(e=>e.textContent=sym);
     aEls.forEach(e=>e.textContent=a);bEls.forEach(e=>e.textContent=b);ansEls.forEach(e=>{e.textContent=ans;e.classList.remove("ok")});
     pop();
   }
   function showWord(){
     band.classList.add("word");
-    sentEls.forEach(e=>{e.innerHTML=zy(S.q.text);e.setAttribute("aria-label",S.q.text)});picEls.forEach(e=>e.textContent=S.q.pics);
+    sentEls.forEach(e=>{e.innerHTML=zy(S.q.text);e.setAttribute("aria-label",S.q.text)});picEls.forEach(e=>e.innerHTML=S.q.pics);
     wansEls.forEach(e=>{e.textContent="答案：？";e.classList.remove("ok")});
     pop();
   }
   function reveal(){
     ansEls.forEach(e=>{e.textContent=S.q.sum;e.classList.add("ok")});
-    wansEls.forEach(e=>{e.textContent=`${S.q.a} + ${S.q.b} = ${S.q.sum}`;e.classList.add("ok")});
+    wansEls.forEach(e=>{e.textContent=`${S.q.a} ${S.q.sym} ${S.q.b} = ${S.q.sum}`;e.classList.add("ok")});
   }
 
   // ---- 遊戲流程 ----
   const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
   function newQuestion(){
-    let a,b,k;do{a=rnd(1,9);b=rnd(1,10-a);k=a+"+"+b}while(k===S.last);
-    S.last=k;S.q={a,b,sum:a+b};
+    const ops=[S.ops.add&&"+",S.ops.sub&&"-"].filter(Boolean);
+    let a,b,op,k;
+    do{
+      op=ops[rnd(0,ops.length-1)];
+      if(op==="+"){a=rnd(1,9);b=rnd(1,10-a)}   // 和不超過 10
+      else{a=rnd(2,10);b=rnd(1,a-1)}           // 10 以內，答案至少 1
+      k=a+op+b;
+    }while(k===S.last);
+    const add=op==="+";
+    S.last=k;S.q={a,b,op,sum:add?a+b:a-b,sym:add?"+":"−",word:add?"加":"減"};
     if(S.mode==="word"){
-      let ti;do{ti=rnd(0,TPL.length-1)}while(ti===S.lastT&&TPL.length>1);
-      S.lastT=ti;const tp=TPL[ti];
+      const list=add?TPL:TPL_SUB;
+      let ti;do{ti=rnd(0,list.length-1)}while(op+ti===S.lastT&&list.length>1);
+      S.lastT=op+ti;const tp=list[ti];
       S.q.text=tp.t(cn(a),cn(b));
-      S.q.pics=tp.ea.repeat(a)+" ＋ "+tp.eb.repeat(b);
+      S.q.pics=add?tp.ea.repeat(a)+" ＋ "+tp.eb.repeat(b)
+        :Array.from({length:a},(_,i)=>i<a-b?`<span>${tp.e}</span>`:`<span class="gone">${tp.e}</span>`).join("");
     }
   }
   function setMsg(p,t,cls=""){ui[p].msg.textContent=t;ui[p].msg.className="msg "+cls}
@@ -395,7 +439,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     if(bump){ui[p].score.classList.remove("bump");void ui[p].score.offsetWidth;ui[p].score.classList.add("bump")}}
   function syncOpts(){
     const lock=S.phase!=="ready";
-    all(".drawer .lockable button").forEach(b=>b.disabled=lock);
+    all(".drawer .lockable button, .drawer .lockable input").forEach(b=>b.disabled=lock);
     $optsNote.hidden=!lock;
   }
 
@@ -405,7 +449,8 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     S.phase="ready";S.ready=[false,false];S.round=0;S.score=[0,0];S.q=null;
     ui.forEach((u,p)=>{
       updateScore(p);u.ov.hidden=false;u.ovH.textContent=NAMES[p];
-      u.ovP.textContent=`${S.mode==="word"?"應用題":"數字題"}：題目會出現在中間並念出來，先按對的人得分。共 ${S.total} 題。`;
+      const opName=S.ops.add&&S.ops.sub?"加減混合":S.ops.sub?"減法":"加法";
+      u.ovP.textContent=`${opName}・${S.mode==="word"?"應用題":"數字題"}：題目會出現在中間並念出來，先按對的人得分。共 ${S.total} 題。`;
       u.readyBtn.textContent="準備好了";u.readyBtn.classList.remove("on");
       setMsg(p,"");u.el.classList.remove("locked");u.keys.forEach(k=>k.classList.remove("wrong","right"));
     });
@@ -435,7 +480,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     clearTimeout(timer);
     if(S.round>=S.total){finish();return}
     S.round++;S.phase="play";S.locked=[false,false];newQuestion();
-    if(S.mode==="word")showWord();else showQ(S.q.a,S.q.b,"?");
+    if(S.mode==="word")showWord();else showQ(S.q.a,S.q.b,"?",S.q.sym);
     updateRound();
     ui.forEach((u,p)=>{u.el.classList.remove("locked");setMsg(p,"快搶答！");u.keys.forEach(k=>k.classList.remove("wrong","right"))});
     readQ();
@@ -445,7 +490,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     if(v===S.q.sum){
       S.phase="reveal";S.score[p]++;updateScore(p,true);sfx.good();keyEl.classList.add("right");reveal();
       ui.forEach((u,i)=>setMsg(i,i===p?"答對了！+1 分":`${NAMES[p]} 搶先答對`,i===p?"good":""));
-      say(`${S.q.a} 加 ${S.q.b} 等於 ${S.q.sum}`);
+      say(`${S.q.a} ${S.q.word} ${S.q.b} 等於 ${S.q.sum}`);
       timer=setTimeout(nextRound,2800);
     }else{
       S.locked[p]=true;sfx.bad();keyEl.classList.add("wrong");ui[p].el.classList.add("locked");
@@ -453,7 +498,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
       if(S.locked[0]&&S.locked[1]){
         S.phase="reveal";reveal();
         ui.forEach((u,i)=>setMsg(i,`都答錯了，答案是 ${S.q.sum}`,"bad"));
-        say(`都答錯了，${S.q.a} 加 ${S.q.b} 等於 ${S.q.sum}`);
+        say(`都答錯了，${S.q.a} ${S.q.word} ${S.q.b} 等於 ${S.q.sum}`);
         timer=setTimeout(nextRound,3000);
       }
     }
@@ -498,7 +543,19 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     e.currentTarget.setAttribute("aria-pressed",S.pics);
     e.currentTarget.textContent=S.pics?"應用題圖案提示：開":"應用題圖案提示：關";
   });
-  $("say").addEventListener("click",()=>{if(S.q&&S.phase!=="ready")readQ();else say("十以內的加法搶答")});
+  $("say").addEventListener("click",()=>{if(S.q&&S.phase!=="ready")readQ();else say("十以內的加減法搶答")});
+  // 運算勾選：至少留一個
+  try{const o=JSON.parse(pref("duel-ops")||"null");if(o&&(o.add||o.sub))S.ops={add:!!o.add,sub:!!o.sub}}catch(e){}
+  $("opAdd").checked=S.ops.add;$("opSub").checked=S.ops.sub;
+  const opNote=$("opNote");
+  [["opAdd","add"],["opSub","sub"]].forEach(([id,key])=>$(id).addEventListener("change",e=>{
+    if(S.phase!=="ready"){e.target.checked=S.ops[key];return}
+    const next={...S.ops,[key]:e.target.checked};
+    if(!next.add&&!next.sub){e.target.checked=true;opNote.textContent="至少要勾選一種運算。";return}
+    S.ops=next;pref("duel-ops",JSON.stringify(S.ops));
+    opNote.textContent=S.ops.add&&S.ops.sub?"目前：加減混合出題。":S.ops.sub?"目前：只出減法。":"目前：只出加法。";
+    showReadyScreen();
+  }));
   $("voice").addEventListener("click",e=>{
     S.voice=!S.voice;e.currentTarget.setAttribute("aria-pressed",S.voice);
     e.currentTarget.textContent=S.voice?"語音朗讀：開":"語音朗讀：關";
