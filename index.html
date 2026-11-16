@@ -403,32 +403,41 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
   const sfx={good:()=>tone([660,880,1100]),bad:()=>tone([220,180],.15,"square"),tick:()=>tone([520],.1),go:()=>tone([880],.25),win:()=>tone([523,659,784,1047],.16)};
   async function wake(){try{await navigator.wakeLock?.request("screen")}catch(e){}}
 
-  // ---- 背景輕音樂：WebAudio 即時產生（C–Am–F–G 和弦 + 五聲音階隨機旋律），不需要音樂檔 ----
-  const M={on:pref("duel-music")!=="off",vol:pref("duel-music-vol")||"m",gain:null,timer:null,next:0,step:0,mel:2};
-  const MVOL={s:.03,m:.055,l:.09};
-  const CHORDS=[[60,64,67],[57,60,64],[53,57,60],[55,59,62]];   // C、Am、F、G
-  const PENTA=[72,74,76,79,81,84,86];                            // C D E G A C D
-  const STEP=60/76/2;                                            // 每分鐘 76 拍的八分音符
+  // ---- 背景音樂盒：WebAudio 即時產生的原創 8 小節小曲，固定循環、每個音一樣大聲，不需要音樂檔 ----
+  const M={on:pref("duel-music")!=="off",vol:pref("duel-music-vol")||"m",gain:null,bus:null,timer:null,next:0,step:0};
+  const MVOL={s:.07,m:.12,l:.19};
+  // 每小節的和弦（分解和弦用）與兩個旋律音（第 1、3 拍）
+  const BARS=[
+    {ch:[72,76,79],mel:[88,84]},   // C
+    {ch:[69,72,76],mel:[84,81]},   // Am
+    {ch:[65,69,72],mel:[81,84]},   // F
+    {ch:[67,71,74],mel:[83,79]},   // G
+    {ch:[72,76,79],mel:[88,91]},   // C
+    {ch:[69,72,76],mel:[88,84]},   // Am
+    {ch:[65,69,72],mel:[86,81]},   // F
+    {ch:[67,71,74],mel:[86,83]}    // G
+  ];
+  const ARP=[0,2,1,2,0,2,1,2];      // 分解和弦的順序：根、五、三、五……
+  const STEP=60/92/2;               // 每分鐘 92 拍的八分音符
   const hz=m=>440*Math.pow(2,(m-69)/12);
-  function mNote(m,t,dur,type,vol,att=.02){
-    const o=ac.createOscillator(),g=ac.createGain();
-    o.type=type;o.frequency.value=hz(m);
-    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+att);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
-    o.connect(g).connect(M.gain);o.start(t);o.stop(t+dur+.05);
+  // 音樂盒的「叮」：基音 + 一個高泛音，瞬間起音、慢慢消失
+  function bell(m,t,vel,len){
+    const f=hz(m);
+    [[f,vel,len],[f*4.2,vel*.18,len*.35]].forEach(([fr,v,d])=>{
+      const o=ac.createOscillator(),g=ac.createGain();
+      o.type="sine";o.frequency.value=fr;
+      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+      o.connect(g).connect(M.bus);o.start(t);o.stop(t+d+.05);
+    });
   }
   function mSchedule(){
     if(!ac||ac.state!=="running")return;
     if(M.next<ac.currentTime)M.next=ac.currentTime+.05;
     while(M.next<ac.currentTime+.3){
-      const t=M.next,s=M.step%8,ch=CHORDS[Math.floor(M.step/8)%4];
-      if(s===0){ch.forEach(n=>mNote(n,t,STEP*8.5,"triangle",.16,.5));mNote(ch[0]-12,t,STEP*3,"sine",.5,.03)}
-      if(s===4)mNote(ch[0]-5,t,STEP*3,"sine",.35,.03);
-      if(Math.random()<(s%2?.35:.7)){
-        if(s===0){const tones=PENTA.map((p,i)=>[p,i]).filter(([p])=>ch.some(c=>(p-c)%12===0));
-          M.mel=tones.reduce((b,x)=>Math.abs(x[1]-M.mel)<Math.abs(b[1]-M.mel)?x:b,tones[0]||[0,M.mel])[1]}
-        else M.mel=Math.max(0,Math.min(PENTA.length-1,M.mel+[-2,-1,-1,1,1,2][Math.floor(Math.random()*6)]));
-        mNote(PENTA[M.mel],t,STEP*(s===0?3:1.8),"sine",.42,.015);
-      }
+      const t=M.next,s=M.step%8,bar=BARS[Math.floor(M.step/8)%BARS.length];
+      bell(bar.ch[ARP[s]],t,.16,1.1);
+      if(s===0)bell(bar.mel[0],t,.26,1.8);
+      if(s===4)bell(bar.mel[1],t,.26,1.8);
       M.next+=STEP;M.step++;
     }
   }
@@ -437,7 +446,13 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     try{
       ac=ac||new (window.AudioContext||window.webkitAudioContext)();
       if(ac.state!=="running")ac.resume();
-      if(!M.gain){M.gain=ac.createGain();M.gain.connect(ac.destination)}
+      if(!M.gain){
+        M.gain=ac.createGain();M.gain.connect(ac.destination);
+        // 壓縮器把音量拉平，避免忽大忽小
+        M.bus=ac.createDynamicsCompressor();
+        M.bus.threshold.value=-26;M.bus.knee.value=12;M.bus.ratio.value=4;M.bus.attack.value=.003;M.bus.release.value=.25;
+        M.bus.connect(M.gain);
+      }
       M.gain.gain.cancelScheduledValues(ac.currentTime);
       M.gain.gain.setValueAtTime(0,ac.currentTime);M.gain.gain.linearRampToValueAtTime(MVOL[M.vol],ac.currentTime+1.5);
       M.next=ac.currentTime+.1;M.timer=setInterval(mSchedule,100);
@@ -448,7 +463,13 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     try{if(M.gain){M.gain.gain.cancelScheduledValues(ac.currentTime);M.gain.gain.setTargetAtTime(0,ac.currentTime,.2)}}catch(e){}
   }
   // 念題目時音樂轉小聲
-  function duck(on){try{if(M.gain&&M.timer)M.gain.gain.setTargetAtTime(MVOL[M.vol]*(on?.3:1),ac.currentTime,.15)}catch(e){}}
+  // 念題目時音樂稍微轉小，慢慢降、慢慢回來，聽起來比較順
+  let duckTimer=null;
+  function duck(on){
+    clearTimeout(duckTimer);
+    const apply=()=>{try{if(M.gain&&M.timer)M.gain.gain.setTargetAtTime(MVOL[M.vol]*(on?.55:1),ac.currentTime,.45)}catch(e){}};
+    if(on)apply();else duckTimer=setTimeout(apply,400);   // 念完稍等一下再回來，避免題目之間一大一小
+  }
   document.addEventListener("visibilitychange",()=>{if(document.hidden)musicStop();else if(M.on&&ac)musicStart()});
 
   // ---- 題目顯示（正反兩行同步） ----
