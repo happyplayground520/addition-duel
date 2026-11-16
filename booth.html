@@ -243,8 +243,8 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
   function tone(fs,dur=.12,type="triangle",vol=.15){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume();
     fs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*dur;o.type=type;o.frequency.value=f;
       g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)})}catch(e){}}
-  const sfx={coin:()=>tone([1800,2400],.04,"sine",.08),paper:()=>tone([300],.05,"triangle",.05),good:()=>tone([660,880,1100]),
-    bad:()=>tone([220,180],.14,"square",.07),win:()=>tone([523,659,784,1047],.16)};
+  const sfx={coin:()=>tone([1800,2400],.04,"sine",.08),paper:()=>tone([300],.05,"triangle",.05),good:()=>tone([784,1175],.14,"sine",.3),
+    bad:()=>tone([150],.3,"square",.16),win:()=>tone([523,659,784,1047],.16)};
   function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
     try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}}
 

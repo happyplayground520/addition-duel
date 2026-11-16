@@ -76,6 +76,7 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:mi
 .ch.right{background:var(--good);color:#fff}
 @keyframes shake{25%{translate:-6px 0}75%{translate:6px 0}}
 .msg{min-height:1.4em;font-size:clamp(17px,3vmin,26px);font-weight:800}
+.story,.msg,.now{text-wrap:balance;max-width:100%}
 .msg.good{color:var(--good)} .msg.bad{color:var(--bad)}
 .big{font-family:var(--text);font-weight:800;font-size:clamp(20px,4vmin,30px);border:0;border-radius:999px;padding:.45em 1.6em;
   background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 5px 0 var(--accent-dark);text-decoration:none;display:inline-block}
@@ -111,14 +112,14 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:mi
   <div class="panel">
     <div class="story" id="story" data-zy></div>
     <div class="eq" id="eq"></div>
-    <div class="now" id="now" hidden></div>
+    <div class="now" id="now" data-zy hidden></div>
     <div class="skip" id="skip" aria-live="polite"></div>
     <div class="choices" id="choices"></div>
     <div class="row" id="buildBtns" hidden>
       <button type="button" class="big alt" id="reset">清空</button>
       <button type="button" class="big" id="check">排好了！</button>
     </div>
-    <div class="msg" id="msg" aria-live="polite"></div>
+    <div class="msg" id="msg" data-zy aria-live="polite"></div>
   </div>
 
   <section class="cover" id="start">
@@ -296,7 +297,7 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:mi
     if(S.phase!=="play")return;
     if(+b.dataset.v===S.k*S.n){b.classList.add("right");celebrate()}
     else{S.tries++;sfx.bad();b.classList.remove("wrong");void b.offsetWidth;b.classList.add("wrong");
-      $("msg").textContent=`提示：一排 ${S.k} 個，${S.k} 個一數，數 ${S.n} 排`;$("msg").className="msg bad"}
+      $("msg").textContent=`提示：一排 ${S.k} 個，${S.k} 個一數，數 ${S.n} 排`;$("msg").className="msg bad"}
   }
   $("check").addEventListener("click",()=>{
     if(S.phase!=="play"||S.kind!=="build")return;

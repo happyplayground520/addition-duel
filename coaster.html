@@ -221,7 +221,7 @@ body{background:linear-gradient(#ffd9a8,#ffeedd 55%,#fff6ec);color:var(--ink);fo
         o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)});
     }catch(e){}
   }
-  const sfx={good:()=>tone([700,1050],.09),bad:()=>tone([220,170],.13,"square",.07),tick:()=>tone([600],.08),go:()=>tone([900],.25),
+  const sfx={good:()=>tone([784,1175],.14,"sine",.3),bad:()=>tone([150],.3,"square",.16),tick:()=>tone([600],.08),go:()=>tone([900],.25),
     end:()=>tone([784,659,523,784,1047],.14)};
   function unlock(){
     try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}

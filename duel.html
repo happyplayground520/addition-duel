@@ -587,7 +587,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
       });
     }catch(e){}
   }
-  const sfx={good:()=>tone([660,880,1100]),bad:()=>tone([220,180],.15,"square"),tick:()=>tone([520],.1),go:()=>tone([880],.25),win:()=>tone([523,659,784,1047],.16)};
+  const sfx={good:()=>tone([784,1175],.14,"sine"),bad:()=>tone([150],.3,"square"),tick:()=>tone([520],.1),go:()=>tone([880],.25),win:()=>tone([523,659,784,1047],.16)};
   async function wake(){try{await navigator.wakeLock?.request("screen")}catch(e){}}
 
   // ---- 背景音樂盒：WebAudio 即時產生的原創 8 小節小曲，固定循環、每個音一樣大聲，不需要音樂檔 ----
