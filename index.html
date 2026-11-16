@@ -58,6 +58,19 @@ h1{margin:0;font-size:clamp(28px,6vmin,58px);font-weight:800;letter-spacing:.06e
   box-shadow:0 6px 20px rgba(0,0,0,.25);transition:opacity .25s;white-space:nowrap}
 .toast[hidden]{display:block;opacity:0;pointer-events:none}
 @media (prefers-reduced-motion:reduce){.spot.open .icon{animation:none}}
+/* 設施大小跟著地圖寬度縮放，小螢幕也不會擠在一起 */
+@supports (container-type:inline-size){
+  .map{container-type:inline-size}
+  .spot .icon{width:clamp(36px,11cqw,140px);font-size:clamp(20px,6.6cqw,84px);border-width:clamp(3px,.5cqw,5px)}
+  .spot .name{font-size:clamp(10px,2.2cqw,24px);padding:2px clamp(6px,1.2cqw,12px)}
+  .spot .tag{font-size:clamp(9px,1.4cqw,15px);padding:1px clamp(5px,1cqw,10px)}
+  .deco{font-size:clamp(14px,3.4cqw,40px)}
+}
+/* 手機橫放：標題縮小，讓地圖大一點 */
+@media (max-height:500px){
+  h1{font-size:24px} .sub{display:none}
+  .map{width:min(100%,calc((100dvh - 70px) * 1.6))}
+}
 </style>
 </head>
 <body>
@@ -93,10 +106,10 @@ h1{margin:0;font-size:clamp(28px,6vmin,58px);font-weight:800;letter-spacing:.06e
   <a class="spot open" href="ferris.html" style="--c:#2f8fdb;left:32%;top:36%">
     <span class="icon">🎡</span><span class="name">摩天輪</span><span class="tag">1 人・乘法</span>
   </a>
-  <a class="spot open" href="booth.html" style="--c:#e0772b;left:38%;top:84%">
+  <a class="spot open" href="booth.html" style="--c:#e0772b;left:38%;top:73%">
     <span class="icon">🎟️</span><span class="name">售票亭</span><span class="tag">1 人・認識錢幣</span>
   </a>
-  <a class="spot open" href="coaster.html" style="--c:#7a4fd6;left:62%;top:80%">
+  <a class="spot open" href="coaster.html" style="--c:#7a4fd6;left:63%;top:75%">
     <span class="icon">🎢</span><span class="name">雲霄飛車</span><span class="tag">1 人・計時</span>
   </a>
 </div>
