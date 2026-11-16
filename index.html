@@ -62,6 +62,17 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
   background:color-mix(in srgb,var(--bg) 90%,transparent);text-align:center;padding:16px}
 .overlay h2{margin:0;font-size:clamp(26px,6vmin,56px);color:var(--c);text-wrap:balance}
 .overlay p{margin:0;font-size:clamp(15px,2.6vmin,22px);color:var(--muted)}
+.final{display:flex;gap:clamp(10px,2.4vmin,24px);align-items:stretch}
+.final[hidden]{display:none}
+.card{min-width:clamp(96px,17vmin,170px);padding:clamp(8px,1.6vmin,14px) clamp(14px,2.6vmin,26px);border-radius:18px;
+  background:var(--k-soft);border:3px solid var(--k);display:flex;flex-direction:column;align-items:center;gap:4px}
+.card .who{font-weight:800;font-size:clamp(15px,2.6vmin,22px);color:var(--k);display:flex;align-items:center;gap:6px}
+.card .who::before{content:"";width:.7em;height:.7em;border-radius:50%;background:var(--k)}
+.card .pts{font-family:var(--num);font-weight:800;font-size:clamp(40px,9vmin,84px);line-height:1;color:var(--ink);
+  font-variant-numeric:tabular-nums}
+.card .pts small{font-family:var(--text);font-size:.32em;color:var(--muted);margin-left:4px}
+.card.k1{--k:var(--p1);--k-soft:var(--p1-soft)} .card.k2{--k:var(--p2);--k-soft:var(--p2-soft)}
+.card.win{box-shadow:0 0 0 5px color-mix(in srgb,var(--k) 25%,transparent)}
 .ready{font-family:var(--text);font-weight:800;font-size:clamp(20px,4vmin,36px);border:0;border-radius:999px;
   padding:.5em 1.4em;background:var(--c);color:#fff;cursor:pointer;box-shadow:0 5px 0 color-mix(in srgb,var(--c) 60%,#000)}
 .ready:active{transform:translateY(3px);box-shadow:0 2px 0 color-mix(in srgb,var(--c) 60%,#000)}
@@ -306,10 +317,10 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     el.innerHTML=`
       <div class="head"><span class="name">${NAMES[p]}</span><span class="msg"></span><span class="score"><b>0</b><small>分</small></span></div>
       <div class="pad">${Array.from({length:11},(_,n)=>`<button type="button" class="key" data-v="${n}" aria-label="${n}">${n}</button>`).join("")}</div>
-      <div class="overlay"><h2></h2><p></p><button type="button" class="ready">準備好了</button></div>`;
+      <div class="overlay"><h2></h2><p></p><div class="final" hidden></div><button type="button" class="ready">準備好了</button></div>`;
     const u={el,msg:el.querySelector(".msg"),score:el.querySelector(".score"),scoreB:el.querySelector(".score b"),
       keys:[...el.querySelectorAll(".key")],ov:el.querySelector(".overlay"),ovH:el.querySelector(".overlay h2"),
-      ovP:el.querySelector(".overlay p"),readyBtn:el.querySelector(".ready")};
+      ovP:el.querySelector(".overlay p"),final:el.querySelector(".final"),readyBtn:el.querySelector(".ready")};
     ui[p]=u;
     const tap=(node,fn)=>{node.addEventListener("pointerdown",e=>{e.preventDefault();fn()});
       node.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();fn()}})};
@@ -529,7 +540,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     clearTimeout(timer);try{synth&&synth.cancel()}catch(e){}
     S.phase="ready";S.ready=[false,false];S.round=0;S.score=[0,0];S.q=null;
     ui.forEach((u,p)=>{
-      updateScore(p);u.ov.hidden=false;u.ovH.textContent=NAMES[p];
+      updateScore(p);u.ov.hidden=false;u.ovH.textContent=NAMES[p];u.ovP.hidden=false;u.final.hidden=true;
       const opName=S.ops.add&&S.ops.sub?"加減混合":S.ops.sub?"減法":"加法";
       u.ovP.textContent=`${opName}・${S.mode==="word"?"應用題":"數字題"}：題目會出現在中間並念出來，先按對的人得分。共 ${S.total} 題。`;
       u.readyBtn.textContent="準備好了";u.readyBtn.classList.remove("on");
@@ -591,10 +602,13 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
       const me=S.score[p],op=S.score[1-p];
       u.ov.hidden=false;
       u.ovH.textContent=me>op?"你贏了！🏆":me<op?"再接再厲！":"平手！";
-      u.ovP.textContent=`${NAMES[0]} ${a} 分 ： ${NAMES[1]} ${b} 分`;
+      u.ovP.hidden=true;
+      const card=(who,k,n,win)=>`<div class="card k${k}${win?" win":""}"><span class="who">${who}</span><span class="pts">${n}<small>分</small></span></div>`;
+      u.final.innerHTML=card("你",p+1,me,me>op)+card("對手",2-p,op,op>me);
+      u.final.hidden=false;
       u.readyBtn.classList.remove("on");u.readyBtn.textContent="再玩一次";
     });
-    say(a===b?`平手！${a} 比 ${b}`:`${a>b?NAMES[0]:NAMES[1]} 獲勝！${Math.max(a,b)} 比 ${Math.min(a,b)}`);
+    say(a===b?`平手！${a} 比 ${b}`:`${a>b?"藍色":"橘色"}這邊獲勝！${Math.max(a,b)} 比 ${Math.min(a,b)}`);
   }
 
   // ---- 左側選單 ----
@@ -671,5 +685,4 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
 </script>
 
 </body>
-
 </html>
