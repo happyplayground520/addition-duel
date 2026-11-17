@@ -91,6 +91,9 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
 .ready.on{background:var(--good);box-shadow:0 5px 0 color-mix(in srgb,var(--good) 60%,#000)}
 /* 準備卡片：各自選難度、語音 */
 .overlay .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.homeb{display:grid;place-items:center;min-width:64px;font-size:30px;line-height:1;padding:8px 14px;border:2px solid #cfd8dc;background:#fff;
+  border-radius:14px;text-decoration:none;box-shadow:0 4px 0 rgba(0,0,0,.08)}
+.endrow{align-items:center;gap:12px!important}
 .overlay .row[hidden],.overlay p[hidden]{display:none}
 .overlay h2{font-size:clamp(24px,4.6vmin,46px)}
 .overlay p{font-size:clamp(14px,2.2vmin,19px)}
@@ -448,7 +451,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
       <div class="overlay"><h2></h2>
         <div class="row lvs">${[1,2,3].map(l=>`<button type="button" class="opt" data-lv="${l}" aria-label="${LV[l].name}"><span class="lvst">${STAR[l]}</span><small>${LV[l].sub}</small></button>`).join("")}</div>
         <div class="row vrow"><button type="button" class="opt vbtn"></button></div>
-        <p></p><div class="final" hidden></div><button type="button" class="ready">READY</button></div>`;
+        <p></p><div class="final" hidden></div><div class="row endrow"><button type="button" class="ready">READY</button><a class="homeb" href="./" aria-label="回遊樂園">🏠</a></div></div>`;
     const u={el,msg:el.querySelector(".msg"),score:el.querySelector(".score"),scoreB:el.querySelector(".score b"),
       pad:el.querySelector(".pad"),keys:[],ov:el.querySelector(".overlay"),ovH:el.querySelector(".overlay h2"),
       ovP:el.querySelector(".overlay p"),final:el.querySelector(".final"),readyBtn:el.querySelector(".ready"),
