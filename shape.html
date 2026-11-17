@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>形狀搶答</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
+<style>
+/* 雙人對戰：兩人坐兩側（上半部旋轉 180°），各自依自己的難度找出指定形狀的東西（蛋糕、罐頭、骰子……），
+   答對拿一顆星，先拿到 10 顆星的人贏。平面：三角形、圓形、正方形、長方形；立體：球體、圓柱體、正方體、長方體、圓錐體 */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --ink:#1f2b33; --muted:#66757d; --good:#1f9d61; --bad:#d23c3c;
+  --p1:#2f6fdb; --p1-soft:#dbe7fb; --p2:#e0772b; --p2-soft:#fbe6d6;
+  --num:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
+  --text:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{margin:0;height:100%}
+body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+[hidden]{display:none!important}
+.board{height:100%;display:grid;grid-template-rows:minmax(0,1fr) minmax(0,.3fr) minmax(0,1fr)}
+.side{position:relative;display:flex;flex-direction:column;justify-content:center;gap:clamp(6px,1.2vmin,12px);min-height:0;
+  padding:clamp(8px,1.6vmin,14px) max(16px,env(safe-area-inset-right,0px)) clamp(8px,1.6vmin,14px) max(16px,env(safe-area-inset-left,0px))}
+.side.p1{--c:var(--p1);--soft:var(--p1-soft);background:linear-gradient(to top,var(--p1-soft),#eef3f1)}
+.side.p2{--c:var(--p2);--soft:var(--p2-soft);background:linear-gradient(to top,var(--p2-soft),#eef3f1);transform:rotate(180deg)}
+.head{display:flex;align-items:center;gap:10px}
+.name{font-weight:800;font-size:clamp(19px,3.2vmin,30px);color:var(--c);display:flex;align-items:center;gap:8px;white-space:nowrap}
+.name::before{content:"";width:.7em;height:.7em;border-radius:50%;background:var(--c)}
+.lvtag{font-size:clamp(14px,2.3vmin,20px);font-weight:700;color:#fff;background:var(--c);border-radius:999px;padding:1px 10px}
+.msg{flex:1;text-align:center;font-weight:800;font-size:clamp(17px,3vmin,26px);color:var(--muted)}
+.msg.good{color:var(--good)} .msg.bad{color:var(--bad)}
+.spk{width:52px;height:52px;border-radius:14px;border:2px solid var(--c);background:#fff;font-size:26px;cursor:pointer;flex:none}
+.spk.off{opacity:.45}
+.home{width:48px;height:48px;border-radius:14px;background:#fff;display:grid;place-items:center;font-size:24px;text-decoration:none;box-shadow:0 3px 0 rgba(0,0,0,.12);flex:none}
+/* 題目：找出 [圖示] 三角形 */
+.ask{display:flex;align-items:center;justify-content:center;gap:.35em;font-weight:900;font-size:clamp(22px,4.2vmin,40px)}
+.ask .ico{width:1.5em;height:1.5em;display:inline-block}
+.ask .ico svg{width:100%;height:100%}
+.ask .nm{color:var(--c)}
+.choices{display:grid;grid-template-columns:repeat(var(--n,4),minmax(0,1fr));gap:clamp(8px,1.6vmin,16px);min-height:0}
+.ch{position:relative;border:0;border-radius:20px;background:#fff;padding:6%;cursor:pointer;touch-action:manipulation;aspect-ratio:1;max-height:min(24vmin,190px);
+  justify-self:center;width:100%;max-width:min(24vmin,190px);box-shadow:0 5px 0 color-mix(in srgb,var(--c) 45%,#c9d2d6);display:grid;place-items:center}
+.ch svg{width:100%;height:100%}
+.ch:active{transform:translateY(3px)}
+.ch.wrong{background:#ffe1e1;animation:shake .35s}
+.ch.right{background:#dcf7e6;box-shadow:0 0 0 5px var(--good)}
+.side.locked .choices{opacity:.45;pointer-events:none}
+@keyframes shake{25%{translate:-6px 0}75%{translate:6px 0}}
+/* 準備卡片 */
+.overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(8px,1.6vmin,14px);
+  background:linear-gradient(to top,var(--soft),#eef3f1);padding:12px;text-align:center;z-index:3;overflow-y:auto}
+.overlay h2{margin:0;font-size:clamp(24px,5vmin,48px);color:var(--c)}
+.overlay .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center}
+.overlay .big{font-family:var(--num);font-weight:800;font-size:clamp(40px,9vmin,80px);line-height:1;color:var(--c)}
+.homeb{display:grid;place-items:center;min-width:64px;font-size:30px;line-height:1;padding:8px 14px;border:2px solid #cfd8dc;background:#fff;
+  border-radius:14px;text-decoration:none;box-shadow:0 4px 0 rgba(0,0,0,.08)}
+.endrow{align-items:center;gap:12px!important}
+@media (orientation:landscape){
+  .overlay{flex-direction:row;flex-wrap:wrap;align-content:center;column-gap:clamp(10px,2vmin,20px);row-gap:clamp(6px,1.2vmin,10px)}
+  .overlay h2{width:100%;font-size:clamp(22px,4vmin,38px)}
+}
+@media (orientation:landscape) and (max-height:600px){.overlay .opt small{display:none}.overlay h2{font-size:20px}}
+.opt{font:inherit;font-size:clamp(15px,2.4vmin,19px);font-weight:700;border:2px solid #cfd8dc;background:#fff;border-radius:14px;padding:8px 14px;cursor:pointer;color:inherit}
+.opt small{display:block;font-size:.72em;font-weight:600;opacity:.75}
+.opt[aria-pressed="true"]{border-color:var(--c);background:var(--c);color:#fff}
+.ready{font-family:var(--text);font-weight:800;font-size:clamp(20px,4vmin,34px);border:0;border-radius:999px;padding:.45em 1.4em;
+  background:var(--c);color:#fff;cursor:pointer;box-shadow:0 5px 0 color-mix(in srgb,var(--c) 60%,#000)}
+.ready.on{background:var(--good);box-shadow:0 5px 0 color-mix(in srgb,var(--good) 60%,#000)}
+/* 中間：兩排星星，誰先集滿 10 顆 */
+.mid{display:grid;grid-template-rows:1fr 1fr;background:linear-gradient(#ffe9f3,#fff6d6);box-shadow:inset 0 3px 0 #fff,inset 0 -3px 0 #fff;
+  padding:4px max(16px,env(safe-area-inset-right,0px)) 4px max(16px,env(safe-area-inset-left,0px))}
+.lane{display:flex;align-items:center;justify-content:center;gap:clamp(4px,1vmin,10px)}
+.lane.p2{transform:rotate(180deg)}
+.lane i{font-style:normal;font-size:clamp(18px,3.4vmin,32px);line-height:1;filter:grayscale(1);opacity:.25;transition:all .3s}
+.lane i.on{filter:none;opacity:1;animation:pop .4s}
+@keyframes pop{40%{transform:scale(1.5)}}
+.count{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:6;font-family:var(--num);font-weight:800;
+  font-size:clamp(80px,20vmin,180px);color:#fff;text-shadow:0 6px 0 rgba(0,0,0,.3)}
+</style>
+<script src="zhuyin.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="park.css">
+<script src="park.js"></script>
+<style>:root{--theme:#1fb5a8}</style>
+</head>
+<body>
+<div class="board">
+  <section class="side p2" data-p="1" aria-label="橘色玩家"></section>
+  <div class="mid" aria-label="星星">
+    <div class="lane p2" id="lane1"></div>
+    <div class="lane p1" id="lane0"></div>
+  </div>
+  <section class="side p1" data-p="0" aria-label="藍色玩家"></section>
+</div>
+<div class="count" id="count" hidden></div>
+
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
+  const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+  const NAMES=["藍色","橘色"],GOAL=10;
+  const STAR={1:"⭐",2:"⭐⭐",3:"⭐⭐⭐"};
+
+  // ---- 形狀與生活中的東西（自己畫的小圖，viewBox 0 0 100 100） ----
+  const S=(inner)=>`<svg viewBox="0 0 100 100" aria-hidden="true">${inner}</svg>`;
+  const hl=`<ellipse cx="38" cy="34" rx="9" ry="6" fill="#fff" opacity=".55" transform="rotate(-30 38 34)"/>`;
+  // 正方體／長方體的面
+  const cube=(top,left,right,extra="")=>`<path d="M50 12 L82 27 L50 42 L18 27Z" fill="${top}"/><path d="M18 27 L50 42 L50 86 L18 71Z" fill="${left}"/><path d="M82 27 L50 42 L50 86 L82 71Z" fill="${right}"/>
+    <path d="M50 12 L82 27 L82 71 L50 86 L18 71 L18 27Z M18 27 L50 42 L82 27 M50 42 L50 86" fill="none" stroke="#3a3a3a" stroke-opacity=".35" stroke-width="2" stroke-linejoin="round"/>${extra}`;
+  const box=(front,top,side,extra="",x=12,y=42,w=56,h=40,d=18)=>`<path d="M${x} ${y} L${x+d} ${y-d*.7} L${x+w+d} ${y-d*.7} L${x+w} ${y}Z" fill="${top}"/>
+    <path d="M${x+w} ${y} L${x+w+d} ${y-d*.7} L${x+w+d} ${y+h-d*.7} L${x+w} ${y+h}Z" fill="${side}"/><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${front}"/>
+    <path d="M${x} ${y} L${x+d} ${y-d*.7} L${x+w+d} ${y-d*.7} L${x+w+d} ${y+h-d*.7} L${x+w} ${y+h} L${x} ${y+h}Z M${x} ${y} L${x+w} ${y} L${x+w+d} ${y-d*.7} M${x+w} ${y} L${x+w} ${y+h}" fill="none" stroke="#3a3a3a" stroke-opacity=".35" stroke-width="2" stroke-linejoin="round"/>${extra}`;
+  const cyl=(body,top,extra="",x=26,w=48,y=24,h=54)=>`<path d="M${x} ${y} L${x} ${y+h} A${w/2} ${w/6} 0 0 0 ${x+w} ${y+h} L${x+w} ${y}Z" fill="${body}"/>${extra}
+    <ellipse cx="${x+w/2}" cy="${y}" rx="${w/2}" ry="${w/6}" fill="${top}" stroke="#3a3a3a" stroke-opacity=".3" stroke-width="2"/>`;
+  const ITEMS={
+    tri:[
+      {n:"蛋糕",s:S(`<path d="M14 80 L86 80 L50 24Z" fill="#ffe7b3" stroke="#d99a4e" stroke-width="3" stroke-linejoin="round"/><path d="M25 64 L75 64" stroke="#ff8fb8" stroke-width="6"/><path d="M34 50 L66 50" stroke="#ff8fb8" stroke-width="5"/><circle cx="50" cy="21" r="8" fill="#e8384f"/><path d="M50 13 l-4 -6 M50 13 l4 -6" stroke="#3fa34d" stroke-width="3" stroke-linecap="round"/>`)},
+      {n:"旗子",s:S(`<rect x="22" y="10" width="5" height="82" rx="2" fill="#8a5a2e"/><path d="M27 14 L86 32 L27 50Z" fill="#ff5a5f" stroke="#c23b40" stroke-width="3" stroke-linejoin="round"/><circle cx="42" cy="32" r="5" fill="#fff"/>`)},
+      {n:"飯糰",s:S(`<path d="M50 14 Q56 14 60 21 L86 70 Q90 83 77 84 L23 84 Q10 83 14 70 L40 21 Q44 14 50 14Z" fill="#fff" stroke="#c9d2d6" stroke-width="3"/><rect x="36" y="64" width="28" height="20" fill="#2f4f3a"/><circle cx="42" cy="48" r="3" fill="#1f2b33"/><circle cx="58" cy="48" r="3" fill="#1f2b33"/><path d="M46 54 q4 4 8 0" stroke="#1f2b33" stroke-width="2.5" fill="none" stroke-linecap="round"/>`)},
+      {n:"披薩",s:S(`<path d="M16 18 L84 18 L50 88Z" fill="#ffd36b" stroke="#d99a4e" stroke-width="3" stroke-linejoin="round"/><path d="M14 18 L86 18" stroke="#d9893f" stroke-width="9" stroke-linecap="round"/><circle cx="40" cy="34" r="6" fill="#e0574f"/><circle cx="60" cy="36" r="6" fill="#e0574f"/><circle cx="50" cy="56" r="5" fill="#e0574f"/>`)}
+    ],
+    circ:[
+      {n:"餅乾",s:S(`<circle cx="50" cy="50" r="36" fill="#e2a65c" stroke="#b97a33" stroke-width="3"/><circle cx="38" cy="38" r="4" fill="#5a3a1e"/><circle cx="60" cy="42" r="4" fill="#5a3a1e"/><circle cx="46" cy="62" r="4" fill="#5a3a1e"/><circle cx="64" cy="62" r="3" fill="#5a3a1e"/><circle cx="30" cy="56" r="3" fill="#5a3a1e"/>`)},
+      {n:"時鐘",s:S(`<circle cx="50" cy="50" r="36" fill="#fff" stroke="#e0574f" stroke-width="6"/><path d="M50 18 v6 M82 50 h-6 M50 82 v-6 M18 50 h6" stroke="#1f2b33" stroke-width="3"/><path d="M50 50 L50 30 M50 50 L64 57" stroke="#1f2b33" stroke-width="4" stroke-linecap="round"/><circle cx="50" cy="50" r="3"/>`)},
+      {n:"硬幣",s:S(`<circle cx="50" cy="50" r="36" fill="#f5c542" stroke="#c9961c" stroke-width="4"/><circle cx="50" cy="50" r="27" fill="none" stroke="#c9961c" stroke-width="2"/><text x="50" y="62" text-anchor="middle" font-size="32" font-weight="800" fill="#a67c12" font-family="Baloo 2,sans-serif">10</text>`)},
+      {n:"柳丁片",s:S(`<circle cx="50" cy="50" r="36" fill="#ffb347" stroke="#f08a24" stroke-width="4"/><circle cx="50" cy="50" r="28" fill="#ffd27a"/><path d="M50 22 V78 M22 50 H78 M30 30 L70 70 M70 30 L30 70" stroke="#ffb347" stroke-width="3"/>`)}
+    ],
+    sq:[
+      {n:"鬆餅",s:S(`<rect x="16" y="16" width="68" height="68" rx="6" fill="#f4c26b" stroke="#c98a2e" stroke-width="3"/><path d="M33 16 V84 M50 16 V84 M67 16 V84 M16 33 H84 M16 50 H84 M16 67 H84" stroke="#d99a3e" stroke-width="3"/>`)},
+      {n:"窗戶",s:S(`<rect x="16" y="16" width="68" height="68" rx="3" fill="#fff" stroke="#8a5a2e" stroke-width="5"/><rect x="22" y="22" width="25" height="25" fill="#9fdcff"/><rect x="53" y="22" width="25" height="25" fill="#9fdcff"/><rect x="22" y="53" width="25" height="25" fill="#9fdcff"/><rect x="53" y="53" width="25" height="25" fill="#9fdcff"/>`)},
+      {n:"便條紙",s:S(`<rect x="16" y="16" width="68" height="68" fill="#fff27a" stroke="#e2c43b" stroke-width="3"/><path d="M26 34 H74 M26 48 H74 M26 62 H60" stroke="#c9a520" stroke-width="3" stroke-linecap="round"/>`)}
+    ],
+    rect:[
+      {n:"門",s:S(`<rect x="30" y="10" width="40" height="80" rx="3" fill="#c98a52" stroke="#8a5a2e" stroke-width="3"/><rect x="36" y="18" width="28" height="26" fill="#b07a45"/><circle cx="62" cy="54" r="3.5" fill="#f5c542"/>`)},
+      {n:"巧克力",s:S(`<rect x="10" y="28" width="80" height="44" rx="4" fill="#7a4527" stroke="#4e2a15" stroke-width="3"/><path d="M30 28 V72 M50 28 V72 M70 28 V72 M10 50 H90" stroke="#5a3019" stroke-width="3"/>`)},
+      {n:"信封",s:S(`<rect x="12" y="26" width="76" height="48" fill="#fff" stroke="#9aa5ab" stroke-width="3"/><path d="M12 26 L50 54 L88 26" fill="none" stroke="#9aa5ab" stroke-width="3"/><circle cx="76" cy="38" r="5" fill="#ff7aa8"/>`)},
+      {n:"手機",s:S(`<rect x="30" y="10" width="40" height="80" rx="7" fill="#33414a"/><rect x="34" y="17" width="32" height="60" rx="2" fill="#9fdcff"/><circle cx="50" cy="83" r="3" fill="#cfd8dc"/>`)}
+    ],
+    ball:[
+      {n:"海灘球",s:S(`<circle cx="50" cy="50" r="36" fill="#ff5a5f"/><path d="M50 14 Q30 50 50 86 Q70 50 50 14Z" fill="#fff"/><path d="M15 44 Q50 34 85 44 Q50 58 15 44Z" fill="#ffd23f" opacity=".9"/><circle cx="50" cy="50" r="36" fill="none" stroke="#c23b40" stroke-width="2"/>${hl}`)},
+      {n:"籃球",s:S(`<circle cx="50" cy="50" r="36" fill="#f08a24" stroke="#a8521a" stroke-width="2"/><path d="M50 14 V86 M14 50 H86 M26 24 Q42 50 26 76 M74 24 Q58 50 74 76" stroke="#7a3a10" stroke-width="2.5" fill="none"/>${hl}`)},
+      {n:"橘子",s:S(`<circle cx="50" cy="54" r="34" fill="#ffa63d"/><path d="M50 22 q10 -12 20 -6 q-8 10 -20 6Z" fill="#3fa34d"/><circle cx="50" cy="22" r="3" fill="#6b4a1e"/><path d="M78 66 A34 34 0 0 1 30 82" stroke="#e07a10" stroke-width="5" fill="none" opacity=".6"/>${hl}`)}
+    ],
+    cyl:[
+      {n:"罐頭",s:S(cyl("#e0574f","#cfd8dc",`<rect x="26" y="40" width="48" height="20" fill="#fff"/><rect x="26" y="40" width="48" height="20" fill="#ffd23f" opacity=".6"/>`))},
+      {n:"鼓",s:S(`<path d="M18 22 L36 6" stroke="#8a5a2e" stroke-width="4" stroke-linecap="round"/><path d="M82 22 L64 6" stroke="#8a5a2e" stroke-width="4" stroke-linecap="round"/>`+cyl("#2f8fdb","#fff6e6",`<path d="M20 40 L32 72 L44 40 L56 72 L68 40 L80 72" stroke="#ffd23f" stroke-width="4" fill="none"/>`,20,60,36,40))},
+      {n:"蠟燭",s:S(`<path d="M50 6 Q58 16 50 22 Q42 16 50 6Z" fill="#ffb31a"/>`+cyl("#ff9fc0","#ffd0e0",`<path d="M34 34 L66 44 M34 50 L66 60 M34 66 L66 76" stroke="#fff" stroke-width="4"/>`,34,32,28,58))}
+    ],
+    cube:[
+      {n:"骰子",s:S(cube("#ffffff","#e8edf0","#d5dde2",`<circle cx="50" cy="27" r="4" fill="#e0394f"/><circle cx="27" cy="45" r="3.5" fill="#1f2b33"/><circle cx="41" cy="66" r="3.5" fill="#1f2b33"/><circle cx="60" cy="50" r="3.5" fill="#1f2b33"/><circle cx="66" cy="57" r="3.5" fill="#1f2b33"/><circle cx="72" cy="64" r="3.5" fill="#1f2b33"/>`))},
+      {n:"禮物盒",s:S(cube("#ff7aa8","#e0477b","#c43a6a",`<path d="M34 19.5 L66 34.5 M66 19.5 L34 34.5 M34 34.5 L34 78.5 M66 34.5 L66 78.5" stroke="#ffd23f" stroke-width="5"/><path d="M50 12 q-14 -10 -16 0 q6 6 16 0 q14 -10 16 0 q-6 6 -16 0Z" fill="#ffd23f"/>`))},
+      {n:"方糖",s:S(cube("#ffffff","#eef3f6","#dde5ea",`<circle cx="32" cy="50" r="2" fill="#cfd8dc"/><circle cx="66" cy="56" r="2" fill="#cfd8dc"/><circle cx="50" cy="26" r="2" fill="#cfd8dc"/>`))}
+    ],
+    cuboid:[
+      {n:"面紙盒",s:S(box("#7bd389","#9ee3a8","#5bbf6a",`<path d="M30 36 q8 -14 14 -4 q6 -12 12 2" fill="#fff" stroke="#cfd8dc" stroke-width="2"/>`,10,46,64,34,20))},
+      {n:"牛奶盒",s:S(box("#ffffff","#e3edf2","#cfdde5",`<rect x="30" y="46" width="22" height="16" rx="3" fill="#5aa9e6"/>`,26,30,34,58,16))},
+      {n:"磚塊",s:S(box("#d9693a","#e88a5c","#b5522a",`<path d="M10 62 H74" stroke="#f5b38f" stroke-width="2"/>`,10,48,64,28,20))}
+    ],
+    cone:[
+      {n:"派對帽",s:S(`<path d="M50 10 L78 80 A28 8 0 0 1 22 80Z" fill="#9b6bdc"/><path d="M41 32 L59 32 M34 50 L66 50 M28 66 L72 66" stroke="#ffd23f" stroke-width="5"/><circle cx="50" cy="10" r="7" fill="#ff7aa8"/><ellipse cx="50" cy="80" rx="28" ry="8" fill="none" stroke="#6b3fb0" stroke-width="2"/>`)},
+      {n:"三角錐",s:S(`<rect x="16" y="78" width="68" height="10" rx="3" fill="#f08a24"/><path d="M50 10 L74 80 A24 7 0 0 1 26 80Z" fill="#ff7a2a"/><path d="M42 34 L58 34 L62 46 L38 46Z M34 58 L66 58 L69 68 L31 68Z" fill="#fff"/>`)},
+      {n:"冰淇淋甜筒",s:S(`<path d="M30 40 L50 92 L70 40Z" fill="#e8b46b" stroke="#c98a2e" stroke-width="3" stroke-linejoin="round"/><path d="M36 50 L62 62 M40 64 L58 52 M44 76 L54 70" stroke="#c98a2e" stroke-width="2"/><ellipse cx="50" cy="40" rx="20" ry="6" fill="#ffd0e0"/>`)}
+    ]
+  };
+  const SHAPE={tri:"三角形",circ:"圓形",sq:"正方形",rect:"長方形",ball:"球體",cyl:"圓柱體",cube:"正方體",cuboid:"長方體",cone:"圓錐體"};
+  // 題目旁的小圖示（線條）
+  const ICON={
+    tri:S(`<path d="M50 14 L88 82 L12 82Z" fill="#fff" stroke="currentColor" stroke-width="7" stroke-linejoin="round"/>`),
+    circ:S(`<circle cx="50" cy="50" r="38" fill="#fff" stroke="currentColor" stroke-width="7"/>`),
+    sq:S(`<rect x="14" y="14" width="72" height="72" fill="#fff" stroke="currentColor" stroke-width="7"/>`),
+    rect:S(`<rect x="6" y="26" width="88" height="48" fill="#fff" stroke="currentColor" stroke-width="7"/>`),
+    ball:S(`<circle cx="50" cy="50" r="38" fill="#fff" stroke="currentColor" stroke-width="6"/><ellipse cx="50" cy="50" rx="38" ry="12" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="6 5"/>`),
+    cyl:S(`<path d="M22 22 V78 A28 9 0 0 0 78 78 V22" fill="#fff" stroke="currentColor" stroke-width="6"/><ellipse cx="50" cy="22" rx="28" ry="9" fill="#fff" stroke="currentColor" stroke-width="6"/>`),
+    cube:S(`<path d="M50 10 L86 27 L86 71 L50 90 L14 71 L14 27Z M14 27 L50 44 L86 27 M50 44 V90" fill="#fff" stroke="currentColor" stroke-width="6" stroke-linejoin="round"/>`),
+    cuboid:S(`<path d="M6 40 L24 26 L94 26 L94 62 L76 76 L6 76Z M6 40 L76 40 L94 26 M76 40 V76" fill="#fff" stroke="currentColor" stroke-width="6" stroke-linejoin="round"/>`),
+    cone:S(`<path d="M50 8 L80 80 A30 9 0 0 1 20 80Z" fill="#fff" stroke="currentColor" stroke-width="6" stroke-linejoin="round"/>`)
+  };
+  // 難度：初級平面、進階立體、高級兩種混在一起（例如找圓柱體，旁邊會有圓圓的餅乾）
+  const FLAT=["tri","circ","sq","rect"],SOLID=["ball","cyl","cube","cuboid","cone"];
+  const LV={1:{name:"初級",sub:"平面：三角形、圓形…",pool:FLAT,n:3},2:{name:"進階",sub:"立體：球、圓柱…",pool:SOLID,n:4},3:{name:"高級",sub:"平面和立體混合",pool:[...FLAT,...SOLID],n:4}};
+  // 容易搞混的放在一起出：初級不把正方形和長方形放在一起，高級特別把平面和像它的立體放在一起
+  const TWIN={circ:["ball","cyl"],ball:["circ"],cyl:["circ","rect"],tri:["cone"],cone:["tri"],sq:["cube"],cube:["sq","cuboid"],rect:["cuboid"],cuboid:["rect","cube"]};
+
+  const base=LV[+pref("park-level")]?+pref("park-level"):1;
+  const P=[0,1].map(p=>({lv:+pref("shape-lv"+p)||base,voice:true,ready:false,pos:0,q:null,locked:false}));
+  P.forEach(x=>{if(!LV[x.lv])x.lv=1});
+  let phase="ready";
+  const lanes=[$("lane0"),$("lane1")];lanes.forEach(l=>l.innerHTML="<i>⭐</i>".repeat(GOAL));
+
+  // ---- 語音：排隊念 ----
+  const synth=window.speechSynthesis;let voice=null;const rate=+(pref("duel-rate")||.9)||.9;
+  const quality=v=>{const u=v.voiceURI||"";return /eloquence|speech\.synthesis\.voice/i.test(u)?0:/\.premium\./i.test(u)?3:/enhanced|-premium/i.test(u)?2:1};
+  function pickVoice(){if(!synth)return;const vs=synth.getVoices().filter(v=>/^(zh|cmn)/i.test(v.lang));const want=pref("duel-voice");
+    const tw=vs.filter(v=>/TW|Hant/i.test(v.lang)&&quality(v)>0).sort((a,b)=>quality(b)-quality(a));
+    voice=(want&&vs.find(v=>(v.voiceURI||v.name)===want))||tw[0]||vs.find(v=>quality(v)>0)||vs[0]||null}
+  if(synth){pickVoice();try{synth.addEventListener("voiceschanged",pickVoice)}catch(e){}}
+  const queue=[];let speaking=false,guard=null;
+  function speakNext(){
+    if(speaking||!queue.length||!synth)return;
+    const item=queue.shift();speaking=true;
+    const done=()=>{if(!speaking)return;speaking=false;clearTimeout(guard);setTimeout(speakNext,150)};
+    try{const u=new SpeechSynthesisUtterance(item.t);u.lang=voice?voice.lang.replace("_","-"):"zh-TW";if(voice)u.voice=voice;u.rate=rate;u.pitch=1.1;
+      u.onend=done;u.onerror=done;synth.speak(u)}catch(e){done()}
+    guard=setTimeout(done,7000);
+  }
+  function enqueue(p,t){for(let i=queue.length-1;i>=0;i--)if(queue[i].p===p)queue.splice(i,1);queue.push({p,t});speakNext()}
+  function sayNow(t){queue.length=0;try{synth&&synth.cancel()}catch(e){}speaking=false;queue.push({p:-1,t});speakNext()}
+  let ac=null;
+  function tone(fs,dur=.12,type="triangle",vol=.15){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume();
+    fs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*dur;o.type=type;o.frequency.value=f;
+      g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)})}catch(e){}}
+  const sfx={good:()=>tone([784,1175],.12,"sine",.28),bad:()=>tone([150],.3,"square",.15),tick:()=>tone([600],.1),go:()=>tone([900],.25),win:()=>tone([523,659,784,1047],.16)};
+  {const _g=sfx.good;sfx.good=(...a)=>{try{window.parkBurst&&parkBurst()}catch(err){}return _g(...a)}}
+  function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
+    try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}}
+
+  // ---- 出題 ----
+  function makeQ(lv,last){
+    const L=LV[lv];let t,k=0;
+    do{t=L.pool[rnd(0,L.pool.length-1)]}while(last&&t===last.t&&++k<10);
+    let others=L.pool.filter(s=>s!==t);
+    if(lv===1&&(t==="sq"||t==="rect"))others=others.filter(s=>s!=="sq"&&s!=="rect");
+    // 高級：先放一個「看起來很像」的干擾
+    const picks=[];
+    if(lv===3){const tw=(TWIN[t]||[]).filter(s=>others.includes(s));if(tw.length)picks.push(tw[rnd(0,tw.length-1)])}
+    shuffle(others.filter(s=>!picks.includes(s))).forEach(s=>{if(picks.length<L.n-1)picks.push(s)});
+    const pick=s=>ITEMS[s][rnd(0,ITEMS[s].length-1)];
+    const opts=shuffle([{s:t,item:pick(t),ok:true},...picks.map(s=>({s,item:pick(s),ok:false}))]);
+    return{t,opts};
+  }
+  const qText=q=>`找出${SHAPE[q.t]}的東西`;
+
+  // ---- 畫面 ----
+  const ui=[...document.querySelectorAll(".side")].sort((a,b)=>a.dataset.p-b.dataset.p).map((el,p)=>{
+    el.innerHTML=`
+      <div class="head">${p===0?'<a class="home" href="./" aria-label="回遊樂園地圖">🏠</a>':""}<span class="name">${NAMES[p]}</span><span class="lvtag"></span><span class="msg" data-zy></span>
+        <button type="button" class="spk" aria-label="念我的題目">🔊</button></div>
+      <div class="ask" data-zy></div>
+      <div class="choices"></div>
+      <div class="overlay">
+        <h2>${NAMES[p]}找形狀</h2>
+        <div class="row lvs">${[1,2,3].map(l=>`<button type="button" class="opt" data-lv="${l}" aria-label="${LV[l].name}"><span class="lvst">${STAR[l]}</span><small>${LV[l].sub}</small></button>`).join("")}</div>
+        <div class="row"><button type="button" class="opt vbtn"></button></div>
+        <div class="big" hidden></div>
+        <div class="row endrow"><button type="button" class="ready">READY</button><a class="homeb" href="./" aria-label="回遊樂園">🏠</a></div>
+      </div>`;
+    const u={el,msg:el.querySelector(".msg"),ask:el.querySelector(".ask"),choices:el.querySelector(".choices"),lvtag:el.querySelector(".lvtag"),spk:el.querySelector(".spk"),
+      ov:el.querySelector(".overlay"),h2:el.querySelector(".overlay h2"),big:el.querySelector(".overlay .big"),
+      lvs:[...el.querySelectorAll(".lvs .opt")],vbtn:el.querySelector(".vbtn"),ready:el.querySelector(".ready")};
+    u.lvs.forEach(b=>b.addEventListener("click",()=>{if(phase!=="ready")return;P[p].lv=+b.dataset.lv;pref("shape-lv"+p,P[p].lv);autoVoice();syncSetup()}));
+    u.vbtn.addEventListener("click",()=>{if(phase!=="ready")return;P[p].voice=!P[p].voice;syncSetup()});
+    u.ready.addEventListener("click",()=>toggleReady(p));
+    u.spk.addEventListener("click",()=>{if(phase==="play"&&P[p].q)enqueue(p,`${NAMES[p]}，${qText(P[p].q)}`)});
+    return u;
+  });
+  function autoVoice(){
+    if(P[0].lv===P[1].lv){P[0].voice=P[1].voice=true}
+    else{const low=P[0].lv<P[1].lv?0:1;P[low].voice=true;P[1-low].voice=false}
+  }
+  function syncSetup(){
+    ui.forEach((u,p)=>{
+      u.lvs.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===P[p].lv));
+      u.vbtn.textContent=P[p].voice?"🔊":"🔇";u.vbtn.setAttribute("aria-label",P[p].voice?"念題目：開":"念題目：關");u.vbtn.setAttribute("aria-pressed",P[p].voice);
+      u.lvtag.textContent=STAR[P[p].lv];u.lvtag.setAttribute("aria-label",LV[P[p].lv].name);u.spk.classList.toggle("off",!P[p].voice);
+    });
+  }
+  function drawStars(){lanes.forEach((l,p)=>[...l.children].forEach((s,i)=>s.classList.toggle("on",i<P[p].pos)))}
+
+  // ---- 流程 ----
+  function showReady(){
+    phase="ready";queue.length=0;try{synth&&synth.cancel()}catch(e){}
+    P.forEach(x=>{x.ready=false;x.pos=0;x.q=null;x.locked=false});drawStars();
+    ui.forEach((u,p)=>{u.ov.hidden=false;u.h2.textContent=`${NAMES[p]}找形狀`;u.big.hidden=true;u.ready.textContent="READY";u.ready.classList.remove("on");
+      u.lvs[0].parentElement.hidden=false;u.vbtn.parentElement.hidden=false;u.ask.innerHTML="";u.choices.innerHTML="";u.msg.textContent="";u.el.classList.remove("locked")});
+    syncSetup();
+  }
+  function toggleReady(p){
+    unlock();
+    if(phase==="over"){showReady();return}
+    if(phase!=="ready")return;
+    P[p].ready=!P[p].ready;const b=ui[p].ready;b.classList.toggle("on",P[p].ready);b.textContent=P[p].ready?"✅":"READY";sfx.tick();
+    if(P[0].ready&&P[1].ready)countdown();
+  }
+  function countdown(){
+    phase="count";ui.forEach(u=>u.ov.hidden=true);
+    const c=$("count");let n=3;c.hidden=false;c.textContent=n;sfx.tick();
+    const iv=setInterval(()=>{n--;if(n>0){c.textContent=n;sfx.tick();return}
+      clearInterval(iv);c.hidden=true;sfx.go();phase="play";
+      try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}
+      [0,1].forEach(p=>newQ(p));
+    },800);
+  }
+  function newQ(p){
+    const x=P[p],u=ui[p];x.q=makeQ(x.lv,x.q);x.locked=false;u.el.classList.remove("locked");u.msg.textContent="";u.msg.className="msg";
+    u.ask.innerHTML=`<span>找出</span><span class="ico" style="color:var(--c)">${ICON[x.q.t]}</span><span class="nm">${SHAPE[x.q.t]}</span>`;
+    u.choices.style.setProperty("--n",x.q.opts.length);
+    u.choices.innerHTML=x.q.opts.map((o,i)=>`<button type="button" class="ch" data-i="${i}" aria-label="${o.item.n}">${o.item.s}</button>`).join("");
+    u.choices.querySelectorAll(".ch").forEach(b=>b.addEventListener("pointerdown",e=>{e.preventDefault();answer(p,b)}));
+    if(x.voice)enqueue(p,`${NAMES[p]}，${qText(x.q)}`);
+  }
+  function answer(p,b){
+    const x=P[p],u=ui[p];
+    if(phase!=="play"||x.locked)return;
+    const o=x.q.opts[+b.dataset.i];
+    if(o.ok){
+      b.classList.add("right");sfx.good();x.pos++;drawStars();x.locked=true;
+      u.msg.textContent=`答對了！${o.item.n}是${SHAPE[o.s]}`;u.msg.className="msg good";
+      if(x.pos>=GOAL)return setTimeout(()=>finish(p),600);
+      setTimeout(()=>{if(phase==="play")newQ(p)},900);
+    }else{
+      b.classList.add("wrong");sfx.bad();x.locked=true;u.el.classList.add("locked");
+      u.msg.textContent=`${o.item.n}是${SHAPE[o.s]}喔`;u.msg.className="msg bad";
+      setTimeout(()=>{if(phase==="play"&&x.locked){x.locked=false;u.el.classList.remove("locked");b.classList.remove("wrong");u.msg.textContent="";u.msg.className="msg"}},1500);
+    }
+  }
+  function finish(w){
+    phase="over";sfx.win();
+    ui.forEach((u,p)=>{u.ov.hidden=false;u.h2.textContent=p===w?"你贏了！🏆":"再接再厲！";u.big.hidden=false;u.big.textContent=`⭐ ${P[p].pos} / ${GOAL}`;
+      u.lvs[0].parentElement.hidden=true;u.vbtn.parentElement.hidden=true;u.ready.textContent="🔁";u.ready.classList.remove("on")});
+    sayNow(`${NAMES[w]}先集滿${GOAL}顆星星，${NAMES[w]}贏了！`);
+  }
+  autoVoice();showReady();
+})();
+</script>
+</body>
+</html>
