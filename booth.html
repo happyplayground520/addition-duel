@@ -134,6 +134,8 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
         <button type="button" class="opt" data-adv="auto">自動<small>稱讚說完再換</small></button>
         <button type="button" class="opt" data-adv="manual">手動<small>按「下一題」才換</small></button>
       </div>
+      <span class="lbl">題數</span>
+      <div class="row" id="counts"><button type="button" class="opt" data-n="5" aria-label="5 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button><button type="button" class="opt" data-n="10" aria-label="10 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>10</small></button><button type="button" class="opt" data-n="15" aria-label="15 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>15</small></button></div>
       <button type="button" class="big" id="go" aria-label="開始">READY</button>
       <span class="note">錢幣是依照新臺幣的顏色和大小畫的示意圖</span>
     </div>
@@ -277,6 +279,10 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
   // ---- 遊戲流程 ----
   function start(){unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.score=0;upd();renderWallet();next();
     try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}}
+  // 題數：5／10／15 題，記住上次的選擇
+  {const n0=+pref("booth-total");if([5,10,15].includes(n0))S.total=n0;
+   const cs=[...document.querySelectorAll("#counts button")],sync=()=>cs.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===S.total));
+   sync();cs.forEach(b=>b.addEventListener("click",()=>{S.total=+b.dataset.n;pref("booth-total",S.total);sync()}))}
   const upd=()=>{$("score").textContent=`⭐ ${S.score} / ${S.total}`};
   function next(){
     if(S.round>=S.total)return finish();

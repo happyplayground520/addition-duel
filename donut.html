@@ -142,6 +142,8 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:mi
         <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small>2、5、4、8 的乘法</small></button>
         <button type="button" class="opt" data-lv="3" aria-label="高級"><span class="lvst">⭐⭐⭐</span><small>九九乘法</small></button>
       </div>
+      <span class="lbl">題數</span>
+      <div class="row" id="counts"><button type="button" class="opt" data-n="5" aria-label="5 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button><button type="button" class="opt" data-n="10" aria-label="10 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>10</small></button><button type="button" class="opt" data-n="15" aria-label="15 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>15</small></button></div>
       <button type="button" class="big" id="go" aria-label="開始">READY</button>
     </div>
   </section>
@@ -262,6 +264,10 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:mi
   const ask=()=>S.kind==="read"?`盤子上有${S.n}排${S.fl.name}甜甜圈，每排${S.k}個，一共有幾個？`:`請排出${S.k}乘以${S.n}：每排${S.k}個${S.fl.name}甜甜圈，排${S.n}排`;
   function start(){unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.score=0;S.last="";upd();next();
     try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}}
+  // 題數：5／10／15 題，記住上次的選擇
+  {const n0=+pref("donut-total");if([5,10,15].includes(n0))S.total=n0;
+   const cs=[...document.querySelectorAll("#counts button")],sync=()=>cs.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===S.total));
+   sync();cs.forEach(b=>b.addEventListener("click",()=>{S.total=+b.dataset.n;pref("donut-total",S.total);sync()}))}
   const upd=()=>{$("score").textContent=`⭐ ${S.score} / ${S.total}`};
   function next(){
     if(S.round>=S.total)return finish();
