@@ -176,6 +176,9 @@ h1 .star{font-size:.7em;text-shadow:none}
   <a class="spot open" data-k="fish" href="fish.html" style="--c:#f07a2a">
     <span class="icon">🐠</span><span class="name" data-zy>撈金魚</span><span class="tag">👤 找出全部</span>
   </a>
+  <a class="spot open" data-k="claw" href="claw.html" style="--c:#c04fd6">
+    <span class="icon">🧸</span><span class="name" data-zy>夾娃娃機</span><span class="tag">👤 兩種玩法</span>
+  </a>
   <a class="spot open big" data-k="duel" href="duel.html" style="--c:#8e3fb0">
     <span class="icon">🎪</span><span class="name" data-zy>搶答對決</span><span class="tag">👥 加減法</span>
   </a>
@@ -192,10 +195,10 @@ h1 .star{font-size:.7em;text-shadow:none}
   // 環狀主路依序經過的設施（從入口往左繞一圈），中間是搶答對決
   const ORDER=["booth","train","bumper","ferris","carousel","ring","balloon","donut","coaster"];
   const LAYOUT={
-    land:{gate:[50,82],pos:{booth:[31,74],train:[11,58],bumper:[11,26],ferris:[29,16],carousel:[50,11.5],ring:[71,16],balloon:[89,26],donut:[89,58],coaster:[69,74],duel:[50,47],fish:[30,45]},
-      decos:[["🌲",79,44],["🌷",38,30],["🌼",62,30],["🌷",37,58],["🌼",63,58],["🌳",4,90],["🌲",15,90],["🎈",86,90],["🌳",96,90],["🦆",6,10]]},
-    port:{gate:[50,88],pos:{booth:[28,80],train:[12,60],bumper:[12,35],ferris:[26,15],carousel:[50,10],ring:[74,15],balloon:[88,35],donut:[88,60],coaster:[72,80],duel:[50,45],fish:[30,47]},
-      decos:[["🌲",72,47],["🌷",38,28],["🌼",62,28],["🌷",36,70],["🌼",64,70],["🌳",6,93],["🎈",94,93],["🦆",7,9]]}
+    land:{gate:[50,82],pos:{booth:[31,74],train:[11,58],bumper:[11,26],ferris:[29,16],carousel:[50,11.5],ring:[71,16],balloon:[89,26],donut:[89,58],coaster:[69,74],duel:[50,47],fish:[30,45],claw:[70,45]},
+      decos:[["🌷",38,30],["🌼",62,30],["🌷",37,58],["🌼",63,58],["🌳",4,90],["🌲",15,90],["🎈",86,90],["🌳",96,90],["🦆",6,10]]},
+    port:{gate:[50,88],pos:{booth:[28,80],train:[12,60],bumper:[12,35],ferris:[26,15],carousel:[50,10],ring:[74,15],balloon:[88,35],donut:[88,60],coaster:[72,80],duel:[50,39],fish:[32,60],claw:[68,60]},
+      decos:[["🌷",38,28],["🌼",62,28],["🌷",33,45],["🌼",67,45],["🌳",6,93],["🎈",94,93],["🦆",7,9]]}
   };
   const spots={};document.querySelectorAll(".spot").forEach(a=>spots[a.dataset.k]=a);
   const set=(el,x,y)=>{el.style.left=x+"%";el.style.top=y+"%"};
@@ -217,9 +220,9 @@ h1 .star{font-size:.7em;text-shadow:none}
     const S=p=>[p[0]*1.6,p[1]];
     const loop=[L.gate,...ORDER.map(k=>L.pos[k])].map(S);
     const g=S(L.gate),t=S(L.pos.carousel);
-    const fp=L.pos.fish,lx=(L.pos.bumper[0]+L.pos.train[0])/2;
+    const fp=L.pos.fish,lx=(L.pos.bumper[0]+L.pos.train[0])/2,cp=L.pos.claw,rx=(L.pos.balloon[0]+L.pos.donut[0])/2;
     // 叉路：左邊主路 → 撈金魚 → 中間大道
-    const d=smooth(loop,true)+` M${g[0]} 104 L${g[0]} ${t[1]}`+` M${(lx*1.6).toFixed(1)} ${fp[1]} L${(fp[0]*1.6).toFixed(1)} ${fp[1]} L${g[0]} ${fp[1]}`;
+    const d=smooth(loop,true)+` M${g[0]} 104 L${g[0]} ${t[1]}`+` M${(lx*1.6).toFixed(1)} ${fp[1]} L${(fp[0]*1.6).toFixed(1)} ${fp[1]} L${g[0]} ${fp[1]}`+` M${(rx*1.6).toFixed(1)} ${cp[1]} L${(cp[0]*1.6).toFixed(1)} ${cp[1]} L${g[0]} ${cp[1]}`;
     ["roadEdge","road","roadDash"].forEach(id=>document.getElementById(id).setAttribute("d",d));
     document.getElementById("decos").innerHTML=L.decos.map(([e,x,y])=>`<span class="deco" style="left:${x}%;top:${y}%">${e}</span>`).join("");
   }
