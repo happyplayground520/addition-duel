@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>撈金魚</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
+<style>
+/* 單人計時遊戲：上方一個目標數字，水池裡的金魚身上寫算式，把所有等於目標的金魚撈進水桶，撈完一池換下一個數字 */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --ink:#1f2b33; --muted:#5d6b72; --good:#1f9d61; --bad:#d23c3c; --accent:#f07a2a; --accent-dark:#b4521a;
+  --num:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
+  --text:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{margin:0;height:100%}
+body{background:radial-gradient(circle,rgba(255,255,255,.35) 2px,transparent 2.5px) 0 0/34px 34px,linear-gradient(#c9f0ff,#e6f8ff 40%,#d9f2c9 40.1%,#c4eab0);
+  color:var(--ink);font-family:var(--text);overflow:hidden;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  display:flex;flex-direction:column}
+[hidden]{display:none!important}
+.top{display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:12px;
+  padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.ibtn{width:48px;height:48px;border-radius:14px;border:0;background:rgba(255,255,255,.9);font-size:24px;cursor:pointer;
+  display:grid;place-items:center;text-decoration:none;color:inherit;box-shadow:0 3px 0 rgba(0,0,0,.1)}
+.mid{justify-self:center;display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;min-width:0}
+.target{display:flex;align-items:center;gap:.35em;background:#fff;border-radius:22px;padding:2px 20px;box-shadow:0 4px 0 rgba(0,0,0,.08)}
+.target .lbl{font-size:clamp(17px,2.8vmin,25px);font-weight:800;white-space:nowrap}
+.target b{font-family:var(--num);font-weight:800;font-size:clamp(40px,8.5vmin,80px);line-height:1.05;color:var(--accent);
+  font-variant-numeric:tabular-nums;min-width:1.1em;text-align:center}
+.target b.bump{animation:bump .35s}
+@keyframes bump{40%{transform:scale(1.25)}}
+/* 水桶：還要撈幾條 */
+.bucket{display:flex;align-items:center;gap:6px;background:#fff;border-radius:999px;padding:4px 14px 4px 8px;box-shadow:0 4px 0 rgba(0,0,0,.08);
+  font-weight:800;font-size:clamp(16px,2.6vmin,22px);white-space:nowrap}
+.bucket .pail{font-size:clamp(30px,5vmin,44px);line-height:1}
+.bucket b{font-family:var(--num);font-size:1.4em;color:var(--accent);line-height:1}
+.bucket.bump{animation:bump .35s}
+.bucket.done b{color:var(--good)}
+.stats{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-family:var(--num);font-weight:800}
+.stats .sc{font-size:clamp(20px,3.6vmin,32px)}
+.stats .best{font-family:var(--text);font-size:13px;color:var(--muted);font-weight:700}
+.timebar{height:14px;margin:0 max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px));
+  background:rgba(255,255,255,.8);border-radius:999px;overflow:hidden;position:relative}
+.timebar i{position:absolute;inset:0;transform-origin:left;background:linear-gradient(90deg,#1f9d61,#f2c12e);border-radius:999px}
+.timebar.low i{background:var(--bad)}
+.timeTxt{text-align:center;font-family:var(--num);font-weight:800;font-size:clamp(16px,2.6vmin,22px);color:var(--muted);margin-top:2px}
+.field{position:relative;flex:1;min-height:0;padding:6px max(16px,env(safe-area-inset-right,0px)) max(14px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+/* 水池：木頭池邊、水波、荷葉 */
+.pond{position:relative;width:100%;height:100%;border-radius:clamp(30px,7vmin,70px);overflow:hidden;
+  background:radial-gradient(ellipse at 50% 35%,#a9e6ff,#5cc0ee 60%,#3a9fd8);
+  border:clamp(8px,1.6vmin,14px) solid #e0b77d;box-shadow:0 0 0 4px #c3925a,inset 0 8px 24px rgba(0,60,110,.25),0 10px 24px rgba(0,0,0,.12)}
+.pond::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background:radial-gradient(ellipse 60px 14px at 20% 30%,rgba(255,255,255,.55),transparent 70%),
+             radial-gradient(ellipse 80px 16px at 75% 65%,rgba(255,255,255,.45),transparent 70%),
+             radial-gradient(ellipse 50px 10px at 45% 85%,rgba(255,255,255,.4),transparent 70%);animation:shimmer 6s ease-in-out infinite alternate}
+@keyframes shimmer{to{transform:translateX(20px)}}
+.pad{position:absolute;font-size:clamp(28px,5vmin,48px);pointer-events:none;opacity:.9}
+.bub{position:absolute;bottom:-10px;width:10px;height:10px;border-radius:50%;border:2px solid rgba(255,255,255,.8);pointer-events:none;animation:bub 5s linear infinite}
+@keyframes bub{to{transform:translateY(-110vh) translateX(10px);opacity:0}}
+/* 金魚：身體、尾巴、眼睛、鰭；往左游時把身體翻過來，算式文字不翻 */
+.fish{position:absolute;left:0;top:0;width:var(--w);height:calc(var(--w)*.52);border:0;background:none;padding:0;cursor:pointer;
+  touch-action:manipulation;will-change:transform}
+.fish .shape{position:absolute;inset:0}
+.fish.l .shape{transform:scaleX(-1)}
+.fish .tl{position:absolute;left:0;top:12%;width:28%;height:76%;background:var(--c2);clip-path:polygon(0 0,100% 42%,100% 58%,0 100%,18% 50%);
+  animation:wag .5s ease-in-out infinite alternate;transform-origin:100% 50%}
+@keyframes wag{to{transform:scaleY(.8)}}
+.fish .fn{position:absolute;left:44%;top:-6%;width:22%;height:22%;background:var(--c2);border-radius:80% 20% 0 0}
+.fish .bd{position:absolute;left:20%;right:0;top:0;bottom:0;border-radius:55% 45% 45% 55%/50%;
+  background:radial-gradient(circle at 62% 30%,rgba(255,255,255,.55),transparent 45%),var(--c);box-shadow:inset 0 -5px 0 rgba(0,0,0,.12)}
+.fish .ey{position:absolute;right:12%;top:26%;width:11%;aspect-ratio:1;border-radius:50%;background:#1f2b33;box-shadow:0 0 0 3px #fff}
+.fish .tx{position:absolute;top:0;bottom:0;left:24%;right:14%;display:grid;place-items:center;font-family:var(--num);font-weight:800;
+  font-size:calc(var(--w)*.165);color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3);white-space:nowrap;line-height:1;pointer-events:none;
+  font-variant-numeric:tabular-nums}
+.fish.l .tx{left:14%;right:24%}
+.fish.wrong .shape{animation:shake .35s}
+.fish.wrong .tx{animation:shake .35s}
+@keyframes shake{25%{translate:-8px 0}75%{translate:8px 0}}
+.fish.caught{transition:transform .65s cubic-bezier(.5,-0.3,.7,1),opacity .65s;opacity:.2;pointer-events:none}
+.fish.gone{transition:opacity .4s;opacity:0;pointer-events:none}
+.float{position:absolute;font-family:var(--num);font-weight:800;font-size:28px;pointer-events:none;animation:up .8s forwards;z-index:3}
+.float.plus{color:#fff;text-shadow:0 2px 0 var(--good)} .float.minus{color:#fff;text-shadow:0 2px 0 var(--bad)}
+@keyframes up{to{transform:translateY(-50px);opacity:0}}
+.cheer{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;pointer-events:none;background:#fff;border-radius:24px;
+  padding:.3em .8em;font-size:clamp(26px,5vmin,44px);font-weight:900;color:var(--good);box-shadow:0 8px 24px rgba(0,0,0,.18);animation:pop .4s}
+@keyframes pop{from{transform:translate(-50%,-50%) scale(.5);opacity:0}}
+/* 開始／結束畫面 */
+.panel{position:fixed;inset:0;z-index:20;display:grid;place-items:start center;overflow-y:auto;-webkit-overflow-scrolling:touch;background:rgba(220,244,255,.85);
+  padding:max(12px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.panel>.box{margin:auto 0}
+.box{background:#fff;border-radius:24px;padding:clamp(18px,4vmin,32px);width:min(500px,100%);box-shadow:0 12px 40px rgba(0,0,0,.18);
+  display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center}
+.box h2{margin:0;font-size:clamp(24px,4.6vmin,38px);text-wrap:balance}
+.box p{margin:0;color:var(--muted);font-size:clamp(15px,2.5vmin,19px);line-height:1.5}
+.row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.lbl2{font-size:14px;font-weight:700;color:var(--muted);margin-top:4px}
+.chk{display:flex;align-items:center;gap:8px;font-size:18px;font-weight:700;border:2px solid #cfd8dc;border-radius:14px;padding:9px 16px;cursor:pointer}
+.opt{font:inherit;font-size:17px;font-weight:700;border:2px solid #cfd8dc;background:#fff;border-radius:14px;padding:9px 16px;cursor:pointer;color:inherit}
+.opt small{display:block;font-size:12px;font-weight:600;opacity:.75}
+.opt[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:#fff}
+.big{font-family:var(--text);font-weight:800;font-size:clamp(20px,4vmin,30px);border:0;border-radius:999px;padding:.5em 1.6em;
+  background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 5px 0 var(--accent-dark);text-decoration:none;display:inline-block}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 var(--accent-dark)}
+.big.alt{background:#fff;color:var(--ink);box-shadow:0 5px 0 #cfd8dc;border:2px solid #cfd8dc}
+#start .box>.big{position:sticky;bottom:0;z-index:1}
+.result{font-family:var(--num);font-weight:800;font-size:clamp(56px,13vmin,110px);line-height:1;color:var(--accent)}
+.result small{font-family:var(--text);font-size:.3em;color:var(--muted)}
+.newrec{font-weight:800;color:#fff;background:var(--good);border-radius:999px;padding:4px 16px;font-size:18px}
+.note{font-size:13px;color:var(--muted)}
+.count{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--num);font-weight:800;font-size:clamp(90px,24vmin,200px);
+  color:#fff;text-shadow:0 6px 0 var(--accent-dark);pointer-events:none;z-index:4}
+@media (max-height:560px){
+  .panel>.box{gap:8px;padding:14px 18px}
+  .panel>.box h2{font-size:24px}
+  #start .box>p{display:none}
+  .target b{font-size:40px}
+}
+/* 直放時上方擠：目標和水桶各一行 */
+@media (orientation:portrait){.top{grid-template-columns:auto 1fr auto auto}.mid{flex-direction:column;gap:6px}}
+@media (prefers-reduced-motion:reduce){.pond::before,.bub,.fish .tl{animation:none}}
+</style>
+<script src="zhuyin.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="park.css">
+<script src="park.js"></script>
+</head>
+<body>
+<header class="top">
+  <a class="ibtn" href="./" aria-label="回遊樂園地圖">🏠</a>
+  <div class="mid">
+    <div class="target" data-zy><span class="lbl">🎣 撈出所有等於</span><b id="target">?</b><span class="lbl">的金魚</span></div>
+    <div class="bucket" id="bucket" data-zy><span class="pail" aria-hidden="true">🪣</span><span>還有</span><b id="left">?</b><span>條</span></div>
+  </div>
+  <div class="stats"><span class="sc" id="score">⭐ 0</span><span class="best" id="bestTop"></span></div>
+  <button type="button" class="ibtn" id="again" aria-label="再念一次題目">🔊</button>
+</header>
+<div class="timebar" id="timebar"><i id="timefill"></i></div>
+<div class="timeTxt" id="timeTxt"></div>
+<main class="field" id="field">
+  <div class="pond" id="pond">
+    <span class="pad" style="left:2%;top:4%">🪷</span><span class="pad" style="right:3%;bottom:4%">🪷</span>
+    <span class="bub" style="left:15%;animation-delay:-1s"></span><span class="bub" style="left:48%;animation-delay:-3s"></span>
+    <span class="bub" style="left:82%;animation-delay:-2s"></span>
+  </div>
+  <div class="count" id="count" hidden></div>
+
+  <section class="panel" id="start">
+    <div class="box">
+      <h2>🎣 撈金魚</h2>
+      <p>水池裡的金魚身上都有算式。<br>把答案等於上面數字的金魚，全部撈進水桶！</p>
+      <span class="lbl2">難度</span>
+      <div class="row" id="levels">
+        <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small>10 以內</small></button>
+        <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small>20 以內</small></button>
+        <button type="button" class="opt" data-lv="3" aria-label="高級"><span class="lvst">⭐⭐⭐</span><small>100 以內</small></button>
+      </div>
+      <span class="lbl2">運算</span>
+      <div class="row">
+        <label class="chk sym" aria-label="加法"><input type="checkbox" id="opAdd" checked><span>＋</span></label>
+        <label class="chk sym" aria-label="減法"><input type="checkbox" id="opSub"><span>−</span></label>
+      </div>
+      <span class="lbl2">時間</span>
+      <div class="row" id="times">
+        <button type="button" class="opt" data-t="30">30 秒</button>
+        <button type="button" class="opt" data-t="60">60 秒</button>
+        <button type="button" class="opt" data-t="90">90 秒</button>
+      </div>
+      <span class="note" id="bestStart"></span>
+      <button type="button" class="big" id="go" aria-label="開始">READY</button>
+      <span class="note" id="note"></span>
+    </div>
+  </section>
+
+  <section class="panel" id="end" hidden>
+    <div class="box">
+      <h2>⏰ 時間到！</h2>
+      <div class="result" id="result">0<small> 條</small></div>
+      <span class="newrec" id="newrec" hidden>🏆 新紀錄！</span>
+      <p id="endText"></p>
+      <div class="row">
+        <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+        <button type="button" class="big alt" id="change">換設定</button>
+        <a class="big alt ico-btn" href="./" aria-label="回遊樂園">🏠</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
+  const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+  // 目標數字的範圍：初級是 10 的合成分解
+  const LV={1:{max:10,lo:4,name:"初級"},2:{max:20,lo:8,name:"進階"},3:{max:100,lo:20,name:"高級"}};
+  const S={lv:+pref("park-level")||1,time:+pref("fish-time")||60,ops:{add:true,sub:false},phase:"start",
+    target:0,need:0,score:0,miss:0,left:0,endAt:0,lastSec:-1};
+  if(!LV[S.lv])S.lv=1;if(![30,60,90].includes(S.time))S.time=60;
+  try{const o=JSON.parse(pref("duel-ops")||"null");if(o&&(o.add||o.sub))S.ops={add:!!o.add,sub:!!o.sub}}catch(e){}
+  $("opAdd").checked=S.ops.add;$("opSub").checked=S.ops.sub;
+
+  const bestKey=()=>`fish-best-${S.lv}-${S.ops.add?"a":""}${S.ops.sub?"s":""}-${S.time}`;
+  const getBest=()=>+pref(bestKey())||0;
+  const opName=()=>S.ops.add&&S.ops.sub?"加減混合":S.ops.sub?"減法":"加法";
+  function syncSetup(){
+    document.querySelectorAll("#levels button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
+    document.querySelectorAll("#times button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.t===S.time));
+    const best=getBest(),label=`${LV[S.lv].name}・${opName()}・${S.time} 秒`;
+    $("bestStart").textContent=best?`🏆 最佳成績（${label}）：${best} 條`:`（${label}）還沒有紀錄，來挑戰吧！`;
+    $("bestTop").textContent=`最佳 ${best}`;
+  }
+  document.querySelectorAll("#levels button").forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("park-level",S.lv);syncSetup()}));
+  document.querySelectorAll("#times button").forEach(b=>b.addEventListener("click",()=>{S.time=+b.dataset.t;pref("fish-time",S.time);syncSetup()}));
+  [["opAdd","add"],["opSub","sub"]].forEach(([id,k])=>$(id).addEventListener("change",e=>{
+    const next={...S.ops,[k]:e.target.checked};
+    if(!next.add&&!next.sub){e.target.checked=true;$("note").textContent="至少要選一種運算。";return}
+    $("note").textContent="";S.ops=next;pref("duel-ops",JSON.stringify(S.ops));syncSetup();
+  }));
+  syncSetup();
+
+  // ---- 語音 ----
+  const synth=window.speechSynthesis;let voice=null;
+  const rate=+(pref("duel-rate")||.9)||.9;
+  const quality=v=>{const u=v.voiceURI||"";return /eloquence|speech\.synthesis\.voice/i.test(u)?0:/\.premium\./i.test(u)?3:/enhanced|-premium/i.test(u)?2:1};
+  function pickVoice(){
+    if(!synth)return;
+    const vs=synth.getVoices().filter(v=>/^(zh|cmn)/i.test(v.lang));
+    const want=pref("duel-voice");
+    const tw=vs.filter(v=>/TW|Hant/i.test(v.lang)&&quality(v)>0).sort((a,b)=>quality(b)-quality(a));
+    voice=(want&&vs.find(v=>(v.voiceURI||v.name)===want))||tw[0]||vs.find(v=>quality(v)>0)||vs[0]||null;
+  }
+  if(synth){pickVoice();try{synth.addEventListener("voiceschanged",pickVoice)}catch(e){}}
+  function say(text){
+    if(!synth)return;
+    try{
+      const u=new SpeechSynthesisUtterance(text);
+      u.lang=voice?voice.lang.replace("_","-"):"zh-TW";if(voice)u.voice=voice;u.rate=rate;u.pitch=1.1;
+      if(synth.speaking||synth.pending){synth.cancel();setTimeout(()=>{try{synth.speak(u)}catch(e){}},90)}else synth.speak(u);
+    }catch(e){}
+  }
+  const ask=()=>`撈出所有等於${S.target}的金魚`;
+  // ---- 音效 ----
+  let ac=null;
+  function tone(fs,dur=.12,type="triangle",vol=.15){
+    try{
+      ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume();
+      fs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*dur;
+        o.type=type;o.frequency.value=f;g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);
+        o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)});
+    }catch(e){}
+  }
+  const sfx={good:()=>tone([784,1175],.14,"sine",.3),bad:()=>tone([150],.3,"square",.16),tick:()=>tone([600],.08),go:()=>tone([900],.25),
+    splash:()=>tone([400,300,500],.05,"sine",.12),clear:()=>tone([523,659,784,1047],.12,"sine",.2),end:()=>tone([784,659,523,784,1047],.14)};
+  $("again").addEventListener("click",()=>{if(S.target)say(ask())});
+  {const _g=sfx.good;sfx.good=(...a)=>{try{window.parkBurst&&parkBurst()}catch(err){}return _g(...a)}}
+  function unlock(){
+    try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
+    try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}
+  }
+
+  // ---- 出題：一個目標數字，列出所有不重複的算式 ----
+  const max=()=>LV[S.lv].max;
+  function exprsFor(r){
+    const out=[];
+    if(S.ops.add&&r>=2&&r<=max())for(let a=1;a<r;a++)out.push({text:`${a} + ${r-a}`,val:r});
+    if(S.ops.sub&&r>=1&&r<max())for(let a=r+1;a<=max();a++)out.push({text:`${a} − ${a-r}`,val:r});
+    return out;
+  }
+  function newTarget(){
+    let t,tries=0;
+    do{t=rnd(Math.min(LV[S.lv].lo,max()-1),max())}while((t===S.target||exprsFor(t).length<3)&&++tries<60);
+    return t;
+  }
+  // 干擾的金魚：答案接近目標但不相等
+  function decoys(n){
+    const spread=S.lv===3?10:S.lv===2?4:3,seen=new Set(),out=[];
+    for(let i=0;i<200&&out.length<n;i++){
+      const r=S.target+(Math.random()<.5?-1:1)*rnd(1,spread);
+      if(r<1)continue;
+      const list=exprsFor(r);if(!list.length)continue;
+      const e=list[rnd(0,list.length-1)];
+      if(seen.has(e.text))continue;seen.add(e.text);out.push(e);
+    }
+    return out;
+  }
+
+  // ---- 水池：金魚一排一排游，同一排速度方向一樣，不會互相重疊；游出去會從另一邊游回來 ----
+  const pond=$("pond"),COLORS=[["#ff8a3d","#ff6a1a"],["#f05a4f","#d63c32"],["#f5b82e","#e39a10"],["#ff7aa8","#f0558a"],["#ff9f68","#ffd2b0"]];
+  let fish=[],rows=[],raf=0,lastT=0,clock=0,roundBusy=false;
+  function layout(){
+    const W=pond.clientWidth,H=pond.clientHeight;
+    const nRows=Math.max(2,Math.min(5,Math.floor(H/125)));
+    const fw=Math.max(100,Math.min(185,W/4.4,(H/nRows)/0.52*0.66));
+    const perRow=Math.max(2,Math.min(4,Math.floor(W/(fw*1.45))));
+    return{W,H,nRows,fw,perRow};
+  }
+  function newRound(){
+    roundBusy=false;
+    fish.forEach(f=>f.el.remove());fish=[];
+    const L=layout();
+    S.target=newTarget();
+    const total=L.nRows*L.perRow;
+    const goods=shuffle(exprsFor(S.target)).slice(0,Math.min(total-2,rnd(3,5)));
+    const all=shuffle([...goods,...decoys(total-goods.length)]);
+    rows=[];
+    for(let r=0;r<L.nRows;r++){
+      const dir=r%2?-1:1,loop=Math.max(L.W+L.fw*1.3,L.perRow*L.fw*1.5);
+      rows.push({y:(r+.5)*L.H/L.nRows-L.fw*.26,dir,loop,speed:(S.lv===1?28:S.lv===2?36:44)*(0.85+Math.random()*.3),phase:Math.random()*loop});
+    }
+    all.forEach((e,i)=>{
+      const r=i%L.nRows,slot=Math.floor(i/L.nRows),row=rows[r];
+      const el=document.createElement("button");el.type="button";el.className="fish"+(row.dir<0?" l":"");
+      const [c,c2]=COLORS[rnd(0,COLORS.length-1)];
+      el.style.setProperty("--w",L.fw+"px");el.style.setProperty("--c",c);el.style.setProperty("--c2",c2);
+      el.innerHTML=`<span class="shape"><i class="tl"></i><i class="fn"></i><i class="bd"></i><i class="ey"></i></span><span class="tx">${e.text}</span>`;
+      el.setAttribute("aria-label",e.text);
+      const f={el,val:e.val,row,off:slot*row.loop/L.perRow,bob:Math.random()*6,done:false,fw:L.fw};
+      el.addEventListener("pointerdown",ev=>{ev.preventDefault();hit(f)});
+      el.addEventListener("keydown",ev=>{if(ev.key==="Enter"||ev.key===" ")hit(f)});
+      pond.appendChild(el);fish.push(f);
+    });
+    S.need=goods.length;
+    const b=$("target");b.textContent=S.target;b.classList.remove("bump");void b.offsetWidth;b.classList.add("bump");
+    $("left").textContent=S.need;$("bucket").classList.remove("done");
+    place();say(ask());
+  }
+  function place(){
+    fish.forEach(f=>{
+      if(f.done)return;
+      const r=f.row,p=((r.phase+f.off+r.dir*r.speed*clock)%r.loop+r.loop)%r.loop;
+      f.x=p-f.fw*1.15;f.y=r.y+Math.sin(clock*1.6+f.bob)*6;
+      f.el.style.transform=`translate(${f.x}px,${f.y}px)`;
+    });
+  }
+  function tick(now){
+    const dt=Math.min(.05,(now-lastT)/1000);lastT=now;
+    if(S.phase!=="play")return;
+    clock+=dt;place();
+    S.left=Math.max(0,(S.endAt-now)/1000);
+    $("timefill").style.transform=`scaleX(${S.left/S.time})`;
+    $("timebar").classList.toggle("low",S.left<=10);
+    const sec=Math.ceil(S.left);
+    if(sec!==S.lastSec){S.lastSec=sec;$("timeTxt").textContent=`剩下 ${sec} 秒`;if(sec<=5&&sec>0)sfx.tick()}
+    if(S.left<=0)return finish();
+    raf=requestAnimationFrame(tick);
+  }
+  function floatTxt(x,y,txt,cls){
+    const f=document.createElement("span");f.className="float "+cls;f.textContent=txt;
+    f.style.left=x+"px";f.style.top=y+"px";pond.appendChild(f);setTimeout(()=>f.remove(),800);
+  }
+  function hit(f){
+    if(S.phase!=="play"||f.done||roundBusy)return;
+    if(f.val===S.target){
+      f.done=true;S.score++;S.need--;sfx.good();setTimeout(sfx.splash,120);
+      floatTxt(f.x+f.fw*.45,f.y-10,"+1","plus");
+      // 金魚跳進上面的水桶
+      const pr=pond.getBoundingClientRect(),br=$("bucket").querySelector(".pail").getBoundingClientRect();
+      f.el.classList.add("caught");
+      f.el.style.transform=`translate(${br.left-pr.left-f.fw*.3}px,${br.top-pr.top-f.fw*.2}px) scale(.25)`;
+      setTimeout(()=>f.el.remove(),700);
+      $("score").textContent=`⭐ ${S.score}`;
+      $("left").textContent=S.need;const bk=$("bucket");bk.classList.remove("bump");void bk.offsetWidth;bk.classList.add("bump");
+      if(S.need<=0){
+        roundBusy=true;bk.classList.add("done");sfx.clear();
+        const ch=document.createElement("div");ch.className="cheer";ch.textContent="🎉 全部撈到了！";$("field").appendChild(ch);
+        say("全部撈到了！");
+        fish.forEach(o=>{if(!o.done){o.done=true;o.el.classList.add("gone")}});
+        setTimeout(()=>{ch.remove();if(S.phase==="play")newRound()},1500);
+      }
+    }else{
+      S.miss++;sfx.bad();f.el.classList.remove("wrong");void f.el.offsetWidth;f.el.classList.add("wrong");
+      S.endAt-=2000;floatTxt(f.x+f.fw*.4,f.y-10,"−2 秒","minus");
+    }
+  }
+  function clearPond(){fish.forEach(f=>f.el.remove());fish=[];pond.querySelectorAll(".float").forEach(f=>f.remove());document.querySelectorAll(".cheer").forEach(c=>c.remove())}
+
+  // ---- 流程 ----
+  function start(){
+    unlock();
+    $("start").hidden=true;$("end").hidden=true;clearPond();
+    S.score=0;S.miss=0;S.target=0;S.lastSec=-1;clock=0;$("score").textContent="⭐ 0";$("target").textContent="?";$("left").textContent="?";
+    $("timefill").style.transform="scaleX(1)";$("timebar").classList.remove("low");$("timeTxt").textContent=`${S.time} 秒`;
+    S.phase="count";const cnt=$("count");let n=3;cnt.hidden=false;cnt.textContent=n;sfx.tick();
+    const iv=setInterval(()=>{
+      n--;
+      if(n>0){cnt.textContent=n;sfx.tick();return}
+      clearInterval(iv);cnt.hidden=true;sfx.go();
+      S.phase="play";S.endAt=performance.now()+S.time*1000;lastT=performance.now();
+      newRound();
+      cancelAnimationFrame(raf);raf=requestAnimationFrame(tick);
+    },800);
+    try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}
+  }
+  function finish(){
+    S.phase="end";cancelAnimationFrame(raf);clearPond();sfx.end();
+    $("timefill").style.transform="scaleX(0)";$("timeTxt").textContent="時間到";
+    const best=getBest(),rec=S.score>best;
+    if(rec)pref(bestKey(),S.score);
+    $("result").innerHTML=`${S.score}<small> 條</small>`;
+    $("newrec").hidden=!rec||S.score===0;
+    $("endText").textContent=`${LV[S.lv].name}・${opName()}・${S.time} 秒　最佳成績：${Math.max(best,S.score)} 條`+(S.miss?`（撈錯 ${S.miss} 次）`:"");
+    $("end").hidden=false;syncSetup();
+    say(rec&&S.score?`新紀錄！撈到 ${S.score} 條金魚`:`時間到！撈到 ${S.score} 條金魚`);
+  }
+  // 轉向或改變大小時，重新排這一池（題目不變）
+  let rt=0;addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(()=>{
+    if(S.phase!=="play"||roundBusy)return;
+    const L=layout();rows.forEach((r,i)=>{r.y=(i+.5)*L.H/L.nRows-L.fw*.26;r.loop=Math.max(L.W+L.fw*1.3,L.perRow*L.fw*1.5)});
+    fish.forEach(f=>{f.fw=L.fw;f.el.style.setProperty("--w",L.fw+"px")});
+  },200)});
+  $("go").addEventListener("click",start);
+  $("replay").addEventListener("click",start);
+  $("change").addEventListener("click",()=>{$("end").hidden=true;$("start").hidden=false;S.phase="start"});
+})();
+</script>
+</body>
+</html>
