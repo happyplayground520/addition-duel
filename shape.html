@@ -239,7 +239,7 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   // ---- 畫面 ----
   const ui=[...document.querySelectorAll(".side")].sort((a,b)=>a.dataset.p-b.dataset.p).map((el,p)=>{
     el.innerHTML=`
-      <div class="head">${p===0?'<a class="home" href="./" aria-label="回遊樂園地圖">🏠</a>':""}<span class="name">${NAMES[p]}</span><span class="lvtag"></span><span class="msg" data-zy></span>
+      <div class="head"><a class="home" href="./" aria-label="回遊樂園地圖">🏠</a><span class="name">${NAMES[p]}</span><span class="lvtag"></span><span class="msg" data-zy></span>
         <button type="button" class="spk" aria-label="念我的題目">🔊</button></div>
       <div class="ask" data-zy></div>
       <div class="choices"></div>

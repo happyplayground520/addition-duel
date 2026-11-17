@@ -141,7 +141,7 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   // ---- 玩家區 ----
   const ui=[...document.querySelectorAll(".side")].sort((a,b)=>a.dataset.p-b.dataset.p).map((el,p)=>{
     el.innerHTML=`
-      <div class="head">${p===0?'<a class="home" href="./" aria-label="回遊樂園地圖">🏠</a>':""}<span class="name">${NAMES[p]}</span>
+      <div class="head"><a class="home" href="./" aria-label="回遊樂園地圖">🏠</a><span class="name">${NAMES[p]}</span>
         <span class="msg" data-zy></span><span class="pairs" aria-label="拿到的對數"><span class="mini"></span><b>0</b></span>
         <button type="button" class="spk" aria-label="再念一次">🔊</button></div>
       <div class="overlay">
