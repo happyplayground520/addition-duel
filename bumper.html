@@ -50,6 +50,9 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   background:color-mix(in srgb,#eef3f1 92%,transparent);padding:12px;text-align:center;z-index:3}
 .overlay h2{margin:0;font-size:clamp(24px,5vmin,48px);color:var(--c)}
 .overlay .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.homeb{display:grid;place-items:center;min-width:64px;font-size:30px;line-height:1;padding:8px 14px;border:2px solid #cfd8dc;background:#fff;
+  border-radius:14px;text-decoration:none;box-shadow:0 4px 0 rgba(0,0,0,.08)}
+.endrow{align-items:center;gap:12px!important}
 /* 平板橫放時玩家區比較矮：標題一行，難度、念題目、準備好了排成同一行，不會蓋到中間 */
 @media (orientation:landscape){
   .overlay{flex-direction:row;flex-wrap:wrap;align-content:center;column-gap:clamp(10px,2vmin,20px);row-gap:clamp(6px,1.2vmin,10px);overflow-y:auto}
@@ -177,7 +180,7 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
         <div class="row lvs">${[1,2,3].map(l=>`<button type="button" class="opt" data-lv="${l}" aria-label="${LV[l].name}"><span class="lvst">${STAR[l]}</span><small>${LV[l].sub}</small></button>`).join("")}</div>
         <div class="row"><button type="button" class="opt vbtn"></button></div>
         <div class="big" hidden></div>
-        <button type="button" class="ready">READY</button>
+        <div class="row endrow"><button type="button" class="ready">READY</button><a class="homeb" href="./" aria-label="回遊樂園">🏠</a></div>
       </div>`;
     const u={el,msg:el.querySelector(".msg"),q:el.querySelector(".q"),lvtag:el.querySelector(".lvtag"),spk:el.querySelector(".spk"),
       chs:[...el.querySelectorAll(".ch")],ov:el.querySelector(".overlay"),h2:el.querySelector(".overlay h2"),big:el.querySelector(".overlay .big"),
