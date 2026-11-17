@@ -68,11 +68,19 @@ h1 .star{font-size:.7em;text-shadow:none}
 .pond{fill:#8fd3f4;stroke:#fff;stroke-width:3px;vector-effect:non-scaling-stroke}
 .deco{position:absolute;transform:translate(-50%,-50%);pointer-events:none;line-height:1}
 /* 頂端的彩色小旗子 */
+.plaza{position:absolute;top:3%;bottom:3%;right:1.5%;border-radius:clamp(16px,3cqw,34px);pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent 0 22px,rgba(255,255,255,.35) 22px 24px),
+             repeating-linear-gradient(90deg,transparent 0 44px,rgba(255,255,255,.35) 44px 46px),linear-gradient(#f6c7a4,#efb48d);
+  box-shadow:inset 0 0 0 4px rgba(255,255,255,.7),0 4px 0 rgba(0,0,0,.08)}
+.zsign{position:absolute;top:1.6%;transform:translateX(-50%);z-index:4;white-space:nowrap;pointer-events:none;
+  font-weight:900;font-size:clamp(13px,1.9cqw,24px);padding:.15em .9em;border-radius:999px;border:3px solid #fff;box-shadow:0 3px 0 rgba(0,0,0,.12)}
+.zsign.solo{background:#7cc35a;color:#fff}
+.zsign.duo{background:#e0602b;color:#fff}
 .bunting{position:absolute;left:0;right:0;top:0;height:7%;display:flex;justify-content:space-around;pointer-events:none;z-index:1}
 .bunting::before{content:"";position:absolute;left:-2%;right:-2%;top:18%;height:2px;background:#fff;opacity:.9}
 .bunting i{width:3.2%;height:100%;clip-path:polygon(0 18%,100% 18%,50% 100%)}
 /* 入口拱門 */
-.gate{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:20%;height:9%;pointer-events:none;z-index:2;
+.gate{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:10%;height:8%;pointer-events:none;z-index:2;
   display:flex;justify-content:space-between;align-items:flex-start}
 .gate::before,.gate::after{content:"";width:9%;height:100%;border-radius:6px 6px 0 0;background:repeating-linear-gradient(#e8434f 0 8px,#fff 8px 16px)}
 .gate b{position:absolute;left:-6%;right:-6%;top:-38%;display:flex;align-items:center;justify-content:center;gap:.2em;padding:.1em 0;border-radius:999px;
@@ -102,10 +110,10 @@ h1 .star{font-size:.7em;text-shadow:none}
 /* 設施大小跟著地圖寬度縮放 */
 @supports (container-type:inline-size){
   .map{container-type:inline-size}
-  .spot .icon{width:clamp(44px,10.5cqw,150px);font-size:clamp(24px,6.2cqw,90px);border-width:clamp(3px,.5cqw,6px)}
-  .spot.big .icon{width:clamp(52px,13cqw,180px);font-size:clamp(30px,8cqw,110px)}
-  .spot .name{font-size:clamp(13px,2.5cqw,32px);padding:0 clamp(6px,1.1cqw,14px)}
-  .spot .tag{font-size:clamp(11px,1.65cqw,20px);padding:0 clamp(5px,.9cqw,11px)}
+  .spot .icon{width:clamp(44px,9.4cqw,140px);font-size:clamp(24px,5.6cqw,84px);border-width:clamp(3px,.5cqw,6px)}
+  .spot.big .icon{width:clamp(52px,12cqw,170px);font-size:clamp(30px,7.4cqw,104px)}
+  .spot .name{font-size:clamp(13px,2.25cqw,30px);padding:0 clamp(6px,1cqw,13px)}
+  .spot .tag{font-size:clamp(11px,1.5cqw,19px);padding:0 clamp(5px,.8cqw,10px)}
   .deco{font-size:clamp(14px,3.2cqw,40px)}
   .road-edge{stroke-width:max(18px,5.4cqw)} .road{stroke-width:max(14px,4.4cqw)}
 }
@@ -113,11 +121,12 @@ h1 .star{font-size:.7em;text-shadow:none}
 @media (orientation:portrait){
   .map{aspect-ratio:4/5;width:min(100%,calc((100dvh - 130px) * .8))}
   @supports (container-type:inline-size){
-    .spot .icon{width:clamp(44px,13.5cqw,150px);font-size:clamp(24px,8cqw,90px)}
-    .spot.big .icon{width:clamp(52px,17cqw,180px);font-size:clamp(30px,10.5cqw,110px)}
-    .spot .name{font-size:clamp(13px,3.3cqw,32px)} .spot .tag{font-size:clamp(11px,2.2cqw,20px)}
+    .spot .icon{width:clamp(44px,11.5cqw,140px);font-size:clamp(24px,7cqw,84px)}
+    .spot.big .icon{width:clamp(52px,14.5cqw,170px);font-size:clamp(30px,9cqw,104px)}
+    .spot .name{font-size:clamp(13px,2.8cqw,30px)} .spot .tag{font-size:clamp(11px,1.9cqw,19px)}
     .road-edge{stroke-width:max(18px,6.6cqw)} .road{stroke-width:max(14px,5.4cqw)}
-    .gate{width:26%;height:7%} .gate b{font-size:clamp(12px,2.6cqw,24px)}
+    .gate{width:13%;height:6%} .gate b{font-size:clamp(12px,2.4cqw,24px)}
+    .zsign{font-size:clamp(13px,2.4cqw,26px)}
   }
 }
 /* 手機橫放：標題縮小，讓地圖大一點 */
@@ -141,7 +150,10 @@ h1 .star{font-size:.7em;text-shadow:none}
   <svg viewBox="0 0 160 100" preserveAspectRatio="none" aria-hidden="true">
     <path class="road-edge" id="roadEdge"/><path class="road" id="road"/><path class="road-dash" id="roadDash"/>
   </svg>
+  <div class="plaza" id="plaza" aria-hidden="true"></div>
   <div class="bunting" aria-hidden="true"></div>
+  <span class="zsign solo" id="signSolo" data-zy>👤 一個人玩</span>
+  <span class="zsign duo" id="signDuo" data-zy>👥 兩個人對戰</span>
   <div class="gate" aria-hidden="true"><b data-zy>🎉 入口</b></div>
   <div id="decos" aria-hidden="true"></div>
 
@@ -194,24 +206,33 @@ h1 .star{font-size:.7em;text-shadow:none}
 <script>
 (()=>{
   // ---- 位置（百分比：x 是寬度 %、y 是高度 %）----
-  // 設施排成整齊的幾排；外圈一條環狀步道，中間再用橫的、直的步道串起來，每個設施都在路上；入口在下方中間
+  // 左邊「一個人玩」草地區 3×3；右邊「兩個人對戰」磚紅色廣場，馬戲團在正中間；中間一條大街，入口在下方
   const map=document.querySelector(".map");
+  function mkLayout(c,dc,dmid,street,rows,plazaLeft){
+    const [r1,r2,r3]=rows;
+    const pos={balloon:[c[0],r1],coaster:[c[1],r1],fish:[c[2],r1],
+               ferris:[c[0],r2],donut:[c[1],r2],ring:[c[2],r2],
+               carousel:[c[0],r3],claw:[c[1],r3],booth:[c[2],r3],
+               train:[dc[0],r1],bumper:[dc[1],r1],duel:[dmid,r2],memory:[dc[0],r3],shape:[dc[1],r3]};
+    const lines=[];
+    rows.forEach(y=>lines.push([[c[0],y],[dc[1],y]]));             // 三條橫的路
+    [...c,...dc].forEach(x=>lines.push([[x,r1],[x,r3]]));           // 每一欄一條直的路
+    lines.push([[street,104],[street,r1]]);                          // 中間大街（入口往上）
+    return{pos,lines,plaza:{left:plazaLeft+"%",top:"3%",right:"1.5%",bottom:"3%"},gate:street,signs:[[(c[0]+c[2])/2,1.6],[(dc[0]+dc[1])/2,1.6]]};
+  }
   const LAYOUT={
-    land:{gate:[50,90],
-      pos:{train:[12,14],ferris:[31,14],carousel:[50,14],ring:[69,14],balloon:[88,14],
-           bumper:[12,46],fish:[31,46],duel:[50,46],claw:[69,46],donut:[88,46],
-           memory:[14,76],booth:[32,76],coaster:[68,76],shape:[86,76]},
-      loop:[[12,14],[31,14],[50,14],[69,14],[88,14],[88,46],[86,76],[68,76],[50,84],[32,76],[14,76],[12,46]],
-      lines:[[[12,46],[88,46]],[[50,104],[50,14]]],
-      decos:[["🌳",3,62],["🌲",97,62],["🌷",3,30],["🌼",97,30],["🎈",96,94],["🌳",4,94]]},
-    port:{gate:[50,94],
-      pos:{ferris:[13,11],carousel:[37,11],ring:[63,11],balloon:[87,11],
-           train:[13,34],duel:[50,34],donut:[87,34],
-           bumper:[13,57],fish:[37,57],claw:[63,57],coaster:[87,57],
-           memory:[13,80],booth:[50,80],shape:[87,80]},
-      loop:[[13,11],[37,11],[63,11],[87,11],[87,34],[87,57],[87,80],[50,80],[13,80],[13,57],[13,34]],
-      lines:[[[13,34],[87,34]],[[13,57],[87,57]],[[50,104],[50,11]]],
-      decos:[["🌷",31,45],["🌼",69,45],["🌳",31,69],["🌲",69,69],["🎈",95,96],["🌳",5,96]]}
+    land:Object.assign(mkLayout([9.5,26.5,43.5],[69.5,89.5],79.5,55,[19,50,81],60),
+      {decos:[["🌷",18,35],["🌼",35,35],["🌳",18,66],["🌲",35,66],["🎈",97,95],["🌳",3,95]]}),
+    // 直放：上半部草地（一個人玩 3×3），下半部對戰廣場（小火車、馬戲團、碰碰車／翻牌湊十、形狀搶答）
+    port:{
+      pos:{balloon:[17,13],coaster:[50,13],fish:[83,13],
+           ferris:[17,29.5],donut:[50,29.5],ring:[83,29.5],
+           carousel:[17,45.5],claw:[50,45.5],booth:[83,45.5],
+           train:[17,71],duel:[50,71],bumper:[83,71],memory:[30,89],shape:[70,89]},
+      lines:[[[17,13],[83,13]],[[17,29.5],[83,29.5]],[[17,45.5],[83,45.5]],[[17,71],[83,71]],[[30,89],[70,89]],
+             [[17,13],[17,71]],[[83,13],[83,71]],[[50,104],[50,13]]],
+      plaza:{left:"1.5%",right:"1.5%",top:"56%",bottom:"1.5%"},gate:50,signs:[[50,1.2],[50,56.6]],
+      decos:[["🌷",33,20],["🌼",67,20],["🌳",33,37],["🌲",67,37],["🎈",95,97],["🌳",5,97]]}
   };
   const spots={};document.querySelectorAll(".spot").forEach(a=>spots[a.dataset.k]=a);
   const set=(el,x,y)=>{el.style.left=x+"%";el.style.top=y+"%"};
@@ -229,11 +250,12 @@ h1 .star{font-size:.7em;text-shadow:none}
   function layout(){
     const L=matchMedia("(orientation:portrait)").matches?LAYOUT.port:LAYOUT.land;
     Object.entries(L.pos).forEach(([k,[x,y]])=>set(spots[k],x,y));
-    const S=p=>[p[0]*1.6,p[1]];
-    let d=smooth(L.loop.map(S),true);
+    const S=p=>[p[0]*1.6,p[1]];let d="";
     L.lines.forEach(([a,b])=>{const A=S(a),B=S(b);d+=` M${A[0].toFixed(1)} ${A[1]} L${B[0].toFixed(1)} ${B[1]}`});
-    ["roadEdge","road","roadDash"].forEach(id=>document.getElementById(id).setAttribute("d",d));
-    const g=document.querySelector(".gate");g.style.top="";g.style.bottom="0";
+    ["roadEdge","road","roadDash"].forEach(id=>document.getElementById(id).setAttribute("d",d.trim()));
+    Object.assign(document.getElementById("plaza").style,L.plaza);
+    [["signSolo",L.signs[0]],["signDuo",L.signs[1]]].forEach(([id,[x,y]])=>{const e=document.getElementById(id);e.style.left=x+"%";e.style.top=y+"%"});
+    const g=document.querySelector(".gate");g.style.left=L.gate+"%";
     document.getElementById("decos").innerHTML=L.decos.map(([e,x,y])=>`<span class="deco" style="left:${x}%;top:${y}%">${e}</span>`).join("");
   }
   layout();
