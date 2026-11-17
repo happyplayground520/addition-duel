@@ -67,6 +67,9 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   background:color-mix(in srgb,#eef3f1 92%,transparent);padding:12px;text-align:center;z-index:3}
 .overlay h2{margin:0;font-size:clamp(24px,5vmin,48px);color:var(--c)}
 .overlay .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.homeb{display:grid;place-items:center;min-width:64px;font-size:30px;line-height:1;padding:8px 14px;border:2px solid #cfd8dc;background:#fff;
+  border-radius:14px;text-decoration:none;box-shadow:0 4px 0 rgba(0,0,0,.08)}
+.endrow{align-items:center;gap:12px!important}
 /* 平板橫放時玩家區比較矮：標題一行，難度、念題目、準備好了排成同一行，不會蓋到中間 */
 @media (orientation:landscape){
   .overlay{flex-direction:row;flex-wrap:wrap;align-content:center;column-gap:clamp(10px,2vmin,20px);row-gap:clamp(6px,1.2vmin,10px);overflow-y:auto}
@@ -85,9 +88,13 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
 .map{position:relative;min-height:0;background:#bfe6a0;
   background-image:radial-gradient(circle at 15% 30%,#a9d987 0 5%,transparent 5.5%),radial-gradient(circle at 80% 70%,#a9d987 0 6%,transparent 6.5%)}
 .map svg{position:absolute;inset:0;width:100%;height:100%}
-.fo{width:100%;height:100%;display:flex;align-items:center;justify-content:center;white-space:nowrap;color:#2b4a1f;
+.map{container-type:size}
+/* 鐵軌圈內側的範圍（鐵軌圖是 640×290，按比例縮放置中） */
+.infobox{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(72cqw,159cqh);height:min(22cqw,48cqh);
+  display:flex;flex-direction:column;justify-content:space-between;align-items:center;pointer-events:none;overflow:hidden}
+.fo{display:flex;align-items:center;justify-content:center;white-space:nowrap;color:#2b4a1f;max-width:100%;
   font-family:"PingFang TC","Microsoft JhengHei",sans-serif;font-weight:800;line-height:1}
-.fo.big{font-size:28px} .fo.small{font-size:17px;font-weight:600}
+.fo.big{font-size:min(3.9cqw,8.6cqh)} .fo.small{font-size:min(2.4cqw,5.2cqh);font-weight:600}
 .fo.flip{transform:rotate(180deg)}
 .home{flex:none;width:52px;height:52px;border-radius:14px;
   background:#fff;display:grid;place-items:center;font-size:26px;text-decoration:none;box-shadow:0 3px 0 rgba(0,0,0,.2)}
@@ -161,11 +168,11 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
     const t=mk("text",{x,y:y+1,"text-anchor":"middle","dominant-baseline":"central","font-size":i===0||sp?30:18,"font-weight":800,fill:"#5a6b75","font-family":"Baloo 2,sans-serif"});
     t.textContent=i===0?"🏁":sp==="fast"?"⭐":sp==="tunnel"?"🚇":i;
   });
-  // 中間說明（正反各一份）：用 foreignObject 放 HTML，才能加注音；倒過來那份旋轉的是裡面的 div（iPad 對旋轉 foreignObject 支援不好）
-  const fo=(x,y,w,h,cls,flip)=>{const f=mk("foreignObject",{x,y,width:w,height:h});
-    const d=document.createElementNS("http://www.w3.org/1999/xhtml","div");d.className="fo "+cls+(flip?" flip":"");d.setAttribute("data-zy","");f.appendChild(d);return d};
-  const info=[fo(80,168,480,56,"big",false),fo(80,66,480,56,"big",true)];
-  fo(80,126,480,38,"small",false).textContent="⭐ 再走 2 格　🚇 退後 2 格";
+  // 中間說明（正反各一份）：放在鐵軌圖上面的一般文字框（iPad 的 Safari 處理圖裡的文字框常常位置跑掉），固定在鐵軌圈的內側
+  const ibox=document.createElement("div");ibox.className="infobox";ibox.setAttribute("aria-live","polite");
+  ibox.innerHTML='<div class="fo big flip" data-zy></div><div class="fo small" data-zy>⭐ 再走 2 格　🚇 退後 2 格</div><div class="fo big" data-zy></div>';
+  svg.parentElement.appendChild(ibox);
+  const info=[ibox.children[2],ibox.children[0]];
   const tokens=[0,1].map(p=>{const g=mk("g",{});mk("circle",{r:21,fill:COLORS[p],stroke:"#fff","stroke-width":3},g);
     const t=mk("text",{"text-anchor":"middle","dominant-baseline":"central","font-size":24},g);t.textContent="🚂";return g});
   function placeTokens(){
@@ -200,7 +207,7 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
         <h2>${NAMES[p]}的小火車</h2>
         <div class="row lvs">${[1,2,3].map(l=>`<button type="button" class="opt" data-lv="${l}" aria-label="${LV[l].name}"><span class="lvst">${STAR[l]}</span><small>${LV[l].sub}</small></button>`).join("")}</div>
         <div class="row"><button type="button" class="opt vbtn"></button></div>
-        <button type="button" class="ready">READY</button>
+        <div class="row endrow"><button type="button" class="ready">READY</button><a class="homeb" href="./" aria-label="回遊樂園">🏠</a></div>
       </div>`;
     const u={el,msg:el.querySelector(".msg"),lvtag:el.querySelector(".lvtag"),spk:el.querySelector(".spk"),roll:el.querySelector(".roll"),
       qline:el.querySelector(".qline"),die:el.querySelector(".die"),q:el.querySelector(".q"),choices:el.querySelector(".choices"),chs:[...el.querySelectorAll(".ch")],
