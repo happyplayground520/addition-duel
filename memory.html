@@ -74,12 +74,12 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   box-shadow:0 4px 0 rgba(0,0,0,.25)}
 .card .bk{background:repeating-linear-gradient(45deg,#ff8fc8 0 8px,#ff6fb5 8px 16px);border:4px solid #fff;display:grid;place-items:center;
   font-size:calc(var(--cw)*.42)}
-.card .fr{transform:rotateY(180deg);background:#fff;border:4px solid #ffd23f;display:grid;grid-template-rows:1fr 1fr;align-items:center;justify-items:center;padding:4%}
+.card .fr{transform:rotateY(180deg);background:#fff;border:4px solid #ffd23f;display:grid;place-items:center;padding:6%}
 .card .half{display:flex;flex-direction:column;align-items:center;gap:2px}
 .card .half.top{transform:rotate(180deg)}
 .card .n{font-family:var(--num);font-weight:800;font-size:calc(var(--cw)*.42);line-height:.95;color:var(--ink)}
-.card .dots{display:grid;grid-template-columns:repeat(5,calc(var(--cw)*.13));gap:calc(var(--cw)*.035);justify-content:center}
-.card .dots i{width:calc(var(--cw)*.13);height:calc(var(--cw)*.13);border-radius:50%;background:#e0477b}
+.card .dots{display:flex;flex-wrap:wrap;justify-content:center;gap:calc(var(--cw)*.05);width:calc(var(--dc,3)*var(--cw)*.16 + (var(--dc,3) - 1)*var(--cw)*.05)}
+.card .dots i{width:calc(var(--cw)*.16);height:calc(var(--cw)*.16);border-radius:50%;background:#e0477b}
 .card.got{animation:got .6s forwards;pointer-events:none}
 @keyframes got{50%{transform:scale(1.12)}100%{transform:scale(.2);opacity:0}}
 .card.gone{visibility:hidden;pointer-events:none}
@@ -184,15 +184,17 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
     cards.forEach(c=>{c.el.style.setProperty("--cw",best.cw+"px");c.el.style.setProperty("--ch",Math.round(best.cw*1.3)+"px")});
     if(innerWidth<=innerHeight)table.style.paddingTop="56px";else table.style.paddingTop="";
   }
-  // 上半部只放點點（點點不分上下，坐對面的人看也一樣），下半部放數字
-  const dotsHTML=v=>`<span class="dots">${"<i></i>".repeat(v)}</span>`;
+  // 牌面只放點點（不放數字），點點不分上下，坐對面的人看也一樣
+  // 一排幾個：1～3 個一排、4 個 2×2、5、6 個一排 3 個、7、8 個一排 4 個、9 個 3×3（不滿的那排置中）
+  const COLS={1:1,2:2,3:3,4:2,5:3,6:3,7:4,8:4,9:3};
+  const dotsHTML=v=>`<span class="dots" style="--dc:${COLS[v]||3}">${"<i></i>".repeat(v)}</span>`;
   function deal(){
     const L=LV[G.lv],pairs=[];
     for(let i=0;i<L.n/2;i++){const a=rnd(1,L.T-1);pairs.push(a,L.T-a)}
     cards=[];grid.innerHTML="";
     shuffle(pairs).forEach(v=>{
       const el=document.createElement("button");el.type="button";el.className="card";el.setAttribute("aria-label","蓋著的牌");
-      el.innerHTML=`<span class="in"><span class="bk">⭐</span><span class="fr"><span class="half">${dotsHTML(v)}</span><span class="half"><span class="n">${v}</span></span></span></span>`;
+      el.innerHTML=`<span class="in"><span class="bk">⭐</span><span class="fr">${dotsHTML(v)}</span></span>`;
       const c={el,v,up:false,done:false};
       el.addEventListener("click",()=>flip(c));
       grid.appendChild(el);cards.push(c);
