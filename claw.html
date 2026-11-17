@@ -422,7 +422,7 @@ body{background:radial-gradient(circle,rgba(192,79,214,.12) 2.5px,transparent 3p
           sfx.clear();const c=document.createElement("div");c.className="cheer";c.textContent="🎉 全部夾到了！";glass.appendChild(c);say("全部夾到了！");
           await sleep(1100);c.remove();
         }else{
-          say(`答對了，${S.q.a}${S.q.word}${S.q.b}等於${S.q.ans}`);await sleep(250);
+          await sleep(250);   // 夾對只放音效，不念「答對了」，接著直接念下一題
         }
         if(S.phase==="play")newQuestion();
       }else{parkClaw();await sleep(300);S.busy=false}
