@@ -7,8 +7,8 @@
 <title>甜點小鎮</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261118l">
-<link rel="stylesheet" href="town/town.css?v=20261118l">
+<link rel="stylesheet" href="en.css?v=20261118n">
+<link rel="stylesheet" href="town/town.css?v=20261118n">
 <style>
 /* 甜點小鎮地圖：粉紅色的小鎮，一條糖果條紋的小路彎來彎去，連起 12 家甜點店（先開放 4 家） */
 body{align-items:center;justify-content:center;gap:clamp(6px,1.2vmin,12px);
@@ -21,6 +21,12 @@ h1{margin:0;font-size:clamp(26px,5vmin,52px);line-height:1.15;font-weight:800;le
   background:repeating-linear-gradient(90deg,#ff6f98 0 28px,#ff94b3 28px 56px);text-shadow:0 3px 0 #b8365a;box-shadow:0 6px 0 #c23d63,0 12px 22px rgba(0,0,0,.18);display:flex;align-items:center;gap:.3em}
 h1 .star{font-size:.7em;text-shadow:none}
 .ttl{gap:4px}
+.tiptx{margin:0;font-size:clamp(17px,2.8vmin,21px);font-weight:700;color:var(--ink);line-height:1.6}
+.setbtn.demo{pointer-events:none;box-shadow:0 0 0 4px #ffd23f,0 3px 0 #f5b9cc}
+.setbtn.pulse{animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 7px #ffd23f,0 3px 0 #f5b9cc}}
+.tipchk{display:inline-flex;align-items:center;gap:8px;font-size:17px;font-weight:800;border:2px solid #e3d3b8;border-radius:14px;padding:8px 16px;cursor:pointer;background:#fff;min-height:48px}
+.tipchk input{width:22px;height:22px}
 header .home2{position:absolute;left:62px;top:50%;transform:translateY(-50%)}
 header .home2:active{transform:translateY(calc(-50% + 3px))}
 @media (max-width:600px){header{display:grid!important;grid-template-columns:auto auto 1fr auto;gap:8px;align-items:center}
@@ -68,12 +74,12 @@ html.phone.land .spot .icon{width:70px}
   padding:10px 20px;border-radius:999px;font-size:18px;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,.25);transition:opacity .25s;white-space:nowrap}
 .toast[hidden]{display:block!important;opacity:0;pointer-events:none}
 </style>
-<script src="zhuyin.js?v=20261118l"></script>
-<link rel="stylesheet" href="park.css?v=20261118l">
-<script src="park.js?v=20261118l"></script>
-<script src="en.js?v=20261118l"></script>
-<script src="town/zi-data.js?v=20261118l"></script>
-<script src="town/town.js?v=20261118l"></script>
+<script src="zhuyin.js?v=20261118n"></script>
+<link rel="stylesheet" href="park.css?v=20261118n">
+<script src="park.js?v=20261118n"></script>
+<script src="en.js?v=20261118n"></script>
+<script src="town/zi-data.js?v=20261118n"></script>
+<script src="town/town.js?v=20261118n"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
 <body>
@@ -87,6 +93,16 @@ html.phone.land .spot .icon{width:70px}
   <div id="decos" aria-hidden="true"></div>
 </div>
 <div class="toast" id="toast" role="status" data-zy hidden></div>
+<section class="panel" id="tipp" hidden>
+  <div class="box">
+    <h2>📖 小提醒</h2>
+    <p class="tiptx" data-zy>要選 A 版、B 版和第幾課，請點上面這個按鈕：</p>
+    <span class="setbtn demo" id="tipLbl" data-zy-skip></span>
+    <p class="tiptx" data-zy>每一家甜點店都會照這個範圍出題。</p>
+    <label class="chk tipchk"><input type="checkbox" id="tipNo"> 不再出現</label>
+    <div class="endrow"><button type="button" class="big alt" id="tipSet">⚙️ 去設定</button><button type="button" class="big ok" id="tipOk">OK</button></div>
+  </div>
+</section>
 <section class="panel" id="setp" hidden>
   <div class="box">
     <h2>📖 選擇版本和課次</h2>
@@ -168,7 +184,11 @@ html.phone.land .spot .icon{width:70px}
   const syncSet=()=>{$("setLbl").innerHTML=TZ.zy(TZ.rangeLabel())};
   const openSet=()=>{TZ.setupPanel($("setup2"),syncSet);$("setp").hidden=false};
   $("setBtn").onclick=openSet;$("setOk").onclick=()=>{$("setp").hidden=true;syncSet()};
-  syncSet();if(TZ.pref("town-ver")==null)openSet();
+  syncSet();
+  // 一進來先提醒要在哪裡選版本；勾「不再出現」就不再跳出來
+  const closeTip=()=>{if($("tipNo").checked)TZ.pref("town-tip","off");$("tipp").hidden=true;$("setBtn").classList.remove("pulse")};
+  $("tipOk").onclick=closeTip;$("tipSet").onclick=()=>{closeTip();openSet()};
+  if(TZ.pref("town-tip")!=="off"){$("tipLbl").innerHTML="📖 "+TZ.zy(TZ.rangeLabel())+" ⚙️";$("tipp").hidden=false;$("setBtn").classList.add("pulse")}
 })();
 </script>
 </body>
