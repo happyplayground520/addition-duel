@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>船長的家</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="en.css?v=20261118d">
+<style>
+/* 船長的家：一棟小木屋有四扇門（kitchen、bedroom、living room、bathroom）。聽問題，打開對的門，再點出房間裡的東西 */
+body{background:linear-gradient(#bfeaff,#e9f8ff 70%,#bfe6a0 70.1%,#a6dc7f)}
+.say{flex:none;display:flex;justify-content:center;align-items:center;gap:10px;padding:2px 14px 8px}
+.sent{display:inline-flex;align-items:center;gap:10px;background:#fff;border:4px solid var(--ink);border-radius:22px;padding:6px 8px 6px 18px;
+  font-family:var(--en);font-weight:700;font-size:clamp(20px,3.6vmin,32px);line-height:1.15;box-shadow:0 5px 0 rgba(0,0,0,.12)}
+.sent .ibtn{flex:none;width:48px;height:48px;font-size:24px;background:#ffe9a8;box-shadow:0 3px 0 #d18e0a}
+.qpic{width:clamp(56px,9vmin,84px);height:clamp(56px,9vmin,84px);background:#fff;border-radius:18px;border:4px solid #fff;box-shadow:0 0 0 3px #2b7f50;padding:3px}
+.qpic .ic{width:100%;height:100%}
+.mascot{width:clamp(46px,7.5vmin,70px);height:calc(clamp(46px,7.5vmin,70px)*1.22)}
+main{position:relative;flex:1;min-height:0;display:grid;place-items:center;padding:0 12px max(10px,env(safe-area-inset-bottom,0px))}
+/* 房子 */
+.house{position:relative;width:var(--hw);display:flex;flex-direction:column;align-items:center}
+.roof{width:108%;height:calc(var(--hw)*.13);background:#d9573d;clip-path:polygon(6% 100%,50% 0,94% 100%);position:relative;margin-bottom:-2px;
+  filter:drop-shadow(0 -3px 0 #8a3a26)}
+.chim{position:absolute;right:16%;top:0;width:7%;height:calc(var(--hw)*.1);background:#a8683a;border:4px solid #3a2a22;border-bottom:0;transform:translateY(-35%);z-index:-1}
+.body{position:relative;width:100%;background:repeating-linear-gradient(#f2d3a0 0 26px,#e8c38a 26px 28px);border:5px solid #6e4122;border-radius:0 0 18px 18px;
+  padding:calc(var(--hw)*.025);display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));gap:calc(var(--hw)*.025);box-shadow:0 10px 0 rgba(0,0,0,.12)}
+.door{position:relative;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;border:0;background:none;padding:0;cursor:pointer;font:inherit;color:inherit}
+.sign{display:flex;align-items:center;gap:6px;background:#fffaf0;border:3px solid #6e4122;border-radius:12px;padding:2px 10px;font-family:var(--en);font-weight:700;
+  font-size:var(--sf);line-height:1.1;text-align:center;justify-content:center;max-width:100%;box-shadow:0 3px 0 rgba(0,0,0,.12);min-height:calc(var(--sf)*1.7)}
+.sign .ic{width:calc(var(--sf)*1.6);height:calc(var(--sf)*1.6)}
+.leaf{position:relative;width:100%;aspect-ratio:.72;max-height:var(--dh);border:5px solid #3a2a22;border-radius:14px 14px 4px 4px;background:var(--dc);
+  box-shadow:inset 0 0 0 6px rgba(255,255,255,.25);transform-origin:left center;transition:transform .45s}
+.leaf::before{content:"";position:absolute;left:14%;right:14%;top:10%;height:32%;border:4px solid rgba(58,42,34,.45);border-radius:8px}
+.leaf::after{content:"";position:absolute;right:12%;top:55%;width:12%;aspect-ratio:1;border-radius:50%;background:#ffd23f;border:3px solid #3a2a22}
+.door.glow .leaf{animation:dglow 1s infinite}
+@keyframes dglow{50%{box-shadow:0 0 0 6px #ffd23f}}
+.door.tried .leaf{filter:saturate(.4)}
+/* 房間裡面 */
+.room{position:absolute;inset:0;z-index:5;border-radius:0 0 14px 14px;overflow:hidden;display:flex;flex-direction:column;background:var(--wall);animation:roomin .35s}
+@keyframes roomin{from{transform:scale(.6);opacity:0}}
+.room::before{content:"";position:absolute;right:7%;top:12%;width:14%;aspect-ratio:1.2;border:5px solid #a8683a;border-radius:10px;
+  background:linear-gradient(90deg,transparent 46%,#a8683a 46% 54%,transparent 54%),linear-gradient(transparent 46%,#a8683a 46% 54%,transparent 54%),linear-gradient(#9fe0ff,#e6f8ff)}
+.room .rt{display:flex;align-items:center;justify-content:center;gap:10px;padding:8px;font-family:var(--en);font-weight:700;font-size:var(--sf)}
+.room .rt .ic{width:calc(var(--sf)*1.8);height:calc(var(--sf)*1.8)}
+.room .floor{flex:1;display:flex;align-items:flex-end;justify-content:space-around;gap:8px;padding:0 12px 12px;
+  background:linear-gradient(transparent 62%,#c98a4b 62%,#b9773e)}
+.item{border:0;background:none;padding:4px;cursor:pointer;border-radius:16px;width:var(--it);height:var(--it);flex:none}
+.item .ic{width:100%;height:100%}
+.item.no{opacity:.4}
+.item.yes{background:rgba(255,255,255,.7);box-shadow:0 0 0 5px #1f9d61}
+.close{position:absolute;left:8px;top:8px;width:48px;height:48px;border-radius:14px;border:3px solid #6e4122;background:#fff;font-size:24px;cursor:pointer;padding:0}
+.nothere{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:#fff;border:4px solid var(--ink);border-radius:20px;padding:6px 18px;font-family:var(--en);font-weight:700;
+  font-size:calc(var(--sf)*1.4);color:var(--bad);animation:bpop .3s;z-index:2}
+@media (max-height:500px){.say{position:absolute;z-index:6;top:max(8px,env(safe-area-inset-top,0px));left:76px;right:120px;padding:0}.top .mid{visibility:hidden}.say .mascot,.say .qpic{display:none}
+  .sent{font-size:19px;padding:3px 6px 3px 12px;border-width:3px}.sent .ibtn{width:40px;height:40px;font-size:20px}}
+@media (prefers-reduced-motion:reduce){.room,.door.glow .leaf{animation:none}}
+</style>
+<script src="zhuyin.js?v=20261118d"></script>
+<link rel="stylesheet" href="park.css?v=20261118d">
+<script src="park.js?v=20261118d"></script>
+<script src="en.js?v=20261118d"></script>
+<style>body{font-family:var(--text)}</style>
+</head>
+<body>
+<header class="top">
+  <a class="ibtn" href="cove.html" aria-label="回海盜灣">🏠</a>
+  <div class="mid"><span class="pill" id="prog">1 / 10</span></div>
+  <div class="right"><span class="pill" id="score">⭐ 0</span></div>
+</header>
+<div class="say"><span class="mascot pbox" id="parrot"></span><span class="qpic" id="qpic"></span><span class="sent"><span id="stext"></span><button type="button" class="ibtn" id="again" aria-label="再聽一次">🔊</button></span></div>
+<main id="main"><div class="house" id="house"><div class="roof"><span class="chim"></span></div><div class="body" id="hbody"></div></div></main>
+
+<section class="panel" id="start">
+  <div class="box">
+    <h2>🏠 船長的家</h2>
+    <p class="sub">Rooms</p>
+    <button type="button" class="helpbtn" id="help">🔊 中文說明</button>
+    <span class="lbl2">Level</span>
+    <div class="row" id="levels">
+      <button type="button" class="opt" data-lv="1" aria-label="一顆星"><span class="lvst">⭐</span><small>Where is…? <i id="m1"></i></small></button>
+      <button type="button" class="opt" data-lv="2" aria-label="兩顆星"><span class="lvst">⭐⭐</span><small>Where is…? 🔊</small></button>
+      <button type="button" class="opt" data-lv="3" aria-label="三顆星"><span class="lvst">⭐⭐⭐</span><small>I want to…</small></button>
+    </div>
+    <span class="lbl2">Questions</span>
+    <div class="row" id="totals">
+      <button type="button" class="opt" data-n="5" aria-label="5 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button>
+      <button type="button" class="opt" data-n="10" aria-label="10 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>10</small></button>
+      <button type="button" class="opt" data-n="15" aria-label="15 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>15</small></button>
+    </div>
+    <button type="button" class="big" id="go">READY</button>
+  </div>
+</section>
+<section class="panel" id="end" hidden>
+  <div class="box">
+    <h2 class="en">Great job!</h2>
+    <div id="stars">⭐⭐⭐</div>
+    <div id="result">0 / 10</div>
+    <span class="earn" id="earn"></span>
+    <div class="endrow">
+      <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+      <a class="big alt ico-btn" href="cove.html" aria-label="回海盜灣">🏠</a>
+    </div>
+  </div>
+</section>
+
+<script>
+(()=>{
+  const $=id=>document.getElementById(id),{pref,rnd,shuffle,pick,say,sfx}=EN;
+  const S={lv:+pref("home-lv")||1,total:+pref("home-total")||10,phase:"start",i:0,score:0,tries:0,q:null,busy:false,open:null};
+  if(![1,2,3].includes(S.lv))S.lv=1;if(![5,10,15].includes(S.total))S.total=10;
+  $("parrot").innerHTML=EN.parrot();$("m1").outerHTML=EN.icon("bed");
+  function sync(){
+    document.querySelectorAll("#levels .opt").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
+    document.querySelectorAll("#totals .opt").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===S.total));
+  }
+  document.querySelectorAll("#levels .opt").forEach(b=>b.onclick=()=>{S.lv=+b.dataset.lv;pref("home-lv",S.lv);sync()});
+  document.querySelectorAll("#totals .opt").forEach(b=>b.onclick=()=>{S.total=+b.dataset.n;pref("home-total",S.total);sync()});
+  sync();
+  const HELP={
+    1:"船長的家，一顆星。房子裡有四個房間：kitchen 是廚房，bedroom 是臥室，living room 是客廳，bathroom 是浴室。聽問題，想想這個東西會在哪個房間，打開那扇門，再點出那個東西。門上有圖可以幫忙。",
+    2:"船長的家，兩顆星。門上只有英文字，題目也沒有圖了，要仔細聽。打開對的房間，再點出那個東西。",
+    3:"船長的家，三顆星。船長會說他想做什麼，例如 I want to sleep，我想睡覺。想想要去哪個房間，打開門，再點出要用的東西。"
+  };
+  EN.helpBtn($("help"),()=>HELP[S.lv]);
+
+  const ROOMS=[
+    {k:"kitchen",ic:"stove",dc:"#ffb36b",wall:"#fff3c4",items:["cup","bowl","spoon","stove"]},
+    {k:"bedroom",ic:"bed",dc:"#9b8cff",wall:"#ece6ff",items:["bed","lamp","pillow"]},
+    {k:"living room",ic:"sofa",dc:"#ff8a7a",wall:"#ffe6dc",items:["TV","sofa","table"]},
+    {k:"bathroom",ic:"bathtub",dc:"#4dc3ff",wall:"#dff4ff",items:["toothbrush","towel","soap","bathtub"]}
+  ];
+  const ITEM_NAME={TV:"TV",bathtub:"bathtub",stove:"stove"};
+  const ACTS=[["I want to sleep.","bed"],["I want to watch TV.","TV"],["I want to sit down.","sofa"],["I want to drink water.","cup"],["I want to eat rice.","bowl"],
+    ["I want to cook.","stove"],["I want to brush my teeth.","toothbrush"],["I want to wash my hands.","soap"],["I want to take a bath.","bathtub"]];
+  const roomOf=it=>ROOMS.find(r=>r.items.includes(it));
+  let order=[],last=null;
+  function makeQ(){
+    if(S.lv===3){if(!order.length)order=shuffle(ACTS.slice());const [t,it]=order.pop();return{t,item:it,room:roomOf(it)}}
+    if(!order.length)order=shuffle(ROOMS.flatMap(r=>r.items));
+    const it=order.pop();return{t:`Where is the ${it}?`,item:it,room:roomOf(it)};
+  }
+  function layout(){
+    const m=$("main").getBoundingClientRect(),W=m.width-24,H=m.height-12,land=W/H>1.25;
+    const cols=land?4:2,rows=land?1:2;
+    // 房子的寬：門（寬:高 = .72）加招牌，整棟要塞得進畫面
+    let hw=Math.min(W,1000);
+    const fit=w=>{const g=w*.025,cw=(w-g*(cols+1))/cols,dh=cw/.72,sf=Math.max(14,Math.min(26,cw*.15));return w*.13+rows*(dh+sf*1.7+6)+g*(rows+1)+10};
+    while(fit(hw)>H&&hw>200)hw-=10;
+    const g=hw*.025,cw=(hw-g*(cols+1))/cols;
+    const r=document.documentElement.style;r.setProperty("--hw",hw+"px");r.setProperty("--cols",cols);r.setProperty("--dh",cw/.72+"px");
+    r.setProperty("--sf",Math.max(14,Math.min(26,cw*.15))+"px");
+    const bodyW=hw,bodyH=rows*(cw/.72+Math.max(14,Math.min(26,cw*.15))*1.7+6)+g*(rows+1);
+    r.setProperty("--it",Math.min(bodyW/4.8,bodyH*.5,180)+"px");
+  }
+  function renderDoors(){
+    $("hbody").innerHTML=ROOMS.map((r,k)=>`<button type="button" class="door" data-k="${k}" style="--dc:${r.dc}" aria-label="${r.k}">
+      <span class="sign">${S.lv===1?EN.icon(r.ic):""}${r.k}</span><span class="leaf"></span></button>`).join("");
+    document.querySelectorAll(".door").forEach(d=>d.onclick=()=>openRoom(+d.dataset.k));
+  }
+  function openRoom(k){
+    if(S.busy||S.open!=null)return;const r=ROOMS[k];S.open=k;sfx.pop();say(r.k);
+    const el=document.createElement("div");el.className="room";el.style.setProperty("--wall",r.wall);el.id="room";
+    el.innerHTML=`<button type="button" class="close" id="close" aria-label="關門">🚪</button><div class="rt">${EN.icon(r.ic)}${r.k}</div>
+      <div class="floor">${shuffle(r.items.slice()).map(it=>`<button type="button" class="item" data-it="${it}" aria-label="${it}">${EN.icon(it)}</button>`).join("")}</div>`;
+    $("hbody").appendChild(el);
+    $("close").onclick=()=>closeRoom();
+    if(r!==S.q.room){
+      // 開錯房間：看一下裡面有什麼，然後關門
+      S.busy=true;S.tries++;sfx.bad();EN.mood($("parrot"),"oops");
+      document.querySelector(`.door[data-k="${k}"]`).classList.add("tried");
+      setTimeout(()=>{const n=document.createElement("div");n.className="nothere";n.textContent="Not here!";el.appendChild(n);say("Not here!")},500);
+      setTimeout(()=>{closeRoom();S.busy=false;if(S.tries>=2)document.querySelector(`.door[data-k="${ROOMS.indexOf(S.q.room)}"]`).classList.add("glow");sayQ()},2000);
+      return;
+    }
+    document.querySelectorAll(".door").forEach(d=>d.classList.remove("glow"));
+    el.querySelectorAll(".item").forEach(b=>b.onclick=()=>pickItem(b));
+  }
+  function closeRoom(){const el=$("room");if(el)el.remove();S.open=null}
+  function pickItem(b){
+    if(S.busy)return;const it=b.dataset.it;say(it);
+    if(it===S.q.item){
+      S.busy=true;if(S.tries===0)S.score++;$("score").textContent=`⭐ ${S.score}`;b.classList.add("yes");sfx.good();EN.mood($("parrot"),"happy");
+      const r=S.q.room.k;
+      setTimeout(()=>say(`${pick(EN.PRAISE)} The ${it} is in the ${r}.`,{onend:()=>setTimeout(next,600)}),500);
+    }else{S.tries++;sfx.bad();b.classList.add("no")}
+  }
+  const sayQ=()=>{if(S.q)say(S.q.t)};
+  $("again").onclick=sayQ;
+  function newQ(){
+    S.busy=false;S.tries=0;closeRoom();S.q=makeQ();
+    $("stext").textContent=S.q.t;$("qpic").innerHTML=S.lv===1?EN.icon(S.q.item):"";$("qpic").style.display=S.lv===1?"":"none";
+    renderDoors();$("prog").textContent=`${S.i+1} / ${S.total}`;
+    setTimeout(sayQ,350);
+  }
+  function next(){if(S.phase!=="play")return;S.i++;if(S.i>=S.total)finish();else newQ()}
+  function start(){
+    EN.unlock();S.phase="play";S.i=0;S.score=0;order=[];$("score").textContent="⭐ 0";
+    $("start").hidden=true;$("end").hidden=true;layout();newQ();
+  }
+  function finish(){
+    S.phase="end";closeRoom();
+    const r=S.score/S.total,st=r>=.9?3:r>=.6?2:1;
+    $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);$("result").textContent=`${S.score} / ${S.total}`;
+    const earn=S.score+(st===3?3:0);EN.addCoins(earn);$("earn").innerHTML=`+${earn} ${EN.coinSvg}`;
+    sfx.end();say(st===3?"Excellent!":st===2?"Great job!":"Good try!");$("end").hidden=false;
+  }
+  $("go").onclick=start;$("replay").onclick=start;
+  let rz=0;addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(layout,120)});layout();
+})();
+</script>
+</body>
+</html>

@@ -225,6 +225,30 @@
       <path d="M50 20v-4M50 72v-4M26 44h-4M78 44h-4M33 27l-3-3M67 27l3-3M33 61l-3 3M67 61l3 3" fill="none" stroke="#ff9a1f" stroke-width="4"/><path d="M8 76h84" fill="none" stroke="#5cc24a" stroke-width="5"/>`,
     night:`<rect x="6" y="14" width="88" height="72" rx="12" fill="#2b3a7a"/><path d="M60 26a20 20 0 1 0 14 34a16 16 0 1 1-14-34z" fill="#ffe27a"/>
       <g fill="#fff" stroke="none"><circle cx="24" cy="30" r="2.4"/><circle cx="36" cy="64" r="2"/><circle cx="20" cy="54" r="1.6"/><circle cx="80" cy="74" r="2"/></g>`
+    ,
+    // 家裡的東西
+    cup:`<path d="M34 22q-4-6 0-12M46 22q-4-6 0-12" fill="none" stroke-width="3" opacity=".5"/><path d="M68 42q16 0 16 14t-16 14" fill="none" stroke-width="7"/>
+      <path d="M22 30h46v40q0 14-14 14H36q-14 0-14-14z" fill="#7cc7ff"/><circle cx="45" cy="56" r="7" fill="#fff" stroke="none"/>`,
+    bowl:`<path d="M12 46h76q-2 34-38 34T12 46z" fill="#ffb36b"/><ellipse cx="50" cy="46" rx="38" ry="8" fill="#ffe0b0"/><path d="M22 60q28 8 56 0" fill="none" stroke="#fff" stroke-width="3"/><path d="M40 86h20" stroke-width="6"/>`,
+    spoon:`<g transform="rotate(-30 50 50)"><path d="M50 50v42" stroke="#9aa8b8" stroke-width="9"/><path d="M50 50v42" stroke="#d9dee5" stroke-width="3" fill="none"/><ellipse cx="50" cy="30" rx="15" ry="21" fill="#d9dee5"/><ellipse cx="45" cy="24" rx="4" ry="7" fill="#fff" stroke="none"/></g>`,
+    bed:`<rect x="8" y="26" width="12" height="60" rx="4" fill="#a8683a"/><rect x="18" y="52" width="74" height="22" rx="6" fill="#fff"/><path d="M42 52h44q6 0 6 6v16H42z" fill="#7cc7ff"/>
+      <rect x="22" y="40" width="22" height="13" rx="6" fill="#ffc2e0"/><path d="M90 74v12M20 74v12" stroke-width="6"/>`,
+    lamp:`<path d="M50 48v34" stroke-width="6"/><ellipse cx="50" cy="86" rx="20" ry="6" fill="#a8683a"/><path d="M30 16h40l13 32H17z" fill="#ffd23f"/><path d="M34 26h32" fill="none" stroke="#fff" stroke-width="3" opacity=".7"/>`,
+    pillow:`<path d="M14 32q36-14 72 0q7 18 0 36q-36 14-72 0q-7-18 0-36z" fill="#ffc2e0"/><g fill="#fff" stroke="none"><circle cx="36" cy="46" r="3"/><circle cx="52" cy="54" r="3"/><circle cx="66" cy="44" r="3"/></g>`,
+    TV:`<path d="M38 10l12 12 12-12" fill="none"/><rect x="10" y="22" width="80" height="54" rx="8" fill="#3a3a50"/><rect x="18" y="29" width="64" height="40" rx="4" fill="#7cd4ff"/>
+      <path d="M26 60l12-14 10 10 8-6 16 10" fill="none" stroke="#2ecc71" stroke-width="4"/><circle cx="68" cy="40" r="5" fill="#ffd93d" stroke="none"/><path d="M36 76l-6 12M64 76l6 12" stroke-width="5"/>`,
+    sofa:`<rect x="18" y="28" width="64" height="32" rx="11" fill="#ff8a7a"/><rect x="22" y="52" width="56" height="22" rx="7" fill="#ff9f8f"/>
+      <rect x="7" y="44" width="19" height="34" rx="9" fill="#ff6b5a"/><rect x="74" y="44" width="19" height="34" rx="9" fill="#ff6b5a"/><path d="M16 80v7M84 80v7" stroke-width="5"/>`,
+    table:`<rect x="8" y="34" width="84" height="12" rx="4" fill="#c98a4b"/><path d="M18 46v40M82 46v40" stroke="#8a5328" stroke-width="7"/><path d="M18 46v40M82 46v40" fill="none"/>`,
+    toothbrush:`<rect x="6" y="56" width="62" height="13" rx="6.5" fill="#4da3ff"/><rect x="60" y="52" width="32" height="18" rx="5" fill="#4da3ff"/>
+      <rect x="63" y="34" width="26" height="18" rx="3" fill="#fff"/><path d="M69 36v14M76 36v14M83 36v14" fill="none" stroke="#9cc9ef" stroke-width="2.5"/><path d="M62 34q7-12 14-4q7-10 14 2z" fill="#9ef0b9" stroke-width="3"/>`,
+    towel:`<rect x="12" y="10" width="76" height="9" rx="4.5" fill="#a8683a"/><path d="M22 15h56v64q0 7-7 7H29q-7 0-7-7z" fill="#9ef0b9"/><path d="M22 66h56M22 73h56" fill="none" stroke="#fff" stroke-width="3.5"/>`,
+    soap:`<circle cx="34" cy="26" r="8" fill="#d7f0ff"/><circle cx="52" cy="16" r="6" fill="#d7f0ff"/><circle cx="66" cy="30" r="9" fill="#d7f0ff"/>
+      <rect x="16" y="44" width="68" height="36" rx="15" fill="#ffc2e0"/><ellipse cx="38" cy="54" rx="10" ry="4" fill="#fff" stroke="none" opacity=".7"/>`,
+    stove:`<path d="M38 94q-7-7 0-12q5 5 3 12M50 94q-7-9 0-14q6 6 3 14M62 94q-7-7 0-12q5 5 3 12" fill="#ff9a1f" stroke-width="2.5"/>
+      <path d="M22 36h56v32q0 12-12 12H34q-12 0-12-12z" fill="#9aa8b8"/><path d="M14 36h72" stroke-width="7"/><path d="M12 48h10M78 48h10" stroke-width="6"/><path d="M40 26q0-8 10-8t10 8" fill="none" stroke-width="5"/>`,
+    bathtub:`<circle cx="34" cy="38" r="8" fill="#d7f0ff"/><circle cx="50" cy="34" r="10" fill="#d7f0ff"/><circle cx="66" cy="38" r="8" fill="#d7f0ff"/>
+      <path d="M20 44V24q0-11 11-11t11 11" fill="none" stroke-width="5"/><path d="M6 44h88v10q0 26-26 26H32Q6 80 6 54z" fill="#fff"/><path d="M24 80l-4 8M76 80l4 8" stroke-width="6"/>`
   };
   // 顏色：一團可愛的顏料
   const COLOR={red:"#ff4136",blue:"#2f7bff",yellow:"#ffd60a",green:"#2ecc40",black:"#2b2b2b",white:"#ffffff",pink:"#ff8fc7",purple:"#9b51e0",brown:"#9a5b32",orange:"#ff8c1a"};

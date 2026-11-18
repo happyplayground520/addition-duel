@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>港口聊天</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="en.css?v=20261118d">
+<style>
+/* 港口聊天：鸚鵡在港口攤子前連續問小朋友三個問題（心情、天氣、幾歲），從對話泡泡裡選出要回答的話 */
+body{background:linear-gradient(#bfeaff,#e9f8ff 55%,#7fd0ea 55.1%,#4fb8dc)}
+main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(10px,2vh,20px);
+  padding:0 max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
+/* 攤子：條紋遮雨棚 + 木頭檯面 */
+.stall{position:relative;width:min(100%,820px);border-radius:24px;background:#fffaf0;border:5px solid #6e4122;box-shadow:0 10px 0 #8a5328,0 16px 30px rgba(0,0,0,.18);
+  padding:calc(var(--u)*.9) calc(var(--u)*.5) calc(var(--u)*.4);display:flex;justify-content:space-between;align-items:flex-end;gap:calc(var(--u)*.3)}
+.stall::before{content:"";position:absolute;left:-5px;right:-5px;top:-5px;height:calc(var(--u)*.55);border-radius:22px 22px 0 0;border:5px solid #6e4122;border-bottom:0;
+  background:repeating-linear-gradient(90deg,#14a99c 0 46px,#fff 46px 92px)}
+.side{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+.who{display:flex;align-items:flex-end;gap:calc(var(--u)*.15)}
+.parrotbox{width:calc(var(--u)*2.1);height:calc(var(--u)*2.56)}
+.kid{width:calc(var(--u)*2.4);height:calc(var(--u)*2.4)}
+.kid.kbig{width:calc(var(--u)*3.2);height:calc(var(--u)*3.2)}
+.kid svg,.hintp svg{width:100%;height:100%;display:block}
+.hintp{width:calc(var(--u)*2.8);height:calc(var(--u)*2.8);animation:bpop .35s}
+.bub{position:relative;max-width:calc(var(--u)*6);background:#fff;border:4px solid var(--ink);border-radius:20px;padding:6px 14px;font-family:var(--en);font-weight:700;
+  font-size:calc(var(--u)*.5);line-height:1.15;box-shadow:0 4px 0 rgba(0,0,0,.1);display:flex;align-items:center;gap:8px;min-height:calc(var(--u)*.95)}
+.bub.q{background:#fff3c4}
+.bub.me{background:#e2f8ea;visibility:hidden}
+.bub.me.show{visibility:visible;animation:bpop .3s}
+.bub .ibtn{flex:none;width:44px;height:44px;font-size:22px;background:#ffe9a8;box-shadow:0 3px 0 #d18e0a}
+/* 回答的泡泡 */
+.opts{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:center;width:min(100%,820px)}
+.rbtn{position:relative;font-family:var(--en);font-weight:700;font-size:calc(var(--u)*.5);min-height:60px;min-width:120px;padding:6px 22px;border-radius:24px 24px 24px 6px;
+  border:4px solid #e3d3b8;background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 4px 0 #d8c9ae}
+.rbtn[aria-pressed="true"]{border-color:#14a99c;background:#e0faf6;box-shadow:0 4px 0 #14a99c}
+.rbtn.no{opacity:.35;pointer-events:none}
+.rbtn.yes{border-color:var(--good);background:#e2f8ea}
+.rbtn.glow{animation:glow 1s infinite}
+@keyframes glow{50%{background:#fff3c4;border-color:#ffd23f}}
+.opts .big{min-height:60px}
+@media (max-height:500px){
+  main{flex-direction:row;gap:12px}
+  .stall{flex:1 1 62%;padding-top:calc(var(--u)*.75)}
+  .opts{flex:1 1 38%;flex-direction:column;width:auto}
+  .rbtn{min-height:48px;min-width:0;width:100%;padding:4px 14px}.opts .big{min-height:48px}
+}
+@media (prefers-reduced-motion:reduce){.rbtn.glow{animation:none}}
+</style>
+<script src="zhuyin.js?v=20261118d"></script>
+<link rel="stylesheet" href="park.css?v=20261118d">
+<script src="park.js?v=20261118d"></script>
+<script src="en.js?v=20261118d"></script>
+<style>body{font-family:var(--text)}</style>
+</head>
+<body>
+<header class="top">
+  <a class="ibtn" href="cove.html" aria-label="回海盜灣">🏠</a>
+  <div class="mid"><span class="pill" id="prog">1 / 10</span></div>
+  <div class="right"><span class="pill" id="score">⭐ 0</span></div>
+</header>
+<main>
+  <div class="stall" id="stall">
+    <div class="side"><div class="bub q" id="qb"><span id="qt"></span><button type="button" class="ibtn" id="again" aria-label="再聽一次">🔊</button></div><span class="pbox parrotbox" id="parrot"></span></div>
+    <div class="side"><div class="bub me" id="mb"></div><div class="who"><span class="kid" id="kid"></span><span class="hintp" id="hint"></span></div></div>
+  </div>
+  <div class="opts" id="opts"></div>
+</main>
+
+<section class="panel" id="start">
+  <div class="box">
+    <h2>💬 港口聊天</h2>
+    <p class="sub">Let's Talk</p>
+    <button type="button" class="helpbtn" id="help">🔊 中文說明</button>
+    <span class="lbl2">Level</span>
+    <div class="row" id="levels">
+      <button type="button" class="opt" data-lv="1" aria-label="一顆星"><span class="lvst">⭐</span><small>💬 💬</small></button>
+      <button type="button" class="opt" data-lv="2" aria-label="兩顆星"><span class="lvst">⭐⭐</span><small>💬 💬 💬</small></button>
+      <button type="button" class="opt" data-lv="3" aria-label="三顆星"><span class="lvst">⭐⭐⭐</span><small>🔊 🔊 🔊</small></button>
+    </div>
+    <span class="lbl2">Questions</span>
+    <div class="row" id="totals">
+      <button type="button" class="opt" data-n="5" aria-label="5 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button>
+      <button type="button" class="opt" data-n="10" aria-label="10 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>10</small></button>
+      <button type="button" class="opt" data-n="15" aria-label="15 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>15</small></button>
+    </div>
+    <button type="button" class="big" id="go">READY</button>
+  </div>
+</section>
+<section class="panel" id="end" hidden>
+  <div class="box">
+    <h2 class="en">Great job!</h2>
+    <div id="stars">⭐⭐⭐</div>
+    <div id="result">0 / 10</div>
+    <span class="earn" id="earn"></span>
+    <div class="endrow">
+      <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+      <a class="big alt ico-btn" href="cove.html" aria-label="回海盜灣">🏠</a>
+    </div>
+  </div>
+</section>
+
+<script>
+(()=>{
+  const $=id=>document.getElementById(id),{pref,rnd,shuffle,pick,say,sfx}=EN,K="#3a2a22";
+  const S={lv:+pref("chat-lv")||1,total:+pref("chat-total")||10,phase:"start",i:0,score:0,tries:0,q:null,busy:true,sel:null,queue:[],kid:"boy"};
+  if(![1,2,3].includes(S.lv))S.lv=1;if(![5,10,15].includes(S.total))S.total=10;
+  $("parrot").innerHTML=EN.parrot();
+  function sync(){
+    document.querySelectorAll("#levels .opt").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
+    document.querySelectorAll("#totals .opt").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===S.total));
+  }
+  document.querySelectorAll("#levels .opt").forEach(b=>b.onclick=()=>{S.lv=+b.dataset.lv;pref("chat-lv",S.lv);sync()});
+  document.querySelectorAll("#totals .opt").forEach(b=>b.onclick=()=>{S.total=+b.dataset.n;pref("chat-total",S.total);sync()});
+  sync();
+  const HELP={
+    1:"港口聊天，一顆星。鸚鵡會用英文問你問題，像是你好嗎、天氣怎麼樣、你幾歲。下面有兩個對話泡泡，選出應該要回答的那一句。點泡泡可以聽它怎麼念，選好了按 OK。",
+    2:"港口聊天，兩顆星。這次有三個泡泡，而且都是同一種回答。要看旁邊的圖：小朋友的表情、窗外的天氣、蛋糕上有幾根蠟燭，選出對的那一句。",
+    3:"港口聊天，三顆星。泡泡上沒有字了，只有喇叭。一個一個點來聽，聽完選出對的回答，再按 OK。"
+  };
+  EN.helpBtn($("help"),()=>HELP[S.lv]);
+
+  // ---- 圖：小朋友的表情、窗外的天氣、生日蛋糕 ----
+  const eye=(x,y)=>`<circle cx="${x}" cy="${y}" r="4.3" fill="${K}" stroke="none"/><circle cx="${x+1.4}" cy="${y-1.6}" r="1.5" fill="#fff" stroke="none"/>`;
+  const cheek=(x,y,c="#ff9db5")=>`<ellipse cx="${x}" cy="${y}" rx="5.5" ry="3.4" fill="${c}" stroke="none" opacity=".8"/>`;
+  function face(m,kid){
+    const hair=kid==="girl"?`<circle cx="20" cy="54" r="10" fill="#6e4122"/><circle cx="80" cy="54" r="10" fill="#6e4122"/>`:"";
+    const top=kid==="girl"?`<path d="M24 50q-2-30 26-30t26 30q-6-12-16-14q-10 6-22 2q-8 3-14 12z" fill="#6e4122"/>`:`<path d="M23 48q-2-30 27-30t27 30q-8-14-27-14t-27 14z" fill="#3a2a22"/>`;
+    const shirt=kid==="girl"?"#ff8fc7":"#4da3ff";
+    const F={
+      happy:`<path d="M35 51q5.5-7 11 0M54 51q5.5-7 11 0" fill="none" stroke-width="4"/><path d="M38 62q12 15 24 0z" fill="#ff6b8a" stroke-width="3"/>${cheek(31,61)}${cheek(69,61)}`,
+      sad:`<path d="M34 41l11 4M66 41l-11 4" fill="none" stroke-width="3.5"/>${eye(40,52)}${eye(60,52)}<path d="M40 70q10-9 20 0" fill="none" stroke-width="3.5"/><path d="M36 57q-4 7 0 9q4-2 0-9z" fill="#7cc7ff" stroke-width="2"/>`,
+      tired:`<path d="M34 53q6 4 12 0M54 53q6 4 12 0" fill="none" stroke-width="4"/><path d="M34 50h12M54 50h12" stroke-width="3"/><ellipse cx="50" cy="65" rx="4.5" ry="5.5" fill="${K}" stroke="none"/>
+        <text x="74" y="30" font-family="Andika,sans-serif" font-weight="700" font-size="16" fill="#7a4fd6" stroke="none">z</text><text x="84" y="18" font-family="Andika,sans-serif" font-weight="700" font-size="12" fill="#7a4fd6" stroke="none">z</text>`,
+      angry:`<path d="M33 40l13 7M67 40l-13 7" fill="none" stroke-width="5"/>${eye(41,53)}${eye(59,53)}<path d="M40 68q10-7 20 0" fill="none" stroke-width="4"/>${cheek(31,61,"#ff5a5a")}${cheek(69,61,"#ff5a5a")}
+        <path d="M80 26q4-4 8 0M84 34q4-4 8 0" fill="none" stroke="#ff5a5a" stroke-width="3"/>`,
+      plain:`${eye(41,52)}${eye(59,52)}<path d="M43 63q7 6 14 0" fill="none" stroke-width="3.5"/>${cheek(32,60)}${cheek(68,60)}`
+    };
+    return `<svg viewBox="0 0 100 100" aria-hidden="true"><g stroke="${K}" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">${hair}
+      <path d="M18 100q4-24 32-24t32 24z" fill="${shirt}"/><circle cx="50" cy="52" r="27" fill="#ffd9b8"/>${top}${F[m]||F.plain}</g></svg>`;
+  }
+  const win=(sky,inner)=>`<svg viewBox="0 0 100 100" aria-hidden="true"><g stroke="${K}" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="6" y="6" width="88" height="88" rx="10" fill="${sky}"/>${inner}<path d="M50 6v88M6 50h88" fill="none" stroke="#a8683a" stroke-width="5" opacity=".9"/>
+    <rect x="6" y="6" width="88" height="88" rx="10" fill="none" stroke="#a8683a" stroke-width="7"/></g></svg>`;
+  const cloud=(x,y,s=1,c="#fff")=>`<path transform="translate(${x} ${y}) scale(${s})" d="M-18 6q-10 0-10-9t10-9q2-10 12-10q8 0 12 7q3-3 8-3q10 0 10 11q8 1 8 7t-8 6z" fill="${c}"/>`;
+  const WEA={
+    sunny:win("#8fd6ff",`<circle cx="50" cy="50" r="17" fill="#ffd93d"/><path d="M50 22v-6M50 84v-6M22 50h-6M84 50h-6M30 30l-4-4M70 30l4-4M30 70l-4 4M70 70l4 4" fill="none" stroke="#ff9a1f" stroke-width="4"/>`),
+    rainy:win("#9aaebf",`${cloud(52,32,1.3,"#e6ecf2")}<path d="M28 56l-4 9M44 60l-4 9M60 56l-4 9M76 60l-4 9M36 76l-4 9M68 76l-4 9" fill="none" stroke="#2f7bff" stroke-width="4"/>`),
+    cloudy:win("#c9dbe8",`${cloud(40,40,1.1)}${cloud(66,66,1.2,"#eef3f7")}`),
+    windy:win("#bfe6ff",`<path d="M14 34h44q10 0 10-8t-8-8M14 52h60q12 0 12 9t-10 9M14 70h34" fill="none" stroke="#fff" stroke-width="5"/><path d="M68 76q10-10 18-2q-8 10-18 2z" fill="#5cc24a" stroke-width="3"/>`),
+    hot:win("#ffc27a",`<circle cx="38" cy="38" r="17" fill="#ffd93d"/><rect x="66" y="22" width="12" height="46" rx="6" fill="#fff"/><circle cx="72" cy="72" r="10" fill="#ff4136"/><rect x="69" y="34" width="6" height="34" fill="#ff4136" stroke="none"/>`),
+    cold:win("#d7f0ff",`<g stroke="#4da3ff" stroke-width="3.5"><path d="M30 20v24M18 32h24M21 23l18 18M39 23L21 41"/><path d="M50 58v20M40 68h20M43 61l14 14M57 61L43 75"/></g><rect x="70" y="22" width="12" height="46" rx="6" fill="#fff"/><circle cx="76" cy="72" r="10" fill="#2f7bff"/><rect x="73" y="56" width="6" height="12" fill="#2f7bff" stroke="none"/>`)
+  };
+  function cake(n){
+    // 蠟燭排兩排（上排 5 根），比較好數
+    const rows=n>5?[5,n-5]:[n];let c="";
+    rows.forEach((k,ri)=>{for(let i=0;i<k;i++){const x=50+(i-(k-1)/2)*15,y=ri?36:14;
+      c+=`<rect x="${x-3.5}" y="${y+10}" width="7" height="${ri?14:26}" rx="2.5" fill="${["#ff8fc7","#7cc7ff","#ffd93d","#9ef0b9"][(i+ri)%4]}" stroke-width="2.5"/><path d="M${x} ${y}q5 5 0 10q-5-5 0-10z" fill="#ff9a1f" stroke-width="2"/>`}});
+    return `<svg viewBox="0 0 100 100" aria-hidden="true"><g stroke="${K}" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">${c}
+      <ellipse cx="50" cy="91" rx="46" ry="6" fill="#d7f0ff"/><rect x="8" y="50" width="84" height="36" rx="7" fill="#ffe0b0"/>
+      <path d="M8 60q0-10 10-10h64q10 0 10 10q-6 7-12 0q-7 7-14 0q-7 7-14 0q-7 7-14 0q-7 7-14 0q-5 6-10 0z" fill="#ffb3c7"/></g></svg>`;
+  }
+  // ---- 題目 ----
+  const MOODS=["happy","sad","tired","angry"],WEATHER=["sunny","rainy","cloudy","windy","hot","cold"],AGES=["six","seven","eight","nine"];
+  const TYPES={
+    mood:{q:"How are you?",list:MOODS,reply:m=>`I'm ${m}.`},
+    weather:{q:"How's the weather?",list:WEATHER,reply:w=>`It's ${w}.`},
+    age:{q:"How old are you?",list:AGES,reply:a=>`I'm ${a}.`}
+  };
+  // 晴天和很熱的圖太像，不要同時當選項
+  const clash=(a,b)=>(a==="sunny"&&b==="hot")||(a==="hot"&&b==="sunny");
+  function makeQ(type,first){
+    const T=TYPES[type],ans=pick(T.list);let opts;
+    if(S.lv===1){
+      const ot=pick(Object.keys(TYPES).filter(t=>t!==type));opts=shuffle([T.reply(ans),TYPES[ot].reply(pick(TYPES[ot].list))]);
+    }else{
+      const ds=shuffle(T.list.filter(x=>x!==ans&&!clash(x,ans))).slice(0,2);opts=shuffle([ans,...ds].map(T.reply));
+    }
+    return{type,ans:T.reply(ans),key:ans,q:(first?"Hi! ":"")+T.q,opts};
+  }
+  function render(){
+    const q=S.q;$("qt").textContent=q.q;$("mb").className="bub me";$("mb").textContent="";
+    $("kid").innerHTML=face(q.type==="mood"?q.key:"plain",S.kid);
+    $("hint").innerHTML=q.type==="weather"?WEA[q.key]:q.type==="age"?cake(AGES.indexOf(q.key)+6):"";
+    $("hint").style.display=q.type==="mood"?"none":"";$("kid").classList.toggle("kbig",q.type==="mood");
+    S.sel=null;
+    $("opts").innerHTML=q.opts.map((o,k)=>`<button type="button" class="rbtn" data-w="${o}" aria-pressed="false" aria-label="${S.lv===3?"回答 "+(k+1):o}">${S.lv===3?`🔊 ${k+1}`:o}</button>`).join("")+
+      `<button type="button" class="big ok" id="ok" disabled>OK</button>`;
+    document.querySelectorAll(".rbtn").forEach(b=>b.onclick=()=>{
+      if(S.busy)return;S.sel=b.dataset.w;say(S.sel);
+      document.querySelectorAll(".rbtn").forEach(x=>x.setAttribute("aria-pressed",x===b));$("ok").disabled=false;
+    });
+    $("ok").onclick=check;
+    $("prog").textContent=`${S.i+1} / ${S.total}`;
+    S.busy=true;setTimeout(()=>say(q.q,{onend:()=>{S.busy=false}}),350);
+  }
+  $("again").onclick=()=>{if(S.q)say(S.q.q)};
+  function check(){
+    if(S.busy||!S.sel)return;const q=S.q,b=document.querySelector(`.rbtn[data-w="${CSS.escape(S.sel)}"]`);
+    if(S.sel===q.ans){
+      S.busy=true;if(S.tries===0)S.score++;$("score").textContent=`⭐ ${S.score}`;b.classList.add("yes");sfx.good();EN.mood($("parrot"),"happy");
+      $("mb").textContent=q.ans;$("mb").classList.add("show");
+      setTimeout(()=>say(q.ans,{onend:()=>setTimeout(next,900)}),300);
+    }else{
+      S.tries++;sfx.bad();EN.mood($("parrot"),"oops");b.classList.add("no");b.setAttribute("aria-pressed","false");S.sel=null;$("ok").disabled=true;
+      if(S.tries>=2&&S.lv>1)document.querySelector(`.rbtn[data-w="${CSS.escape(q.ans)}"]`).classList.add("glow");
+      setTimeout(()=>say(q.q),500);
+    }
+  }
+  // 一段對話：三個問題接著問（順序打亂），問完換一個小朋友
+  function nextQ(){
+    if(!S.queue.length){S.queue=shuffle(["mood","weather","age"]);S.kid=S.kid==="boy"?"girl":"boy";S.first=true}
+    S.tries=0;S.q=makeQ(S.queue.shift(),S.first);S.first=false;render();
+  }
+  function next(){if(S.phase!=="play")return;S.i++;if(S.i>=S.total)finish();else nextQ()}
+  function sizeU(){
+    const land=innerHeight<=500;
+    const u=land?Math.min(52,(innerHeight-80)/5.2,innerWidth*.62/11.5):Math.min(76,(innerHeight-250)/5.4,(innerWidth-40)/10.8);
+    document.documentElement.style.setProperty("--u",Math.max(34,Math.floor(u))+"px");
+  }
+  sizeU();addEventListener("resize",sizeU);
+
+  function start(){
+    EN.unlock();S.phase="play";S.i=0;S.score=0;S.queue=[];$("score").textContent="⭐ 0";
+    $("start").hidden=true;$("end").hidden=true;nextQ();
+  }
+  function finish(){
+    S.phase="end";
+    const r=S.score/S.total,st=r>=.9?3:r>=.6?2:1;
+    $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);$("result").textContent=`${S.score} / ${S.total}`;
+    const earn=S.score+(st===3?3:0);EN.addCoins(earn);$("earn").innerHTML=`+${earn} ${EN.coinSvg}`;
+    sfx.end();say(st===3?"Excellent!":st===2?"Great job!":"Good try!");$("end").hidden=false;
+  }
+  $("go").onclick=start;$("replay").onclick=start;
+})();
+</script>
+</body>
+</html>
