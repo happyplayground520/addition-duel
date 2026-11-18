@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>船長說故事</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="en.css?v=20261118d">
+<style>
+/* 船長說故事：一本繪本，每一句旁邊有一張圖，念到哪一句那一行就亮起來；聽完回答 Who／What／When，點英文字聽、選好按 OK */
+body{background:radial-gradient(circle at 15% 20%,rgba(255,255,255,.3) 0 2px,transparent 3px) 0 0/44px 44px,linear-gradient(#d9c4f2,#f3e9ff)}
+main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(8px,1.6vh,16px);
+  padding:0 max(14px,env(safe-area-inset-right,0px)) max(10px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
+.book{position:relative;width:min(100%,780px);background:#fffdf5;border:5px solid #6b4a2b;border-radius:22px;padding:clamp(10px,2vh,18px) clamp(12px,2.4vw,24px);
+  box-shadow:8px 8px 0 #c9a46a,8px 8px 0 5px #6b4a2b,0 16px 30px rgba(0,0,0,.18);display:flex;flex-direction:column;gap:clamp(6px,1.2vh,12px);transform-origin:left center}
+.book.flip{animation:flip .6s ease-in-out}
+@keyframes flip{0%{transform:perspective(1200px) rotateY(0)}45%{transform:perspective(1200px) rotateY(-85deg);opacity:.4}55%{transform:perspective(1200px) rotateY(-85deg);opacity:.4}100%{transform:perspective(1200px) rotateY(0)}}
+.book::before{content:"";position:absolute;left:-14px;top:18px;bottom:18px;width:10px;border-radius:6px;background:repeating-linear-gradient(#6b4a2b 0 10px,transparent 10px 22px)}
+.line{display:flex;align-items:center;gap:clamp(10px,2vw,18px);border-radius:16px;padding:4px 10px;cursor:pointer;transition:background .2s,transform .2s;border:3px solid transparent}
+.line .pics{flex:none;display:flex;gap:4px;align-items:center;background:#f3ecff;border-radius:14px;padding:4px 6px}
+.line .pics .ic{width:var(--ic,64px);height:var(--ic,64px)}
+.line .pics .ic.sm{width:calc(var(--ic,64px)*.75);height:calc(var(--ic,64px)*.75)}
+.line .tx{font-family:var(--en);font-weight:700;font-size:var(--fs,30px);line-height:1.2;color:#8a7a9a;transition:color .2s}
+.line.on{background:#fff3c4;border-color:#ffd23f;transform:scale(1.02)}
+.line.on .tx,.line.done .tx{color:var(--ink)}
+.line.glow{animation:glow 1s infinite}
+@keyframes glow{50%{background:#ffe27a}}
+.qa{width:min(100%,780px);display:flex;flex-direction:column;align-items:center;gap:10px}
+.q{display:inline-flex;align-items:center;gap:10px;background:#fff;border:4px solid var(--ink);border-radius:22px;padding:5px 8px 5px 18px;
+  font-family:var(--en);font-weight:700;font-size:clamp(22px,3.8vmin,34px);box-shadow:0 5px 0 rgba(0,0,0,.12)}
+.q .ibtn{width:48px;height:48px;font-size:24px;background:#ffe9a8;box-shadow:0 3px 0 #d18e0a}
+.opts{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:center}
+.wbtn{font-family:var(--en);font-weight:700;font-size:clamp(24px,4vmin,34px);min-width:110px;min-height:60px;padding:4px 20px;border-radius:18px;border:4px solid #e3d3b8;
+  background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 4px 0 #d8c9ae}
+.wbtn[aria-pressed="true"]{border-color:#7a4fd6;background:#efe6ff;box-shadow:0 4px 0 #7a4fd6}
+.wbtn.glow{animation:glow 1s infinite;border-color:#ffd23f}
+.wbtn.no{opacity:.35;pointer-events:none}
+.wbtn.yes{border-color:var(--good);background:#e2f8ea;box-shadow:0 4px 0 var(--good)}
+.opts .big{min-height:60px}
+.listen{font-family:var(--en);font-weight:700;color:#7a4fd6;font-size:clamp(18px,3vmin,24px);display:flex;align-items:center;gap:8px}
+.listen i{display:inline-block;width:10px;height:10px;border-radius:50%;background:#7a4fd6;animation:dot 1s infinite}
+.listen i:nth-child(2){animation-delay:.2s}.listen i:nth-child(3){animation-delay:.4s}
+@keyframes dot{50%{transform:translateY(-6px);opacity:.4}}
+.capt{position:absolute;right:max(10px,env(safe-area-inset-right,0px));bottom:max(8px,env(safe-area-inset-bottom,0px));width:clamp(54px,9vmin,86px);height:calc(clamp(54px,9vmin,86px)*1.22);pointer-events:none}
+@media (max-height:500px){
+  main{flex-direction:row;align-items:center;gap:14px}
+  .book{width:auto;flex:1 1 60%;max-width:560px;padding:8px 12px;gap:4px}
+  .qa{flex:1 1 40%;width:auto}
+  .q{font-size:20px;padding:3px 6px 3px 12px;border-width:3px}.q .ibtn{width:40px;height:40px}
+  .wbtn{min-width:84px;min-height:48px;font-size:22px;padding:2px 12px}.opts{gap:8px}.opts .big{min-height:48px}
+  .capt{display:none}
+}
+@media (prefers-reduced-motion:reduce){.book.flip,.line.glow,.wbtn.glow,.listen i{animation:none}}
+</style>
+<script src="zhuyin.js?v=20261118d"></script>
+<link rel="stylesheet" href="park.css?v=20261118d">
+<script src="park.js?v=20261118d"></script>
+<script src="en.js?v=20261118d"></script>
+<style>body{font-family:var(--text)}</style>
+</head>
+<body>
+<header class="top">
+  <a class="ibtn" href="cove.html" aria-label="回海盜灣">🏠</a>
+  <div class="mid"><span class="pill" id="prog">1 / 5</span></div>
+  <div class="right"><span class="pill" id="score">⭐ 0</span><button type="button" class="ibtn" id="again" aria-label="再聽一次故事">🔊</button></div>
+</header>
+<main>
+  <div class="book" id="book"></div>
+  <div class="qa" id="qa"></div>
+  <span class="capt pbox" id="parrot"></span>
+</main>
+
+<section class="panel" id="start">
+  <div class="box">
+    <h2>📖 船長說故事</h2>
+    <p class="sub">Story Time</p>
+    <button type="button" class="helpbtn" id="help">🔊 中文說明</button>
+    <span class="lbl2">Level</span>
+    <div class="row" id="levels">
+      <button type="button" class="opt" data-lv="1" aria-label="一顆星"><span class="lvst">⭐</span><small>Who?</small></button>
+      <button type="button" class="opt" data-lv="2" aria-label="兩顆星"><span class="lvst">⭐⭐</span><small>Who? What?</small></button>
+      <button type="button" class="opt" data-lv="3" aria-label="三顆星"><span class="lvst">⭐⭐⭐</span><small>+ When?</small></button>
+    </div>
+    <span class="lbl2">Stories</span>
+    <div class="row" id="totals">
+      <button type="button" class="opt" data-n="5" aria-label="5 個故事"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button>
+      <button type="button" class="opt" data-n="10" aria-label="10 個故事"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>10</small></button>
+      <button type="button" class="opt" data-n="15" aria-label="15 個故事"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>15</small></button>
+    </div>
+    <button type="button" class="big" id="go">READY</button>
+  </div>
+</section>
+<section class="panel" id="end" hidden>
+  <div class="box">
+    <h2 class="en">Great job!</h2>
+    <div id="stars">⭐⭐⭐</div>
+    <div id="result">0 / 5</div>
+    <span class="earn" id="earn"></span>
+    <div class="endrow">
+      <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+      <a class="big alt ico-btn" href="cove.html" aria-label="回海盜灣">🏠</a>
+    </div>
+  </div>
+</section>
+
+<script>
+(()=>{
+  const $=id=>document.getElementById(id),{pref,rnd,shuffle,pick,say,sfx}=EN;
+  const S={lv:+pref("story-lv")||1,total:+pref("story-total")||5,phase:"start",i:0,score:0,tries:0,story:null,busy:true,sel:null,run:0};
+  if(![1,2,3].includes(S.lv))S.lv=1;if(![5,10,15].includes(S.total))S.total=5;
+  $("parrot").innerHTML=EN.parrot();
+  function sync(){
+    document.querySelectorAll("#levels .opt").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
+    document.querySelectorAll("#totals .opt").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===S.total));
+  }
+  document.querySelectorAll("#levels .opt").forEach(b=>b.onclick=()=>{S.lv=+b.dataset.lv;pref("story-lv",S.lv);sync()});
+  document.querySelectorAll("#totals .opt").forEach(b=>b.onclick=()=>{S.total=+b.dataset.n;pref("story-total",S.total);sync()});
+  sync();
+  const HELP={
+    1:"船長說故事，一顆星。船長會念一個很短的英文故事，念到哪一句，那一句就會亮起來。聽完要回答 Who，就是「是誰」。點下面的英文字可以聽它怎麼念，選好了再按 OK。",
+    2:"船長說故事，兩顆星。故事裡有兩個人。問題會問 Who，是誰；或是 What，是什麼。點英文字可以聽，選好了按 OK。想再聽一次故事，就按右上角的喇叭。",
+    3:"船長說故事，三顆星。故事有三句。除了 Who 和 What，還會問 When，就是什麼時候：morning 是早上，afternoon 是下午，night 是晚上。仔細聽喔！"
+  };
+  EN.helpBtn($("help"),()=>HELP[S.lv]);
+
+  // ---- 故事材料 ----
+  const PEOPLE=[{n:"Tom",he:"He"},{n:"Ben",he:"He"},{n:"Amy",he:"She"},{n:"Mom",he:"She"},{n:"Dad",he:"He"}];
+  const HAVE=["cat","dog","bird","fish","rabbit","duck","ball","kite","doll","robot","car","bike"];
+  const LIKE=["cake","milk","bread","pizza","ice cream","candy","juice","rice"];
+  // 有時間的句子：動詞（三單）、問句用的原形、可以搭的東西
+  const ACT=[{v3:"eats",v:"eat",objs:["cake","bread","pizza","ice cream","rice","cookies"],ic:o=>o==="cookies"?"cookie":o},
+    {v3:"drinks",v:"drink",objs:["milk","juice"]},{v3:"plays with",v:"play with",objs:["a ball","a kite","a doll","a robot"],ic:o=>o.slice(2)},
+    {v3:"rides",v:"ride",objs:["a bike","a scooter"],ic:o=>o.slice(2)}];
+  const TIME=[["in the morning","morning"],["in the afternoon","afternoon"],["at night","night"]];
+  const art=w=>/^[aeiou]/.test(w)?"an":"a";
+  const others=(list,keep,n)=>shuffle(list.filter(x=>x!==keep)).slice(0,n);
+  function makeStory(){
+    const lines=[],[p1,p2]=shuffle(PEOPLE.slice());
+    if(S.lv===1){
+      const o=pick(HAVE);
+      if(Math.random()<.5)lines.push({t:`This is ${p1.n}.`,pics:[p1.n]});
+      lines.push({t:`${p1.n} has ${art(o)} ${o}.`,pics:[p1.n,o]});
+      return{lines,q:`Who has ${art(o)} ${o}?`,ans:p1.n,opts:shuffle([p1.n,...others(PEOPLE.map(p=>p.n),p1.n,2)]),fact:lines.length-1};
+    }
+    if(S.lv===2){
+      // 兩個人各一件事（有什麼或喜歡什麼），問其中一件的 Who 或 What
+      const fact=(p,used)=>{const like=Math.random()<.45,pool=like?LIKE:HAVE,o=pick(pool.filter(x=>x!==used));
+        return{p,like,o,pool,t:like?`${p.n} likes ${o}.`:`${p.n} has ${art(o)} ${o}.`}};
+      const f1=fact(p1),f2=fact(p2,f1.o),F=[f1,f2];
+      F.forEach(f=>lines.push({t:f.t,pics:[f.p.n,f.o]}));
+      let off=0;if(Math.random()<.4){lines.unshift({t:`This is ${p1.n} and ${p2.n}.`,pics:[p1.n,p2.n]});off=1}
+      const k=rnd(0,1),f=F[k],g=F[1-k];
+      if(Math.random()<.5){
+        const third=pick(PEOPLE.filter(p=>p!==p1&&p!==p2)).n;
+        return{lines,q:f.like?`Who likes ${f.o}?`:`Who has ${art(f.o)} ${f.o}?`,ans:f.p.n,opts:shuffle([p1.n,p2.n,third]),fact:k+off};
+      }
+      const opts=[f.o,g.o];opts.push(pick(f.pool.filter(x=>!opts.includes(x))));
+      return{lines,q:`What does ${f.p.n} ${f.like?"like":"have"}?`,ans:f.o,opts:shuffle(opts),fact:k+off};
+    }
+    // ⭐⭐⭐：三句，兩個人，一句有時間
+    const o1=pick(HAVE),a=pick(ACT),obj=pick(a.objs),tm=pick(TIME),icObj=a.ic?a.ic(obj):obj;
+    lines.push({t:`This is ${p1.n} and ${p2.n}.`,pics:[p1.n,p2.n]});
+    lines.push({t:`${p1.n} has ${art(o1)} ${o1}.`,pics:[p1.n,o1]});
+    lines.push({t:`${p2.n} ${a.v3} ${obj} ${tm[0]}.`,pics:[p2.n,icObj,tm[1]]});
+    const kind=pick(["who","what","when","when"]);
+    if(kind==="when")return{lines,q:`When does ${p2.n} ${a.v} ${obj}?`,ans:tm[1],opts:["morning","afternoon","night"],fact:2};
+    if(kind==="who")return{lines,q:`Who ${a.v3} ${obj}?`,ans:p2.n,opts:shuffle([p1.n,p2.n,others(PEOPLE.map(p=>p.n),p1.n,3).find(x=>x!==p2.n)]),fact:2};
+    const pool=HAVE;return{lines,q:`What does ${p1.n} have?`,ans:o1,opts:shuffle([o1,...others(pool,o1,2)]),fact:1};
+  }
+
+  // ---- 畫面 ----
+  function sizeBook(n){
+    // 依畫面高度決定圖和字的大小，三行也放得下
+    const land=innerHeight<=500,avail=innerHeight-(land?150:260),row=Math.max(46,Math.min(96,avail/n-14,innerWidth<500?innerWidth*.16+(innerHeight-667)*.08:999));
+    document.documentElement.style.setProperty("--ic",Math.round(row*.82)+"px");
+    document.documentElement.style.setProperty("--fs",Math.round(Math.max(18,Math.min(34,row*.36,innerWidth/(land?40:24))))+"px");
+  }
+  function renderStory(){
+    const st=S.story,book=$("book");
+    sizeBook(st.lines.length);
+    book.innerHTML=st.lines.map((l,i)=>`<div class="line" data-i="${i}"><span class="pics">${l.pics.map((p,j)=>EN.icon(p,j===2?"sm":"")).join("")}</span><span class="tx">${l.t}</span></div>`).join("");
+    book.querySelectorAll(".line").forEach(el=>el.onclick=()=>{if(!S.busy)say(st.lines[+el.dataset.i].t)});
+    book.classList.remove("flip");void book.offsetWidth;book.classList.add("flip");
+  }
+  function readStory(then){
+    const run=++S.run,lines=[...$("book").querySelectorAll(".line")];S.busy=true;
+    $("qa").innerHTML=`<span class="listen"><i></i><i></i><i></i> Listen</span>`;
+    lines.forEach(l=>l.classList.remove("on","done"));
+    let k=0;
+    const next=()=>{
+      if(run!==S.run)return;
+      lines.forEach(l=>l.classList.remove("on"));
+      if(k>=lines.length){S.busy=false;then&&then();return}
+      const el=lines[k];el.classList.add("on","done");
+      say(S.story.lines[k].t,{onend:()=>{k++;setTimeout(next,450)}});
+    };
+    setTimeout(next,700);
+  }
+  function showQuestion(){
+    const st=S.story;S.sel=null;
+    $("qa").innerHTML=`<span class="q">${st.q}<button type="button" class="ibtn" id="qsay" aria-label="再聽一次問題">🔊</button></span>
+      <div class="opts">${st.opts.map(o=>`<button type="button" class="wbtn" data-w="${o}" aria-pressed="false">${o}</button>`).join("")}<button type="button" class="big ok" id="ok" disabled>OK</button></div>`;
+    $("qsay").onclick=()=>say(st.q);
+    document.querySelectorAll(".wbtn").forEach(b=>b.onclick=()=>{
+      if(S.busy)return;S.sel=b.dataset.w;say(S.sel);
+      document.querySelectorAll(".wbtn").forEach(x=>x.setAttribute("aria-pressed",x===b));$("ok").disabled=false;
+    });
+    $("ok").onclick=check;
+    setTimeout(()=>say(st.q),250);
+  }
+  function check(){
+    if(S.busy||!S.sel)return;const st=S.story,b=document.querySelector(`.wbtn[data-w="${CSS.escape(S.sel)}"]`);
+    if(S.sel===st.ans){
+      S.busy=true;if(S.tries===0)S.score++;$("score").textContent=`⭐ ${S.score}`;
+      b.classList.add("yes");sfx.good();EN.mood($("parrot"),"happy");
+      const fl=$("book").querySelectorAll(".line")[st.fact];fl.classList.add("on");
+      setTimeout(()=>say(`${pick(EN.PRAISE)} ${st.lines[st.fact].t}`,{onend:()=>setTimeout(nextStory,700)}),350);
+    }else{
+      S.tries++;sfx.bad();EN.mood($("parrot"),"oops");b.classList.add("no");b.setAttribute("aria-pressed","false");S.sel=null;$("ok").disabled=true;
+      if(S.tries>=2){const fl=$("book").querySelectorAll(".line")[st.fact];fl.classList.add("glow");setTimeout(()=>say(st.lines[st.fact].t),500)}
+      else setTimeout(()=>say(st.q),500);
+    }
+  }
+  function nextStory(){if(S.phase!=="play")return;S.i++;if(S.i>=S.total)finish();else newStory()}
+  function newStory(){
+    S.tries=0;S.story=makeStory();$("prog").textContent=`${S.i+1} / ${S.total}`;
+    renderStory();readStory(showQuestion);
+  }
+  $("again").onclick=()=>{if(S.phase==="play"&&S.story&&!S.busy){S.busy=true;readStory(showQuestion)}};
+
+  function start(){
+    EN.unlock();S.phase="play";S.i=0;S.score=0;$("score").textContent="⭐ 0";
+    $("start").hidden=true;$("end").hidden=true;newStory();
+  }
+  function finish(){
+    S.phase="end";S.run++;
+    const r=S.score/S.total,st=r>=.9?3:r>=.6?2:1;
+    $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);$("result").textContent=`${S.score} / ${S.total}`;
+    const earn=S.score*2+(st===3?3:0);EN.addCoins(earn);$("earn").innerHTML=`+${earn} ${EN.coinSvg}`;
+    sfx.end();say(st===3?"Excellent!":st===2?"Great job!":"Good try!");$("end").hidden=false;
+  }
+  $("go").onclick=start;$("replay").onclick=start;
+  addEventListener("resize",()=>{if(S.story)sizeBook(S.story.lines.length)});
+})();
+</script>
+</body>
+</html>

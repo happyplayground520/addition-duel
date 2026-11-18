@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>鸚鵡拼字</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="en.css?v=20261118d">
+<style>
+/* 鸚鵡拼字：聽單字，點字母積木排進木板上的格子。⭐ 只補第一個字母；⭐⭐ 三個字母排順序；⭐⭐⭐ 沒有圖、四五個字母，還多放用不到的字母 */
+body{background:radial-gradient(circle at 80% 15%,rgba(255,255,255,.5) 0 3px,transparent 4px) 0 0/60px 60px,linear-gradient(#ffd9ec,#fff1f7)}
+main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--t,72px)*.42);
+  padding:0 max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
+.head{display:flex;align-items:center;gap:calc(var(--t)*.3)}
+.head .pbox{width:calc(var(--t)*1.25);height:calc(var(--t)*1.52)}
+.pic{width:calc(var(--t)*1.9);height:calc(var(--t)*1.9);border-radius:24px;background:#fff;border:5px solid #fff;box-shadow:0 0 0 4px #d1478f,0 8px 16px rgba(0,0,0,.12);padding:6px;display:grid;place-items:center}
+.pic .ic{width:100%;height:100%}
+.pic.hidden{background:repeating-linear-gradient(45deg,#ffe3f1 0 12px,#fff 12px 24px)}
+.pic .q{font-family:var(--num);font-weight:800;font-size:calc(var(--t)*1.1);color:#d1478f}
+.spk{width:calc(var(--t)*1.25);aspect-ratio:1;border-radius:50%;border:5px solid #fff;background:radial-gradient(circle at 35% 30%,#ffe9a8,#ffc53d);font-size:calc(var(--t)*.6);
+  cursor:pointer;box-shadow:0 6px 0 #d18e0a;display:grid;place-items:center;padding:0}
+.spk:active{transform:translateY(4px);box-shadow:0 2px 0 #d18e0a}
+/* 木板上的格子 */
+.board{display:flex;gap:calc(var(--t)*.16);padding:calc(var(--t)*.2) calc(var(--t)*.28);border-radius:20px;border:4px solid #6e4122;
+  background:repeating-linear-gradient(90deg,#d39a5c 0 40px,#c98a4b 40px 42px);box-shadow:0 7px 0 #8a5328}
+.slot{width:var(--t);height:var(--t);border-radius:16px;border:4px dashed rgba(110,65,34,.55);background:rgba(255,255,255,.35);display:grid;place-items:center;cursor:pointer;padding:0}
+.slot.fixed{border:4px solid #6e4122;background:#fffaf0;font-family:var(--en);font-weight:700;font-size:calc(var(--t)*.62);color:var(--ink);cursor:default}
+.slot.next{border-color:#fff;background:rgba(255,255,255,.65);animation:blink 1.1s infinite}
+@keyframes blink{50%{background:rgba(255,255,255,.2)}}
+/* 字母積木 */
+.tray{display:flex;gap:calc(var(--t)*.2);flex-wrap:wrap;justify-content:center;max-width:100%}
+.tile{width:var(--t);height:var(--t);border-radius:16px;border:4px solid #3a2a22;background:var(--c,#ffd23f);font-family:var(--en);font-weight:700;font-size:calc(var(--t)*.62);
+  line-height:1;color:var(--ink);cursor:pointer;box-shadow:0 5px 0 rgba(0,0,0,.25),inset 0 -6px 0 rgba(0,0,0,.08);display:grid;place-items:center;padding:0;transition:transform .15s}
+.tile:active{transform:translateY(3px)}
+.tile.used{visibility:hidden}
+.slot .tile{width:100%;height:100%;box-shadow:inset 0 -6px 0 rgba(0,0,0,.08)}
+.slot .tile.ok{background:#9ef0b9}
+.tile.bad{animation:wig .4s}
+@keyframes wig{25%{rotate:-12deg}75%{rotate:12deg}}
+.board.win{animation:win .6s}
+@keyframes win{40%{transform:scale(1.08)}}
+@media (max-height:500px){
+  main{flex-direction:row;flex-wrap:wrap;align-content:center;gap:10px 22px}
+  .head{flex-direction:column;gap:6px}.head .pbox{display:none}
+  .mid2{display:flex;flex-direction:column;gap:14px;align-items:center}
+}
+.mid2{display:contents}
+@media (max-height:500px){.mid2{display:flex}}
+@media (prefers-reduced-motion:reduce){.slot.next,.board.win{animation:none}}
+</style>
+<script src="zhuyin.js?v=20261118d"></script>
+<link rel="stylesheet" href="park.css?v=20261118d">
+<script src="park.js?v=20261118d"></script>
+<script src="en.js?v=20261118d"></script>
+<style>body{font-family:var(--text)}</style>
+</head>
+<body>
+<header class="top">
+  <a class="ibtn" href="cove.html" aria-label="回海盜灣">🏠</a>
+  <div class="mid"><span class="pill" id="prog">1 / 10</span></div>
+  <div class="right"><span class="pill" id="score">⭐ 0</span></div>
+</header>
+<main id="main">
+  <div class="head"><span class="pbox" id="parrot"></span><div class="pic" id="pic"></div><button type="button" class="spk" id="spk" aria-label="再聽一次">🔊</button></div>
+  <div class="mid2"><div class="board" id="board"></div><div class="tray" id="tray"></div></div>
+</main>
+
+<section class="panel" id="start">
+  <div class="box">
+    <h2>🦜 鸚鵡拼字</h2>
+    <p class="sub">Spelling</p>
+    <button type="button" class="helpbtn" id="help">🔊 中文說明</button>
+    <span class="lbl2">Level</span>
+    <div class="row" id="levels">
+      <button type="button" class="opt" data-lv="1" aria-label="一顆星"><span class="lvst">⭐</span><small>_at</small></button>
+      <button type="button" class="opt" data-lv="2" aria-label="兩顆星"><span class="lvst">⭐⭐</span><small>c a t</small></button>
+      <button type="button" class="opt" data-lv="3" aria-label="三顆星"><span class="lvst">⭐⭐⭐</span><small>🔊 fish</small></button>
+    </div>
+    <span class="lbl2">Words</span>
+    <div class="row" id="totals">
+      <button type="button" class="opt" data-n="5" aria-label="5 個字"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button>
+      <button type="button" class="opt" data-n="10" aria-label="10 個字"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>10</small></button>
+      <button type="button" class="opt" data-n="15" aria-label="15 個字"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>15</small></button>
+    </div>
+    <button type="button" class="big" id="go">READY</button>
+  </div>
+</section>
+<section class="panel" id="end" hidden>
+  <div class="box">
+    <h2 class="en">Great job!</h2>
+    <div id="stars">⭐⭐⭐</div>
+    <div id="result">0 / 10</div>
+    <span class="earn" id="earn"></span>
+    <div class="endrow">
+      <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+      <a class="big alt ico-btn" href="cove.html" aria-label="回海盜灣">🏠</a>
+    </div>
+  </div>
+</section>
+
+<script>
+(()=>{
+  const $=id=>document.getElementById(id),{pref,rnd,shuffle,pick,say,sfx}=EN;
+  const S={lv:+pref("spell-lv")||1,total:+pref("spell-total")||10,phase:"start",i:0,score:0,miss:0,word:"",busy:false};
+  if(![1,2,3].includes(S.lv))S.lv=1;if(![5,10,15].includes(S.total))S.total=10;
+  $("parrot").innerHTML=EN.parrot();
+  function sync(){
+    document.querySelectorAll("#levels .opt").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
+    document.querySelectorAll("#totals .opt").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===S.total));
+  }
+  document.querySelectorAll("#levels .opt").forEach(b=>b.onclick=()=>{S.lv=+b.dataset.lv;pref("spell-lv",S.lv);sync()});
+  document.querySelectorAll("#totals .opt").forEach(b=>b.onclick=()=>{S.total=+b.dataset.n;pref("spell-total",S.total);sync()});
+  sync();
+  const HELP={
+    1:"鸚鵡拼字，一顆星。看圖、聽英文單字，這個字的第一個字母不見了。從下面的字母積木裡，選出正確的字母補上去。點積木可以聽它怎麼念。",
+    2:"鸚鵡拼字，兩顆星。聽英文單字，把下面的字母積木一個一個點上去，排成這個字。點錯了，再點一下木板上的積木，就可以拿下來。",
+    3:"鸚鵡拼字，三顆星。這一關沒有圖，只能用聽的，字也比較長。下面會多一兩個用不到的字母，要仔細聽喔。點黃色的喇叭可以再聽一次。"
+  };
+  EN.helpBtn($("help"),()=>HELP[S.lv]);
+
+  // ---- 單字（都有圖） ----
+  const THEME={red:"colors",blue:"colors",pink:"colors",green:"colors",black:"colors",white:"colors",brown:"colors"};
+  const W1="cat dog pig cow bus car hat red pink blue bird fish duck bear frog lion cake milk bike boat ball kite doll rice nine five four six ten tiger pizza candy bread robot train plane juice green black white brown seven three".split(" ");
+  const W2="cat dog pig cow bus car hat red ten six egg frog milk pink".split(" ");
+  const W3="fish duck bear cake bike boat ball kite doll lion rice blue five four nine bird apple bread candy pizza tiger robot train plane juice green black white brown seven three".split(" ");
+  const COLORS=["#ffd23f","#7cc7ff","#ff9fb2","#9ef0b9","#cfa3ff","#ffb36b"];
+  let order=[];
+  const nextWord=()=>{if(!order.length)order=shuffle((S.lv===1?W1:S.lv===2?W2:W3).slice());return order.pop()};
+  const ic=w=>EN.iconIn(w,THEME[w]||"");
+  const sayL=c=>say(c.toUpperCase(),{rate:.8});
+  const sayWord=()=>{if(S.word)say(S.word,{rate:.62})};
+  $("spk").onclick=sayWord;
+
+  function sizeT(n){
+    const land=innerHeight<=500,W=innerWidth-40,H=innerHeight;
+    const t=land?Math.min(66,(W*.6)/(n+.6)/1.18,(H-90)/3.3):Math.min(96,W/(Math.max(n,4)+.8)/1.2,(H-110)/6.6);
+    document.documentElement.style.setProperty("--t",Math.max(44,Math.floor(t))+"px");
+  }
+  let slots=[],tiles=[];
+  function newWord(){
+    S.busy=false;S.miss=0;const w=S.word=nextWord(),L=[...w];
+    $("prog").textContent=`${S.i+1} / ${S.total}`;
+    $("pic").className="pic"+(S.lv===3?" hidden":"");$("pic").innerHTML=S.lv===3?`<span class="q">?</span>`:ic(w);
+    // 字母積木
+    let letters;
+    if(S.lv===1){
+      const cons="bcdfghjklmnprstvwyz".split("").filter(c=>c!==L[0]);
+      letters=shuffle([L[0],...shuffle(cons).slice(0,2)]);
+    }else{
+      letters=L.slice();
+      if(S.lv===3){const extra=shuffle("abcdefghijklmnoprstuwy".split("").filter(c=>!L.includes(c))).slice(0,L.length>=5?2:1);letters.push(...extra)}
+      do{shuffle(letters)}while(letters.join("").startsWith(w)&&letters.length>1);
+    }
+    sizeT(Math.max(L.length,letters.length));
+    $("board").className="board";
+    $("board").innerHTML=L.map((c,k)=>S.lv===1&&k>0?`<span class="slot fixed">${c}</span>`:`<button type="button" class="slot" data-k="${k}" aria-label="空格"></button>`).join("");
+    $("tray").innerHTML=letters.map((c,k)=>`<button type="button" class="tile" data-c="${c}" style="--c:${COLORS[k%COLORS.length]}">${c}</button>`).join("");
+    slots=[...$("board").querySelectorAll("button.slot")];tiles=[...$("tray").querySelectorAll(".tile")];
+    tiles.forEach(t=>t.onclick=()=>pickTile(t));
+    slots.forEach(s=>s.onclick=()=>unplace(s));
+    markNext();
+    setTimeout(sayWord,350);
+  }
+  const markNext=()=>{const n=slots.find(s=>!s.firstChild);slots.forEach(s=>s.classList.toggle("next",s===n))};
+  function pickTile(t){
+    if(S.busy||t.classList.contains("used"))return;
+    const s=slots.find(x=>!x.firstChild);if(!s)return;
+    sfx.pop();sayL(t.dataset.c);
+    const c=t.cloneNode(true);c.onclick=null;c.dataset.from=tiles.indexOf(t);s.appendChild(c);t.classList.add("used");markNext();
+    if(slots.every(x=>x.firstChild))setTimeout(check,350);
+  }
+  function unplace(s){
+    if(S.busy||!s.firstChild||s.firstChild.classList.contains("ok"))return;
+    tiles[+s.firstChild.dataset.from].classList.remove("used");s.innerHTML="";markNext();
+  }
+  function check(){
+    const L=[...S.word];let allOk=true;
+    slots.forEach(s=>{const k=+s.dataset.k,t=s.firstChild;if(!t)return;
+      if(t.dataset.c===L[k])t.classList.add("ok");else allOk=false});
+    if(allOk)return win();
+    // 放錯的積木彈回去，對的留著（變綠色）
+    S.miss++;sfx.bad();EN.mood($("parrot"),"oops");S.busy=true;
+    slots.forEach(s=>{const t=s.firstChild;if(t&&!t.classList.contains("ok"))t.classList.add("bad")});
+    setTimeout(()=>{slots.forEach(s=>{const t=s.firstChild;if(t&&!t.classList.contains("ok")){tiles[+t.dataset.from].classList.remove("used");s.innerHTML=""}});
+      S.busy=false;markNext();
+      if(S.miss>=2){const s=slots.find(x=>!x.firstChild);if(s){const want=S.word[+s.dataset.k],t=tiles.find(x=>!x.classList.contains("used")&&x.dataset.c===want);if(t){t.classList.remove("bad");void t.offsetWidth;t.classList.add("bad")}}}
+      sayWord()},520);
+  }
+  function win(){
+    S.busy=true;if(S.miss===0)S.score++;$("score").textContent=`⭐ ${S.score}`;
+    slots.forEach(s=>s.classList.remove("next"));
+    sfx.good();EN.mood($("parrot"),"happy");$("board").classList.add("win");
+    if(S.lv===3){$("pic").className="pic";$("pic").innerHTML=ic(S.word)}
+    // 一個一個字母念，再念整個字
+    setTimeout(()=>say(`${[...S.word].map(c=>c.toUpperCase()).join(", ")}. ${S.word}!`,{rate:.7,onend:()=>setTimeout(next,600)}),400);
+  }
+  function next(){if(S.phase!=="play")return;S.i++;if(S.i>=S.total)finish();else newWord()}
+
+  function start(){
+    EN.unlock();S.phase="play";S.i=0;S.score=0;order=[];$("score").textContent="⭐ 0";
+    $("start").hidden=true;$("end").hidden=true;newWord();
+  }
+  function finish(){
+    S.phase="end";
+    const r=S.score/S.total,st=r>=.9?3:r>=.6?2:1;
+    $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);$("result").textContent=`${S.score} / ${S.total}`;
+    const earn=S.score+(st===3?3:0);EN.addCoins(earn);$("earn").innerHTML=`+${earn} ${EN.coinSvg}`;
+    sfx.end();say(st===3?"Excellent!":st===2?"Great job!":"Good try!");$("end").hidden=false;
+  }
+  $("go").onclick=start;$("replay").onclick=start;
+  addEventListener("resize",()=>{if(S.word)sizeT(Math.max(S.word.length,tiles.length))});
+})();
+</script>
+</body>
+</html>

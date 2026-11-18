@@ -201,6 +201,30 @@
     umbrella:`<path d="M50 50v31q0 9-8 9t-8-9" fill="none" stroke-width="5"/><path d="M50 15V9" fill="none" stroke-width="4"/>
       <path d="M9 51q0-37 41-37t41 37q-7-6-13 0q-7-6-14 0q-7-6-14 0q-7-6-14 0q-7-6-13 0q-7-6-13 0z" fill="#7b5cff"/>
       <path d="M50 14q-14 14-14 37M50 14q14 14 14 37" fill="none" stroke-width="3"/>`
+    ,
+    // 故事人物（上半身）
+    Tom:`<path d="M16 100q4-27 34-27t34 27z" fill="#4da3ff"/><path d="M42 74l8 8 8-8" fill="#fff" stroke-width="3"/><circle cx="26" cy="50" r="5.5" fill="#ffd9b8"/><circle cx="74" cy="50" r="5.5" fill="#ffd9b8"/>
+      <circle cx="50" cy="48" r="24" fill="#ffd9b8"/><path d="M26 46q-2-28 24-28t24 28q-8-13-24-13t-24 13z" fill="#a8683a"/>${e(41,50)}${e(59,50)}<path d="M44 59q6 5 12 0" fill="none" stroke-width="3"/>${ch(35,57)}${ch(65,57)}`,
+    Ben:`<path d="M16 100q4-27 34-27t34 27z" fill="#2ecc71"/><circle cx="26" cy="50" r="5.5" fill="#f2c9a0"/><circle cx="74" cy="50" r="5.5" fill="#f2c9a0"/>
+      <circle cx="50" cy="48" r="24" fill="#f2c9a0"/><path d="M25 44l3-18 7 8 5-13 6 11 5-13 5 11 6-11 4 13 6-6 3 18q-8-9-25-9t-25 9z" fill="#2b2b2b"/>${e(41,50)}${e(59,50)}
+      <path d="M43 59q7 6 14 0" fill="#fff" stroke-width="3"/>${ch(35,57)}${ch(65,57)}`,
+    Amy:`<circle cx="21" cy="52" r="10" fill="#e8a24a"/><circle cx="79" cy="52" r="10" fill="#e8a24a"/><path d="M14 44l8 6-8 4zM86 44l-8 6 8 4z" fill="#ff4d8a" stroke-width="2.5"/>
+      <path d="M16 100q4-27 34-27t34 27z" fill="#ff8fc7"/><circle cx="50" cy="48" r="24" fill="#ffe0c2"/>
+      <path d="M26 48q-2-30 24-30t24 30q-6-10-14-12q-10 6-20 2q-8 2-14 10z" fill="#e8a24a"/>${e(41,51)}${e(59,51)}<path d="M45 60q5 4 10 0" fill="none" stroke-width="3"/>${ch(35,58)}${ch(65,58)}`,
+    Mom:`<path d="M22 46q0-32 28-32t28 32v34H22z" fill="#6e4122"/><path d="M16 100q4-27 34-27t34 27z" fill="#9b51e0"/><circle cx="50" cy="49" r="23" fill="#ffd9b8"/>
+      <path d="M27 47q2-24 23-24t23 24q-12-4-18-14q-8 12-28 14z" fill="#6e4122"/>${e(41,51)}${e(59,51)}<path d="M45 60q5 4 10 0" fill="#ff6b8a" stroke-width="3"/>${ch(35,58)}${ch(65,58)}
+      <circle cx="27" cy="62" r="2.6" fill="#ffd23f"/><circle cx="73" cy="62" r="2.6" fill="#ffd23f"/>`,
+    Dad:`<path d="M16 100q4-27 34-27t34 27z" fill="#ef6b3a"/><path d="M40 74l10 10 10-10" fill="#fff" stroke-width="3"/><circle cx="25" cy="49" r="5.5" fill="#f2c9a0"/><circle cx="75" cy="49" r="5.5" fill="#f2c9a0"/>
+      <rect x="26" y="22" width="48" height="52" rx="22" fill="#f2c9a0"/><path d="M26 42q0-22 24-22t24 22q-4-8-12-10q-10 4-24 2q-8 2-12 8z" fill="#3a2a22"/>
+      ${e(41,47)}${e(59,47)}<path d="M40 57q5-4 10 0q5-4 10 0q-5 3-10 1q-5 2-10-1z" fill="#3a2a22" stroke-width="2"/><path d="M45 64q5 3 10 0" fill="none" stroke-width="3"/>`,
+    // 時間
+    morning:`<rect x="6" y="14" width="88" height="72" rx="12" fill="#ffd7a8"/><path d="M8 66h84" fill="none" stroke-width="3"/>
+      <path d="M30 66a20 20 0 0 1 40 0z" fill="#ffc53d"/><path d="M50 30v-9M26 40l-6-6M74 40l6-6M18 58h-7M82 58h7" fill="none" stroke="#ff9a1f" stroke-width="4"/>
+      <path d="M10 76q10-5 20 0t20 0 20 0 20 0" fill="none" stroke="#4da3ff" stroke-width="3"/>`,
+    afternoon:`<rect x="6" y="14" width="88" height="72" rx="12" fill="#9fdcff"/><circle cx="50" cy="44" r="15" fill="#ffd93d"/>
+      <path d="M50 20v-4M50 72v-4M26 44h-4M78 44h-4M33 27l-3-3M67 27l3-3M33 61l-3 3M67 61l3 3" fill="none" stroke="#ff9a1f" stroke-width="4"/><path d="M8 76h84" fill="none" stroke="#5cc24a" stroke-width="5"/>`,
+    night:`<rect x="6" y="14" width="88" height="72" rx="12" fill="#2b3a7a"/><path d="M60 26a20 20 0 1 0 14 34a16 16 0 1 1-14-34z" fill="#ffe27a"/>
+      <g fill="#fff" stroke="none"><circle cx="24" cy="30" r="2.4"/><circle cx="36" cy="64" r="2"/><circle cx="20" cy="54" r="1.6"/><circle cx="80" cy="74" r="2"/></g>`
   };
   // 顏色：一團可愛的顏料
   const COLOR={red:"#ff4136",blue:"#2f7bff",yellow:"#ffd60a",green:"#2ecc40",black:"#2b2b2b",white:"#ffffff",pink:"#ff8fc7",purple:"#9b51e0",brown:"#9a5b32",orange:"#ff8c1a"};

@@ -44,16 +44,13 @@ header,.map,.toast{position:relative;z-index:1}
 .zybtn[aria-pressed="true"] .sw::after{transform:translateX(22px)}
 .zybtn .st{min-width:1.2em;color:var(--muted)}
 @media (orientation:portrait){.zybtn{top:auto;bottom:max(10px,env(safe-area-inset-bottom,0px))}}
-/* 左上角：開船去海盜灣（英文區） */
+/* 左上角：開船去海盜灣（英文區），一個小圖示按鈕 */
 .covebtn{position:fixed;z-index:5;top:max(10px,env(safe-area-inset-top,0px));left:max(12px,env(safe-area-inset-left,0px));
-  display:flex;align-items:center;gap:8px;font-weight:800;font-size:clamp(15px,2.2vmin,19px);color:#fff;text-decoration:none;
-  background:#2b2b3a;border:3px solid #fff;border-radius:999px;padding:4px 16px 4px 6px;box-shadow:0 4px 0 #15151f,0 8px 16px rgba(0,0,0,.18)}
-.covebtn svg{width:clamp(40px,6vmin,54px);height:clamp(40px,6vmin,54px);display:block;animation:rock 2.4s ease-in-out infinite;transform-origin:50% 80%}
-.covebtn small{display:block;font-family:"Andika","Baloo 2",sans-serif;font-size:.78em;color:#ffe27a;font-weight:700;line-height:1}
+  width:56px;height:56px;border-radius:16px;background:#fff;display:grid;place-items:center;text-decoration:none;box-shadow:0 4px 0 #b9dff5,0 8px 16px rgba(0,0,0,.12)}
+.covebtn:active{transform:translateY(3px)}
+.covebtn svg{width:44px;height:44px;display:block;animation:rock 2.4s ease-in-out infinite;transform-origin:50% 80%}
 @keyframes rock{50%{transform:rotate(-7deg)}}
-@media (orientation:portrait){.covebtn{top:auto;bottom:max(10px,env(safe-area-inset-bottom,0px))}
-  html:not(.phone) body{padding-bottom:max(78px,env(safe-area-inset-bottom,0px))}
-  html:not(.phone) .map{width:min(100%,calc((100dvh - 210px) * .8))}}
+html.phone .covebtn{position:absolute;width:48px;height:48px}html.phone .covebtn svg{width:38px;height:38px}
 /* 標題招牌：紅白條紋的帳篷布，下面一條緞帶 */
 header{display:flex;flex-direction:column;align-items:center;gap:4px}
 h1{margin:0;font-size:clamp(26px,5vmin,52px);line-height:1.15;font-weight:800;letter-spacing:.08em;color:#fff;
@@ -151,8 +148,9 @@ h1 .star{font-size:.7em;text-shadow:none}
 /* ---- 手機：地圖變成長長的步道，往下捲著逛（一排 2 個，手機橫放一排 4 個） ---- */
 html.phone,html.phone body{height:auto;min-height:100%}
 html.phone body{overflow-x:hidden;overflow-y:auto;justify-content:flex-start;-webkit-overflow-scrolling:touch}
-html.phone header{order:0} html.phone .zybtn{order:1;position:static;margin:2px auto 4px} html.phone .covebtn{order:1;position:static;margin:2px auto 2px;align-self:center} html.phone .map{order:2}
-html.phone h1{font-size:26px;border-width:3px} html.phone .sub{display:block;font-size:15px}
+html.phone header{order:0} html.phone .zybtn{order:1;position:static;margin:2px auto 4px} html.phone .map{order:2}
+html.phone h1{font-size:21px;border-width:3px;letter-spacing:.04em} html.phone h1 .star{display:none}
+@media (max-width:370px){html.phone h1{font-size:19px}} html.phone .sub{display:block;font-size:15px}
 html.phone .map{width:100%;max-width:900px;aspect-ratio:auto;flex:none;margin-bottom:max(16px,env(safe-area-inset-bottom,0px))}
 html.phone .spot .icon{width:84px;font-size:50px;border-width:5px}
 html.phone .spot.big .icon{width:108px;font-size:66px}
@@ -229,7 +227,7 @@ html.phone .bunting{height:36px}
 <a class="covebtn" href="cove.html" aria-label="開船去海盜灣，玩英文"><svg viewBox="0 0 100 100" aria-hidden="true"><g stroke="#3a2a22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
   <path d="M50 70V12" fill="none"/><path d="M53 16v40h30z" fill="#fff"/><path d="M47 22v34H22z" fill="#fff"/><path d="M50 12l16 5-16 5z" fill="#2b2b3a"/>
   <path d="M10 66h80l-12 20H22z" fill="#a8683a"/><circle cx="34" cy="74" r="3" fill="#ffd23f" stroke="none"/><circle cx="50" cy="74" r="3" fill="#ffd23f" stroke="none"/><circle cx="66" cy="74" r="3" fill="#ffd23f" stroke="none"/>
-  <path d="M4 92q8-6 16 0t16 0 16 0 16 0 16 0 16 0" fill="none" stroke="#4da3ff" stroke-width="4"/></g></svg><span><span data-zy>海盜灣</span><small>English</small></span></a>
+  <path d="M4 92q8-6 16 0t16 0 16 0 16 0 16 0 16 0" fill="none" stroke="#4da3ff" stroke-width="4"/></g></svg></a>
 <button type="button" class="zybtn" id="zyBtn" aria-pressed="true" data-zy-skip>ㄅㄆㄇ 注音<span class="sw" aria-hidden="true"></span><span class="st" id="zySt">開</span></button>
 <div class="toast" id="toast" role="status" hidden></div>
 
