@@ -105,5 +105,15 @@
     $("go").onclick=start;$("replay").onclick=start;
     return api;
   };
+
+  // 讓一個東西從 a 飛到 b（用複製的元素做動畫），飛到後執行 done
+  TZ.fly=function(a,b,done,o={}){
+    const ra=a.getBoundingClientRect(),rb=b.getBoundingClientRect(),c=a.cloneNode(true);
+    c.classList.remove("yes","glow","no","shake");c.style.cssText=`position:fixed;left:${ra.left}px;top:${ra.top}px;width:${ra.width}px;height:${ra.height}px;margin:0;z-index:60;pointer-events:none;transition:transform ${o.dur||.7}s cubic-bezier(.4,-0.3,.4,1.2),opacity .2s ease ${o.dur||.7}s`;
+    document.body.appendChild(c);a.style.visibility="hidden";
+    const s=o.scale||Math.min(rb.width/ra.width,rb.height/ra.height,1);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{c.style.transform=`translate(${rb.left+rb.width/2-ra.left-ra.width/2}px,${rb.top+rb.height/2-ra.top-ra.height/2}px) scale(${s}) rotate(${o.spin||0}deg)`}));
+    setTimeout(()=>{c.style.opacity="0";done&&done();setTimeout(()=>{c.remove();if(o.keepHidden!==true)a.style.visibility=""},250)},(o.dur||.7)*1000);
+  };
   window.TZ=TZ;
 })();

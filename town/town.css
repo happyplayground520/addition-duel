@@ -13,7 +13,7 @@
 .tz-b .zy-lt{line-height:.7}
 .tp{display:inline-block}
 .blank{display:inline-block;width:1.3em;height:1.3em;vertical-align:middle;margin:0 .1em;border-radius:10px;border:3px dashed var(--berry);background:#fff;position:relative}
-.blank.fill{border-style:solid;border-color:var(--good);background:#eafff2;display:inline-grid;place-items:center;font-family:var(--kai);color:var(--ink);width:auto;min-width:1.3em;padding:0 .1em}
+.blank.fill{border-style:solid;border-color:var(--good);background:#eafff2;display:inline-grid;place-items:center;line-height:1;font-family:var(--kai);color:var(--ink);width:auto;min-width:1.3em;padding:0 .1em}
 /* 範圍選擇 */
 .rangeRow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
 .stepper{display:flex;align-items:center;gap:6px;background:#fff;border:3px solid #e3d3b8;border-radius:16px;padding:4px}

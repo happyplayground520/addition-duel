@@ -1,7 +1,7 @@
 # 產生甜點小鎮的四關頁面：python pages.py（每一關共用標題列、開始畫面、結束畫面，只有題目區和玩法不同）
 import os
 HERE=os.path.dirname(os.path.abspath(__file__));ROOT=os.path.dirname(HERE)
-V="20261118k"
+V="20261118l"
 HEAD='''<!doctype html>
 <html lang="zh-Hant">
 <head>
@@ -178,8 +178,23 @@ style='''.order{background:#fff;border:5px solid var(--choc);border-radius:24px;
 .order .ibtn{position:absolute;right:-14px;top:-18px;width:48px;height:48px;font-size:24px;background:#ffe9a8;box-shadow:0 3px 0 #d18e0a}
 .bread{width:clamp(110px,19vmin,150px);height:clamp(90px,15vmin,120px);border-radius:46% 46% 22px 22px;background:linear-gradient(#e8a24a,#d9893a);border:5px solid var(--choc);
   box-shadow:0 6px 0 rgba(0,0,0,.18),inset 0 8px 0 rgba(255,255,255,.25)}
-.bread b{font-family:var(--kai);font-weight:400;font-size:clamp(56px,10vmin,80px);color:#fff;text-shadow:0 3px 0 rgba(107,63,34,.6);line-height:1}''',
-main='''<div class="order" id="order" data-zy-skip><span class="tag" id="tag"></span><div class="sent" id="sent"></div><button type="button" class="ibtn" id="say" aria-label="念句子">🔊</button></div>
+.bread b{font-family:var(--kai);font-weight:400;font-size:clamp(56px,10vmin,80px);color:#fff;text-shadow:0 3px 0 rgba(107,63,34,.6);line-height:1}
+.bread.hop{animation:hop .55s ease}
+@keyframes hop{35%{transform:translateY(-60px) rotate(-8deg)}60%{transform:translateY(-30px) rotate(6deg)}}
+.road{position:relative;width:min(900px,94vw);height:clamp(54px,9vmin,74px);overflow:hidden;pointer-events:none}
+.road::after{content:"";position:absolute;left:0;right:0;bottom:6px;height:6px;border-radius:3px;background:repeating-linear-gradient(90deg,#c98a4b 0 26px,transparent 26px 40px);opacity:.6}
+.van{position:absolute;bottom:8px;left:-140px;width:clamp(90px,15vmin,120px);transform:scaleX(-1)}
+.van .ic{width:100%;height:auto}
+.van .box{position:absolute;right:58%;top:-6%;width:38%;aspect-ratio:1;border-radius:8px;background:#ffd08a;border:3px solid var(--choc);transform:scaleX(-1);display:grid;place-items:center;font-size:18px}
+.van.go{animation:van 1.7s cubic-bezier(.4,.1,.5,1) forwards}
+@keyframes van{0%{left:-140px}45%{left:calc(50% - 60px)}55%{left:calc(50% - 60px)}100%{left:110%}}
+.stamp{position:absolute;right:8%;top:50%;transform:translate(0,-50%) rotate(-14deg) scale(2);opacity:0;color:#e8302a;border:4px solid #e8302a;border-radius:12px;padding:2px 10px;font-weight:900;font-size:clamp(20px,3.4vmin,28px);background:rgba(255,255,255,.85);pointer-events:none;transition:.25s}
+.stamp .tz-b{color:#e8302a}
+.stamp.on{opacity:1;transform:translate(0,-50%) rotate(-14deg) scale(1)}
+.order.done{animation:yes .5s}
+@media (max-height:500px){.road{display:none}}''',
+main='''<div class="order" id="order" data-zy-skip><span class="tag" id="tag"></span><div class="sent" id="sent"></div><button type="button" class="ibtn" id="say" aria-label="念句子">🔊</button><span class="stamp" id="stamp"></span></div>
+<div class="road" id="road"><div class="van" id="van"></div></div>
 <div class="choices" id="choices"></div>''',
 script='''(()=>{
   const $=id=>document.getElementById(id),Z=ZI;
@@ -189,14 +204,20 @@ script='''(()=>{
     build:n=>TZ.deal(TZ.pool(true).filter(c=>Z.sent[c]),n),
     show:(c)=>{
       const [t,o]=Z.sent[c];
-      $("sent").innerHTML=TZ.zy(t);
+      $("sent").innerHTML=TZ.zy(t);$("stamp").classList.remove("on");$("stamp").innerHTML="✓ "+TZ.zy("已送達");$("order").classList.remove("done");
+      $("van").classList.remove("go");$("van").innerHTML=EN.icon("scooter")+'<span class="box">🥐</span>';
       $("say").onclick=()=>TZ.say(t.replace("＿",c));
       $("choices").innerHTML=TZ.shuffle([...o]).map(x=>`<button type="button" class="choice bread" data-c="${x}" aria-label="${x}"><b>${x}</b></button>`).join("");
       document.querySelectorAll(".choice").forEach(el=>el.onclick=()=>{
         if(api.S.busy)return;
-        if(el.dataset.c===c){api.ok();el.classList.add("yes");const b=$("blank");b.classList.add("fill");b.textContent=c;
-          TZ.say(t.replace("＿",c),{onend:()=>api.next(500)})}
-        else{api.bad();el.classList.add("no");el.classList.add("shake");if(api.S.tries>=2)document.querySelector(`.choice[data-c="${c}"]`).classList.add("glow")}
+        if(el.dataset.c===c){api.ok();el.classList.add("yes");const b=$("blank");
+          // 麵包飛進訂單的空格 → 送貨機車叭叭開過去 → 蓋上「已送達」
+          TZ.fly(el,b,()=>{b.classList.add("fill");b.textContent=c;EN.sfx.pop()},{dur:.75,spin:-20,keepHidden:true});
+          setTimeout(()=>{const v=$("van");v.classList.remove("go");void v.offsetWidth;v.classList.add("go");EN.sfx.coin();setTimeout(()=>EN.sfx.coin(),220)},800);
+          setTimeout(()=>{$("stamp").classList.add("on");$("order").classList.add("done");EN.sfx.clear()},1700);
+          setTimeout(()=>TZ.say(t.replace("＿",c),{onend:()=>api.next(400)}),1900)}
+        else{api.bad();el.classList.remove("hop");void el.offsetWidth;el.classList.add("hop");setTimeout(()=>el.classList.add("no"),500);
+          if(api.S.tries>=2)document.querySelector(`.choice[data-c="${c}"]`).classList.add("glow")}
       });
     }});
 })();''')
