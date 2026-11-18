@@ -68,7 +68,7 @@ body{color:var(--ink);overflow:hidden;display:flex;flex-direction:column;
 .big.alt{background:#fff;color:var(--ink);box-shadow:0 5px 0 #d8c9ae;border:3px solid #e3d3b8}
 .big.ok{background:var(--good);box-shadow:0 5px 0 #136b41}
 .big:disabled{opacity:.45;pointer-events:none}
-#go{position:sticky;bottom:0;margin-top:6px}
+#go{position:static;margin-top:6px}
 /* 🔊 中文說明 */
 .helpbtn{font:inherit;font-weight:800;font-size:17px;display:inline-flex;align-items:center;gap:6px;border:3px solid #ffd27a;background:#fff4d1;color:#7a4b12;
   border-radius:999px;padding:5px 16px;cursor:pointer;min-height:44px}
@@ -88,3 +88,19 @@ body{color:var(--ink);overflow:hidden;display:flex;flex-direction:column;
   .ibtn{width:46px;height:46px;font-size:23px}
 }
 @media (prefers-reduced-motion:reduce){.pbox .parrot,.pbox.happy .parrot,.pbox.happy .wing{animation:none}}
+
+/* 小手機直放：開始畫面排緊一點，不用往下捲就看得到 READY，READY 也不會蓋住選項 */
+@media (max-width:600px) and (orientation:portrait){
+  .panel{padding-top:8px;padding-bottom:8px}
+  #start>.box{padding:40px 12px 12px!important;gap:5px}
+  #start h2{font-size:24px}
+  #start .sub{display:none}
+  #start .lbl2{margin-top:0;font-size:13px}
+  #start .row{gap:6px}
+  #start .opt{padding:4px 9px;min-height:46px}
+  #start .opt .ic{width:30px;height:30px}
+  #start .opt .tn{font-size:13px}
+  #start .lvst{font-size:1.05em}
+  #start .helpbtn{min-height:40px;padding:3px 12px;font-size:15px}
+  #go{position:static;margin-top:4px}
+}

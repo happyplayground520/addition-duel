@@ -7,7 +7,7 @@
 <title>海盜灣</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261118d">
+<link rel="stylesheet" href="en.css?v=20261118e">
 <style>
 /* 海盜灣地圖：海上一座沙灘小島，一條小路彎彎曲曲連起七個地點（先開放三個） */
 body{background:linear-gradient(#8fdcf2,#4fbfe0 40%,#2b9cc4);align-items:center;justify-content:center;gap:clamp(6px,1.2vmin,12px);
@@ -57,7 +57,8 @@ html.phone,html.phone body{height:auto;min-height:100%}
 html.phone body{overflow-y:auto;justify-content:flex-start}
 html.phone .map{width:100%;aspect-ratio:auto;height:calc((100vw - 28px) * 1.95);max-height:none}
 html.phone .spot .icon{width:84px}
-html.phone .spot .name{font-size:16px} html.phone .spot .tag{font-size:13px}
+html.phone .spot .name{font-size:16px}
+@media (max-width:370px){html.phone .spot .name{font-size:14px}html.phone .spot .icon{width:76px}} html.phone .spot .tag{font-size:13px}
 @media (max-height:500px){h1{font-size:22px;border-width:3px}.ttl .sub{display:none}.map{width:min(100%,calc((100dvh - 64px) * 1.6))}.shopbtn{width:48px;height:48px}}
 @media (max-width:600px){header{flex-direction:column}header .home,header .right{top:4px;transform:none}h1{font-size:24px}}
 .toast{position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:9;background:var(--ink);color:#fff;
@@ -77,10 +78,10 @@ html.phone .spot .name{font-size:16px} html.phone .spot .tag{font-size:13px}
 @keyframes wig{25%{translate:-6px 0}75%{translate:6px 0}}
 @media (max-width:420px){.hats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
-<script src="zhuyin.js?v=20261118d"></script>
-<link rel="stylesheet" href="park.css?v=20261118d">
-<script src="park.js?v=20261118d"></script>
-<script src="en.js?v=20261118d"></script>
+<script src="zhuyin.js?v=20261118e"></script>
+<link rel="stylesheet" href="park.css?v=20261118e">
+<script src="park.js?v=20261118e"></script>
+<script src="en.js?v=20261118e"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
 <body>
@@ -143,7 +144,7 @@ html.phone .spot .name{font-size:16px} html.phone .spot .tag{font-size:13px}
   });
   // 小路：七個點排成之字形；手機直放是兩欄往下
   const LAY={
-    land:{H:62.5,pts:[[12,72],[24,34],[38,72],[52,34],[66,72],[78,34],[89,72]],decos:[["palm",6,16,8],["palm",95,18,7],["rock",52,93,4]]},
+    land:{H:62.5,pts:[[12,72],[24,34],[38,72],[52,34],[66,72],[78,34],[89,72]],decos:[["palm",6,16,8],["palm",95,18,7]]},
     port:{H:125,pts:[[27,11],[73,24],[27,37],[73,50],[27,63],[73,76],[27,89]],decos:[["palm",76,7,11],["x",76,93,7],["palm",8,52,9],["rock",92,38,6]]},
     phone:{H:195,pts:[[26,8],[74,21.5],[26,35.5],[74,49.5],[26,63.5],[74,77.5],[26,91]],decos:[["palm",80,5,13]]}
   };
