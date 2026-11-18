@@ -7,8 +7,8 @@
 <title>擺餐桌</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261118n">
-<link rel="stylesheet" href="town/town.css?v=20261118n">
+<link rel="stylesheet" href="en.css?v=20261118p">
+<link rel="stylesheet" href="town/town.css?v=20261118p">
 <style>
 main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(12px,2.6vh,28px);
   padding:0 max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
@@ -28,6 +28,12 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
 .zone.hint{border-color:#ffd23f;background:rgba(255,226,120,.3);animation:glow 1s infinite}
 .thing{position:absolute;width:17%;aspect-ratio:1;transform:translate(-50%,-100%);pointer-events:none}
 .thing .ic{width:100%;height:100%}
+.thing.plop{animation:tplop .45s cubic-bezier(.3,1.6,.5,1)}
+@keyframes tplop{from{transform:translate(-50%,-140%) scale(.6)}}
+.guest{position:absolute;bottom:4%;width:15%;aspect-ratio:1;z-index:3;pointer-events:none}
+.guest .ic{width:100%;height:100%}
+.guest.fromL{left:-20%;animation:gl 1.1s ease-out forwards}.guest.fromR{right:-20%;animation:gr 1.1s ease-out forwards}
+@keyframes gl{to{left:22%}}@keyframes gr{to{right:22%}}
 .tray{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;min-height:96px}
 .item{width:clamp(78px,13vmin,104px);aspect-ratio:1;border-radius:20px;background:#fff;border:4px solid var(--choc);box-shadow:0 5px 0 rgba(0,0,0,.14);cursor:grab;touch-action:none;padding:6px;display:grid;place-items:center}
 .item .ic{width:100%;height:100%}
@@ -36,12 +42,12 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
 .item.back{animation:wig .4s}
 @media (max-height:500px){main.stage2{display:grid;grid-template-columns:auto auto;align-content:center;justify-content:center;gap:8px 16px}.lines{grid-column:1;grid-row:1}.tray{grid-column:1;grid-row:2;min-height:0}.stage3{grid-column:2;grid-row:1/3}.ln{font-size:16px}.item{width:62px}}
 </style>
-<script src="zhuyin.js?v=20261118n"></script>
-<link rel="stylesheet" href="park.css?v=20261118n">
-<script src="park.js?v=20261118n"></script>
-<script src="en.js?v=20261118n"></script>
-<script src="town/zi-data.js?v=20261118n"></script>
-<script src="town/town.js?v=20261118n"></script>
+<script src="zhuyin.js?v=20261118p"></script>
+<link rel="stylesheet" href="park.css?v=20261118p">
+<script src="park.js?v=20261118p"></script>
+<script src="en.js?v=20261118p"></script>
+<script src="town/zi-data.js?v=20261118p"></script>
+<script src="town/town.js?v=20261118p"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
 <body>
@@ -97,11 +103,12 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
     const w=land?Math.min(innerWidth*.46,(innerHeight-100)*4/3):Math.min(innerWidth-32,(m.height-($("lines").offsetHeight+130))*4/3,720);
     document.documentElement.style.setProperty("--sw",Math.max(240,w)+"px")}
   addEventListener("resize",fit);
-  const api=TZ.run({key:"town-place",noRange:true,
+  const api=TZ.run({key:"town-place",noRange:true,gotIcon:EN.icon("table"),
+    finale:done=>TZ.finale(`<div class="frow">${["dog","cat","rabbit","bear"].map(w=>EN.icon(w)).join("")}</div><div class="frow">${EN.icon("cake")}${EN.icon("apple")}${EN.icon("juice")}</div>`,"餐桌都擺好了，大家一起開派對！",done,2800),
     help:"擺餐桌。上面的一段話說了東西要放在哪裡，例如桌子上面、桌子下面、桌子左邊、桌子右邊。請你看看注音，把下面的東西一個一個拖到對的位置。",
     build:n=>[...Array(n)].map(()=>{const ps=TZ.shuffle(POS.slice()).slice(0,3),its=TZ.shuffle(Z.place.slice()).slice(0,3);return ps.map((p,i)=>({p,it:its[i]}))}),
     show:(round)=>{
-      document.querySelectorAll(".thing").forEach(e=>e.remove());
+      document.querySelectorAll(".thing,.guest").forEach(e=>e.remove());
       const text=x=>`桌子[˙ㄗ]${x.p}有一${x.it[1]}${x.it[0]}。`;
       $("lines").innerHTML=round.map((x,i)=>`<div class="ln" data-i="${i}"><span class="ck">🍽️</span>${TZ.zy(text(x))}</div>`).join("");
       $("tray").innerHTML=TZ.shuffle(round.map((x,i)=>i)).map(i=>`<div class="item" data-i="${i}" role="button" aria-label="${TZ.plain(round[i].it[0])}">${EN.icon(round[i].it[2])}</div>`).join("");
@@ -116,15 +123,19 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
         const up=e=>{if(!fl)return;const z=e&&zoneAt(e.clientX,e.clientY);fl.remove();fl=null;document.querySelectorAll(".zone").forEach(x=>x.classList.remove("hot"));
           const i=+el.dataset.i,x=round[i];
           if(z&&z.dataset.p===x.p){
-            const [ax,ay]=ANCHOR[x.p],t=document.createElement("div");t.className="thing";t.style.left=ax+"%";t.style.top=ay+"%";t.innerHTML=EN.icon(x.it[2]);$("stage").appendChild(t);
+            const [ax,ay]=ANCHOR[x.p],t=document.createElement("div");t.className="thing plop";t.style.left=ax+"%";t.style.top=ay+"%";t.innerHTML=EN.icon(x.it[2]);$("stage").appendChild(t);
             const ln=document.querySelector(`.ln[data-i="${i}"]`);ln.classList.add("done");ln.querySelector(".ck").textContent="✅";EN.sfx.good();
             document.querySelectorAll(".zone").forEach(q=>q.classList.remove("hint"));
-            left--;if(left===0){api.ok();TZ.say("全部擺好了！",{onend:()=>api.next(600)})}else TZ.say(TZ.plain(text(x)));
+            left--;if(left===0){api.ok();guests();TZ.flyGot($("stage"),EN.icon("table"));TZ.say("全部擺好了，客人來開動囉！",{onend:()=>api.next(900)})}else TZ.say(TZ.plain(text(x)));
           }else{el.classList.remove("used");if(z){api.bad();el.classList.remove("back");void el.offsetWidth;el.classList.add("back");
             if(api.S.tries>=2)document.querySelector(`.zone[data-p="${x.p}"]`).classList.add("hint");TZ.say(TZ.plain(text(x)))}}};
         el.addEventListener("pointerup",up);el.addEventListener("pointercancel",()=>up(null));
       });
     }});
+  // 小動物客人從兩邊跑進來，在桌子旁邊坐下
+  function guests(){const st=$("stage");st.querySelectorAll(".guest").forEach(g=>g.remove());
+    const who=TZ.shuffle(["dog","cat","rabbit","bear","pig","duck"]).slice(0,2);
+    who.forEach((w,i)=>{const g=document.createElement("div");g.className="guest "+(i?"fromR":"fromL");g.innerHTML=EN.icon(w);st.appendChild(g)});EN.sfx.clear()}
   function zoneAt(x,y){return [...document.querySelectorAll(".zone")].find(z=>{const r=z.getBoundingClientRect();return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom})}
 })();
 </script>

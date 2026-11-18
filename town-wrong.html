@@ -7,8 +7,8 @@
 <title>挑壞蘋果</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261118n">
-<link rel="stylesheet" href="town/town.css?v=20261118n">
+<link rel="stylesheet" href="en.css?v=20261118p">
+<link rel="stylesheet" href="town/town.css?v=20261118p">
 <style>
 main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(12px,2.6vh,28px);
   padding:0 max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
@@ -18,6 +18,11 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
 @media (max-height:500px){main.stage2{flex-direction:row;gap:24px}.qline{font-size:19px;line-height:1.4}.qcard{gap:6px}}
 @media (orientation:portrait) and (max-height:740px){.qline{font-size:20px;line-height:1.4}.qcard{gap:8px}main.stage2{gap:12px}}
 .basket{background:#fff;border:5px solid var(--choc);border-radius:24px;padding:clamp(12px,2.6vmin,22px) clamp(12px,2.6vmin,24px);box-shadow:0 8px 0 rgba(0,0,0,.12);max-width:min(940px,96vw);position:relative}
+.bin{position:absolute;left:-16px;top:-30px;width:48px;height:56px;z-index:2}
+.bin.gulp{animation:gulp .4s}
+@keyframes gulp{40%{transform:scale(1.2) rotate(-8deg)}}
+.rotap{display:grid;place-items:center;border-radius:18px;background:#c9a27a;font-family:var(--kai);font-size:40px;color:#5a3a20;z-index:70;pointer-events:none}
+.bask{padding:14px 18px 22px;border-radius:12px 12px 40px 40px;background:repeating-linear-gradient(45deg,#e8b06a 0 10px,#d39a5c 10px 20px);border:6px solid var(--choc);min-width:220px}
 .basket .ibtn{position:absolute;right:-14px;top:-18px;width:48px;height:48px;font-size:24px;background:#ffe9a8;box-shadow:0 3px 0 #d18e0a}
 .sent2{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px 6px;font-family:var(--kai);font-size:clamp(28px,5.2vmin,48px)}
 .ap{position:relative;display:inline-flex;align-items:center;border:0;background:#fff3f3;border-radius:18px;padding:6px 16px 6px 8px;cursor:pointer;font:inherit;color:var(--ink);min-width:44px;min-height:56px;box-shadow:inset 0 0 0 2px #ffd6d6}
@@ -37,12 +42,12 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
 .apple b{font-family:var(--kai);font-weight:400;font-size:clamp(50px,9vmin,72px);color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.25)}
 @media (max-height:500px){.sent2{font-size:26px}main.stage2{flex-direction:column;gap:8px}}
 </style>
-<script src="zhuyin.js?v=20261118n"></script>
-<link rel="stylesheet" href="park.css?v=20261118n">
-<script src="park.js?v=20261118n"></script>
-<script src="en.js?v=20261118n"></script>
-<script src="town/zi-data.js?v=20261118n"></script>
-<script src="town/town.js?v=20261118n"></script>
+<script src="zhuyin.js?v=20261118p"></script>
+<link rel="stylesheet" href="park.css?v=20261118p">
+<script src="park.js?v=20261118p"></script>
+<script src="en.js?v=20261118p"></script>
+<script src="town/zi-data.js?v=20261118p"></script>
+<script src="town/town.js?v=20261118p"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
 <body>
@@ -52,7 +57,7 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
   <div class="right"><span class="pill" id="score">⭐ 0</span></div>
 </header>
 <main class="stage2" id="main" data-zy-skip>
-<div class="basket" id="basket"><div class="sent2" id="sent"></div><button type="button" class="ibtn" id="say" aria-label="念句子">🔊</button></div>
+<div class="basket" id="basket"><div class="sent2" id="sent"></div><span class="bin" id="bin"><svg viewBox="0 0 60 70" width="100%" height="100%"><g stroke="#3a2a22" stroke-width="4" stroke-linejoin="round"><rect x="6" y="12" width="48" height="8" rx="3" fill="#9aa8b8"/><path d="M10 20h40l-5 46H15z" fill="#b9c7d6"/><path d="M22 28v30M30 28v30M38 28v30" stroke-width="3" opacity=".5"/><rect x="24" y="5" width="12" height="7" rx="2" fill="#9aa8b8"/></g></svg></span><button type="button" class="ibtn" id="say" aria-label="念句子">🔊</button></div>
 <div class="step" id="step"></div>
 <div class="choices" id="choices"></div>
 </main>
@@ -87,7 +92,8 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
 <script>
 (()=>{
   const $=id=>document.getElementById(id),Z=ZI;
-  const api=TZ.run({key:"town-wrong",
+  const api=TZ.run({key:"town-wrong",gotIcon:EN.icon("apple"),
+    finale:done=>{const n=+TZ.got().dataset.n;TZ.finale(`<div class="bask"><div class="frow">${Array(Math.min(n,12)).fill(EN.icon("apple")).join("")}</div></div>`,"壞蘋果都挑出來了，籃子裝滿好蘋果！",done,2800)},
     help:"挑壞蘋果。句子裡有一個字寫錯了，注音是對的，看注音想一想，哪一個字不對，先點那個壞蘋果。找到以後，再從下面的蘋果裡選出正確的字。",
     build:n=>TZ.deal(TZ.pool(true).filter(c=>Z.sent[c]&&Z.wrong[c]),n),
     show:(c)=>{
@@ -105,7 +111,11 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
       const badIdx=items.findIndex(x=>x.bad),badBtn=document.querySelector(`.ap[data-i="${badIdx}"]`);
       document.querySelectorAll(".ap").forEach(b=>b.onclick=()=>{
         if(api.S.busy||step!==1)return;
-        if(+b.dataset.i===badIdx){EN.sfx.pop();b.classList.add("rot");step=2;showFix()}
+        if(+b.dataset.i===badIdx){EN.sfx.pop();b.classList.add("rot");step=2;
+          // 壞蘋果被丟進垃圾桶
+          const m=document.createElement("span");m.className="rotap";m.textContent=b.querySelector(".tz-h").textContent;const r=b.getBoundingClientRect();m.style.cssText=`position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px`;document.body.appendChild(m);
+          TZ.fly(m,$("bin"),()=>{const bn=$("bin");bn.classList.remove("gulp");void bn.offsetWidth;bn.classList.add("gulp");EN.sfx.bad()},{dur:.7,spin:200,scale:.3});setTimeout(()=>m.remove(),1100);
+          showFix()}
         else{api.bad();b.classList.remove("bad");void b.offsetWidth;b.classList.add("bad");if(api.S.tries>=2)badBtn.classList.add("glow")}
       });
       function showFix(){
@@ -116,8 +126,9 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
         $("choices").innerHTML=opts.map(x=>`<button type="button" class="choice apple" data-c="${x}" aria-label="${x}"><b>${x}</b></button>`).join("");
         document.querySelectorAll(".choice").forEach(el=>el.onclick=()=>{
           if(api.S.busy)return;
-          if(el.dataset.c===c){api.ok();el.classList.add("yes");badBtn.classList.remove("rot");badBtn.classList.add("fixed");badBtn.innerHTML=TZ.charHTML(c,Z.ZY[c]);
-            TZ.say(`答對了！要寫${c}。`+TZ.plain(t.replace("＿",c)),{onend:()=>api.next(400)})}
+          if(el.dataset.c===c){api.ok();el.classList.add("yes");
+            TZ.fly(el,badBtn,()=>{badBtn.classList.remove("rot");badBtn.classList.add("fixed");badBtn.innerHTML=TZ.charHTML(c,Z.ZY[c]);EN.sfx.pop();setTimeout(()=>TZ.flyGot(badBtn,EN.icon("apple")),300)},{dur:.6,keepHidden:true});
+            TZ.say(`答對了！要寫${c}。`+TZ.plain(t.replace("＿",c)),{onend:()=>api.next(500)})}
           else{api.bad();el.classList.add("no");if(api.S.tries>=2)document.querySelector(`.choice[data-c="${c}"]`).classList.add("glow")}
         });
       }

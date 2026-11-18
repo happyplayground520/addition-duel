@@ -58,3 +58,19 @@ body::before{content:"";position:fixed;left:0;right:0;bottom:0;height:min(230px,
   background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='230' viewBox='0 0 1200 230'%3E %3Cpath d='M0 130Q150 50 300 120T600 110T900 120T1200 105V230H0Z' fill='%23ffc7da'/%3E %3Cg stroke='%23fff' stroke-width='7' stroke-linecap='round'%3E%3Cpath d='M170 132V62'/%3E%3Cpath d='M640 122V58'/%3E%3Cpath d='M1060 120V64'/%3E%3C/g%3E %3Ccircle cx='170' cy='52' r='30' fill='%23ff8fb0' stroke='%23fff' stroke-width='6'/%3E%3Cpath d='M170 52m-16 0a16 16 0 1 1 16 16a9 9 0 1 1-9-9' fill='none' stroke='%23fff' stroke-width='5'/%3E %3Ccircle cx='640' cy='48' r='26' fill='%237cc7ff' stroke='%23fff' stroke-width='6'/%3E%3Cpath d='M640 48m-13 0a13 13 0 1 1 13 13a7 7 0 1 1-7-7' fill='none' stroke='%23fff' stroke-width='5'/%3E %3Ccircle cx='1060' cy='54' r='28' fill='%23ffd23f' stroke='%23fff' stroke-width='6'/%3E%3Cpath d='M1060 54m-15 0a15 15 0 1 1 15 15a8 8 0 1 1-8-8' fill='none' stroke='%23fff' stroke-width='5'/%3E %3Cpath d='M0 175Q200 105 400 165T800 155T1200 165V230H0Z' fill='%23bfead8'/%3E %3Cg transform='translate%28340 118%29'%3E%3Cpath d='M0 46h70l-8-40H8z' fill='%23f5c48f' stroke='%23c98a4b' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='M-4 8q39-52 78 0z' fill='%23ffd1e6' stroke='%23ff8fb0' stroke-width='4'/%3E%3Ccircle cx='35' cy='-20' r='8' fill='%23ff4d6d'/%3E%3Crect x='26' y='24' width='18' height='22' rx='6' fill='%23fff' opacity='.8'/%3E%3C/g%3E %3Cg transform='translate%28860 120%29'%3E%3Cpath d='M0 44h60l-7-36H7z' fill='%23c9f2d8' stroke='%235cb88a' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='M-4 8q34-46 68 0z' fill='%23fff3b0' stroke='%23e2b23b' stroke-width='4'/%3E%3Ccircle cx='30' cy='-16' r='7' fill='%23ff4d6d'/%3E%3Crect x='22' y='22' width='16' height='22' rx='6' fill='%23fff' opacity='.8'/%3E%3C/g%3E %3Cg fill='%23fff' opacity='.9'%3E%3Ccircle cx='90' cy='200' r='6'/%3E%3Ccircle cx='520' cy='196' r='5'/%3E%3Ccircle cx='760' cy='205' r='6'/%3E%3Ccircle cx='1130' cy='200' r='5'/%3E%3C/g%3E%3C/svg%3E") 50% 100%/auto 100% repeat-x}
 .scopeTag{display:inline-flex;flex-wrap:wrap;justify-content:center;max-width:100%;align-items:center;gap:6px;background:#fff;border:3px solid #ffc2d8;border-radius:999px;padding:4px 16px;font-weight:800;font-size:17px}
 .setbtn{display:inline-flex;align-items:center;gap:6px;background:#fff;border:3px solid #fff;border-radius:999px;padding:4px 14px;font:inherit;font-weight:800;font-size:clamp(14px,2.2vmin,18px);color:var(--ink);cursor:pointer;box-shadow:0 3px 0 #f5b9cc;min-height:44px}
+
+/* 收集計數、結尾動畫 */
+.gotpill{gap:4px}.gotpill .gi{display:inline-flex;width:1.5em;height:1.5em}.gotpill .gi .ic,.gotpill .gi svg{width:100%;height:100%}
+.gotpill.bump{animation:gbump .4s}
+@keyframes gbump{40%{transform:scale(1.25)}}
+.flymini .ic,.flymini svg{width:100%;height:100%;display:block}
+.finale{position:fixed;inset:0;z-index:80;display:grid;place-items:center;background:rgba(255,214,228,.55);animation:fin .3s}
+.finale.out{opacity:0;transition:opacity .3s}
+@keyframes fin{from{opacity:0}}
+.fcard{background:#fff;border:6px solid var(--choc);border-radius:30px;padding:20px 30px;display:flex;flex-direction:column;align-items:center;gap:10px;box-shadow:0 14px 30px rgba(0,0,0,.2);animation:bpop .45s cubic-bezier(.3,1.6,.5,1)}
+.fcard p{margin:0;font-size:clamp(22px,4vmin,32px);font-weight:900}
+.fcard .ic{width:clamp(70px,13vmin,110px);height:clamp(70px,13vmin,110px)}
+.frow{display:flex;gap:6px;align-items:flex-end;flex-wrap:wrap;justify-content:center;max-width:80vw}
+.frow .ic{width:clamp(40px,7vmin,60px);height:clamp(40px,7vmin,60px);animation:bpop .4s both}
+.wobble{animation:wob 1s ease-in-out infinite}
+@keyframes wob{25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}

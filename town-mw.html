@@ -7,8 +7,8 @@
 <title>市場秤一秤</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261118n">
-<link rel="stylesheet" href="town/town.css?v=20261118n">
+<link rel="stylesheet" href="en.css?v=20261118p">
+<link rel="stylesheet" href="town/town.css?v=20261118p">
 <style>
 main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(12px,2.6vh,28px);
   padding:0 max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
@@ -20,6 +20,15 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
 .scale{position:relative;width:clamp(200px,36vmin,300px);display:flex;flex-direction:column;align-items:center}
 .plate{width:100%;height:clamp(110px,20vmin,170px);border-radius:0 0 50% 50%/0 0 40% 40%;background:linear-gradient(#e6f3ff,#b9d7ff);border:5px solid var(--choc);display:grid;place-items:center;position:relative;z-index:1}
 .plate .ic{width:clamp(90px,16vmin,140px);height:clamp(90px,16vmin,140px);margin-top:-40px}
+.plate.land .ic{animation:land .5s cubic-bezier(.5,0,.6,1.5)}
+@keyframes land{from{transform:translateY(-160px)}}
+.plate.land{animation:pbounce .5s .35s}
+@keyframes pbounce{40%{transform:translateY(10px)}}
+.dial{position:relative;width:54px;height:30px;border-radius:30px 30px 0 0;background:#fff;border:4px solid var(--choc);border-bottom:0;margin-top:-2px;z-index:2}
+.needle{position:absolute;left:50%;bottom:0;width:4px;height:22px;margin-left:-2px;background:#e8302a;border-radius:2px;transform-origin:50% 100%}
+.needle.swing{animation:swing 1s ease-out}
+@keyframes swing{20%{transform:rotate(55deg)}45%{transform:rotate(-30deg)}70%{transform:rotate(15deg)}}
+.bigbag{width:160px;height:180px;animation:wob 1s ease-in-out 2}
 .pole{width:18px;height:clamp(30px,6vmin,50px);background:#c98a4b;border:4px solid var(--choc);border-top:0}
 .base{width:70%;height:22px;border-radius:12px;background:#c98a4b;border:4px solid var(--choc)}
 .phrase{font-size:clamp(34px,6.4vmin,58px);font-weight:800}
@@ -30,12 +39,12 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
 .tagp .tz-b{font-size:16px}
 @media (max-height:500px){.plate{height:100px}.plate .ic{width:84px;height:84px}.pole{height:24px}.phrase{font-size:30px}}
 </style>
-<script src="zhuyin.js?v=20261118n"></script>
-<link rel="stylesheet" href="park.css?v=20261118n">
-<script src="park.js?v=20261118n"></script>
-<script src="en.js?v=20261118n"></script>
-<script src="town/zi-data.js?v=20261118n"></script>
-<script src="town/town.js?v=20261118n"></script>
+<script src="zhuyin.js?v=20261118p"></script>
+<link rel="stylesheet" href="park.css?v=20261118p">
+<script src="park.js?v=20261118p"></script>
+<script src="en.js?v=20261118p"></script>
+<script src="town/zi-data.js?v=20261118p"></script>
+<script src="town/town.js?v=20261118p"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
 <body>
@@ -45,7 +54,7 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
   <div class="right"><span class="pill" id="score">⭐ 0</span></div>
 </header>
 <main class="stage2" id="main" data-zy-skip>
-<div class="qcard"><div class="scale"><div class="plate" id="plate"></div><div class="pole"></div><div class="base"></div></div><div class="phrase" id="phrase"></div></div>
+<div class="qcard"><div class="scale"><div class="plate" id="plate"></div><div class="dial"><i class="needle" id="needle"></i></div><div class="pole"></div><div class="base"></div></div><div class="phrase" id="phrase"></div></div>
 <div class="choices" id="choices"></div>
 </main>
 
@@ -79,22 +88,25 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
 <script>
 (()=>{
   const $=id=>document.getElementById(id),Z=ZI,COL=["#ffe08a","#ffb3c7","#a8e6cf","#b9d7ff"];
-  const api=TZ.run({key:"town-mw",noRange:true,
+  const BAG='<svg viewBox="0 0 60 70" width="100%" height="100%"><g stroke="#3a2a22" stroke-width="4" stroke-linejoin="round"><path d="M20 22q0-14 10-14t10 14" fill="none"/><path d="M8 22h44l-4 42H12z" fill="#ffd08a"/><circle cx="30" cy="42" r="8" fill="#ff8fb0" stroke-width="3"/></g></svg>';
+  const api=TZ.run({key:"town-mw",noRange:true,gotIcon:BAG,
+    finale:done=>TZ.finale(`<div class="bigbag">${BAG}</div>`,"東西都買好了，裝進購物袋！",done,2600),
     help:"市場秤一秤。看秤子上的東西，想一想要用哪一個量詞，例如一隻小狗、一條魚、一輛汽車。點對的價格牌。",
     build:n=>TZ.deal(Z.mw,n),
     show:([noun,m,ic])=>{
-      $("plate").innerHTML=EN.icon(ic);
+      $("plate").innerHTML=EN.icon(ic);const pl=$("plate"),nd=$("needle");pl.classList.remove("land");nd.classList.remove("swing");void pl.offsetWidth;pl.classList.add("land");nd.classList.add("swing");
       $("phrase").innerHTML=TZ.zy("一＿"+noun);
       const others=TZ.shuffle([...Z.mwPool].filter(x=>x!==m));
       const opts=TZ.shuffle([m,others[0],others[1]]);
       $("choices").innerHTML=opts.map((x,i)=>`<button type="button" class="choice tagp" style="--c:${COL[i]}" data-c="${x}" aria-label="${x}"><b>${TZ.charHTML(x,Z.ZY[x])}</b></button>`).join("");
       document.querySelectorAll(".choice").forEach(el=>el.onclick=()=>{
         if(api.S.busy)return;
-        if(el.dataset.c===m){api.ok();el.classList.add("yes");const b=$("blank");b.classList.add("fill");b.innerHTML=TZ.charHTML(m,Z.ZY[m]);
-          TZ.say(`答對了！一${m}${TZ.plain(noun)}。`,{onend:()=>api.next(400)})}
+        if(el.dataset.c===m){api.ok();el.classList.add("yes");const b=$("blank");
+          TZ.fly(el,$("plate"),()=>{b.classList.add("fill");b.innerHTML=TZ.charHTML(m,Z.ZY[m]);EN.sfx.pop();setTimeout(()=>TZ.flyGot($("plate"),EN.icon(ic)),300)},{dur:.6,scale:.5,keepHidden:true});
+          TZ.say(`答對了！一${m}${TZ.plain(noun)}。`,{onend:()=>api.next(500)})}
         else{api.bad();el.classList.add("no");if(api.S.tries>=2)document.querySelector(`.choice[data-c="${m}"]`).classList.add("glow")}
       });
-      setTimeout(()=>TZ.say("一什麼"+TZ.plain(noun)+"？"),300);
+      setTimeout(()=>{if(!api.S.busy)TZ.say("一什麼"+TZ.plain(noun)+"？")},300);
     }});
 })();
 </script>

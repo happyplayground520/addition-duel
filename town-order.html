@@ -7,8 +7,8 @@
 <title>串糖葫蘆</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261118n">
-<link rel="stylesheet" href="town/town.css?v=20261118n">
+<link rel="stylesheet" href="en.css?v=20261118p">
+<link rel="stylesheet" href="town/town.css?v=20261118p">
 <style>
 main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(12px,2.6vh,28px);
   padding:0 max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
@@ -27,17 +27,21 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
   box-shadow:0 6px 0 rgba(0,0,0,.18),inset 0 -6px 0 rgba(0,0,0,.12);font-family:var(--kai);font-size:clamp(30px,5.4vmin,46px);color:#fff;display:inline-flex!important;flex-direction:row;align-items:center;white-space:nowrap}
 .ball .tz-b{color:#fff}
 .ball.used{visibility:hidden}
+.slots.glaze::after{content:"";position:absolute;inset:-6px;border-radius:999px;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.85) 45%,transparent 60%) -200% 0/200% 100% no-repeat;animation:glaze .9s ease-out;pointer-events:none}
+@keyframes glaze{to{background-position:200% 0}}
+.stand{padding:10px 18px 14px;border-bottom:14px solid #c98a4b;border-radius:0 0 10px 10px}
+.stand .ic{height:90px!important;width:40px!important}
 .slot .ball{box-shadow:inset 0 -6px 0 rgba(0,0,0,.12)}
 .slot .ball.ok{background:radial-gradient(circle at 30% 30%,#7fe0a8,#1f9d61 70%);border-color:#136b41}
 .ball.bad{animation:wig .4s}
 @media (max-height:500px){.ball{font-size:26px;min-height:58px;padding:2px 12px}.slot{min-height:58px;min-width:72px}main.stage2{flex-direction:column;gap:10px}}
 </style>
-<script src="zhuyin.js?v=20261118n"></script>
-<link rel="stylesheet" href="park.css?v=20261118n">
-<script src="park.js?v=20261118n"></script>
-<script src="en.js?v=20261118n"></script>
-<script src="town/zi-data.js?v=20261118n"></script>
-<script src="town/town.js?v=20261118n"></script>
+<script src="zhuyin.js?v=20261118p"></script>
+<link rel="stylesheet" href="park.css?v=20261118p">
+<script src="park.js?v=20261118p"></script>
+<script src="en.js?v=20261118p"></script>
+<script src="town/zi-data.js?v=20261118p"></script>
+<script src="town/town.js?v=20261118p"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
 <body>
@@ -84,7 +88,8 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
   const $=id=>document.getElementById(id),Z=ZI;
   $("q").innerHTML=TZ.zy("把糖葫蘆照順序串起來，變成一句話。")+`<button type="button" class="ibtn" id="say" aria-label="念句子">🔊</button>`;
   let cur="";$("say").onclick=()=>{if(cur)TZ.say(cur.split("/").join(""))};
-  const api=TZ.run({key:"town-order",
+  const api=TZ.run({key:"town-order",gotIcon:EN.icon("candied fruit"),
+    finale:done=>{const n=+TZ.got().dataset.n;TZ.finale(`<div class="stand"><div class="frow">${Array(Math.min(n,10)).fill(EN.icon("candied fruit")).join("")}</div></div>`,"糖葫蘆都串好了，插上展示架！",done,2800)},
     help:"串糖葫蘆。下面有幾顆糖葫蘆，每一顆上面是一個詞語。照句子的順序一顆一顆點，把它們串到竹籤上。串錯的會掉下來，再試一次。學過的字沒有注音，沒學過的字有注音。",
     empty:"這個範圍沒有句子，請多選幾課。",
     build:n=>{const [a,b]=TZ.range();return TZ.deal(Z.order[TZ.ver()].slice(a,b+1).flat(),n)},
@@ -97,14 +102,16 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
       const mark=()=>{const n=slots.find(s=>!s.firstChild);slots.forEach(s=>s.classList.toggle("next",s===n))};mark();
       balls.forEach(b=>b.onclick=()=>{
         if(api.S.busy||b.classList.contains("used"))return;const s=slots.find(x=>!x.firstChild);if(!s)return;
-        EN.sfx.pop();const c=b.cloneNode(true);c.classList.remove("choice");c.onclick=null;s.appendChild(c);b.classList.add("used");mark();
+        EN.sfx.pop();const c=b.cloneNode(true);c.classList.remove("choice");c.onclick=null;c.style.visibility="hidden";s.appendChild(c);
+        TZ.fly(b,s,()=>{c.style.visibility=""},{dur:.4,scale:1,keepHidden:true});b.classList.add("used");mark();
         if(slots.every(x=>x.firstChild))setTimeout(check,350);
       });
       slots.forEach(s=>s.onclick=()=>{if(api.S.busy||!s.firstChild||s.firstChild.classList.contains("ok"))return;
         balls.find(b=>b.dataset.i===s.firstChild.dataset.i).classList.remove("used");s.innerHTML="";mark()});
       function check(){
         let all=true;slots.forEach(s=>{const k=+s.dataset.k,b=s.firstChild;if(+b.dataset.i===k)b.classList.add("ok");else all=false});
-        if(all){api.ok();TZ.say(t.split("/").join(""),{onend:()=>api.next(500)});return}
+        if(all){api.ok();const sl=$("slots");sl.classList.remove("glaze");void sl.offsetWidth;sl.classList.add("glaze");EN.sfx.clear();setTimeout(()=>TZ.flyGot(sl,EN.icon("candied fruit")),700);
+          TZ.say(t.split("/").join(""),{onend:()=>api.next(600)});return}
         api.bad();api.S.busy=true;
         slots.forEach(s=>{const b=s.firstChild;if(b&&!b.classList.contains("ok"))b.classList.add("bad")});
         setTimeout(()=>{slots.forEach(s=>{const b=s.firstChild;if(b&&!b.classList.contains("ok")){balls.find(x=>x.dataset.i===b.dataset.i).classList.remove("used");s.innerHTML=""}});

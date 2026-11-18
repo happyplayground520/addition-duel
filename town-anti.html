@@ -7,8 +7,8 @@
 <title>冰火飲料店</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261118n">
-<link rel="stylesheet" href="town/town.css?v=20261118n">
+<link rel="stylesheet" href="en.css?v=20261118p">
+<link rel="stylesheet" href="town/town.css?v=20261118p">
 <style>
 main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(12px,2.6vh,28px);
   padding:0 max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
@@ -23,7 +23,10 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
 .cup::after{content:"";position:absolute;left:58%;top:-46px;width:9px;height:44px;border-radius:5px;background:var(--berry);border:3px solid var(--choc);transform:rotate(12deg)}
 .cup b{font-family:var(--kai);font-weight:400;font-size:clamp(54px,9.5vmin,80px);line-height:1;color:var(--ink);margin-top:10%}
 .cup .tz-b{font-size:17px}
-.cup.big{--w:clamp(150px,27vmin,220px)}.cup.big b{font-size:clamp(84px,15vmin,130px)}
+.cup.big{--w:clamp(150px,27vmin,220px)}
+.walker{display:inline-block;animation:walk 1.4s ease-out both}.walker .ic{width:110px!important;height:110px!important}
+@keyframes walk{from{transform:translateX(-60vw)}}
+.trayx{display:flex;gap:4px;padding:8px 12px;border-radius:14px;background:#c98a4b;border:4px solid var(--choc);align-items:flex-end}.cup.big b{font-size:clamp(84px,15vmin,130px)}
 .ice{position:absolute;left:12%;top:24%;font-size:26px}
 .vs{display:flex;align-items:center;gap:18px}
 .vs .arrow{font-size:clamp(34px,6vmin,52px);color:var(--choc);font-weight:900}
@@ -34,12 +37,12 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
 @media (max-height:500px){.cup{--w:84px}.cup.big{--w:104px}.cup.big b{font-size:64px}.cup b{font-size:46px}.vs{margin-top:30px}.choices{margin-top:30px}.vs .arrow{font-size:28px}}
 .vs .q{width:clamp(110px,19vmin,150px);aspect-ratio:.8;border:5px dashed var(--berry);border-radius:10px 10px 34px 34px;display:grid;place-items:center;font-size:48px;color:var(--berry);background:#fff}
 </style>
-<script src="zhuyin.js?v=20261118n"></script>
-<link rel="stylesheet" href="park.css?v=20261118n">
-<script src="park.js?v=20261118n"></script>
-<script src="en.js?v=20261118n"></script>
-<script src="town/zi-data.js?v=20261118n"></script>
-<script src="town/town.js?v=20261118n"></script>
+<script src="zhuyin.js?v=20261118p"></script>
+<link rel="stylesheet" href="park.css?v=20261118p">
+<script src="park.js?v=20261118p"></script>
+<script src="en.js?v=20261118p"></script>
+<script src="town/zi-data.js?v=20261118p"></script>
+<script src="town/town.js?v=20261118p"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
 <body>
@@ -89,7 +92,9 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
     Z.anti.forEach(([a,b])=>{if(pool.has(a))items.push([a,b]);if(pool.has(b))items.push([b,a])});
     return TZ.deal(items,n);
   }
-  const api=TZ.run({key:"town-anti",
+  const DRINK=EN.icon("juice");
+  const api=TZ.run({key:"town-anti",gotIcon:DRINK,
+    finale:done=>{const n=+TZ.got().dataset.n;TZ.finale(`<div class="frow"><span class="walker">${EN.icon("Tom")}</span><div class="trayx">${Array(Math.min(n,8)).fill(DRINK).join("")}</div></div>`,"客人來拿飲料囉，謝謝光臨！",done,3000)},
     help:"冰火飲料店。左邊的冰飲料上有一個字，請你找出意思和它相反的字，例如大和小、上和下。點那一杯飲料。",
     empty:"這個範圍沒有足夠的相反字題目，請多選幾課。",
     build:questions,
@@ -105,11 +110,13 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
       $("choices").innerHTML=opts.map((c,i)=>`<button type="button" class="choice cup" style="--c:${COL[i]}" data-c="${c}" aria-label="${c}"><b>${c}</b></button>`).join("");
       document.querySelectorAll(".choice").forEach(el=>el.onclick=()=>{
         if(api.S.busy)return;
-        if(el.dataset.c===a){api.ok();el.classList.add("yes");const s=$("slot");s.style.cssText="border-style:solid;border-color:#1f9d61;background:#eafff2;color:#2b2320;font-family:var(--kai);font-size:clamp(54px,9.5vmin,80px)";s.textContent=a;
-          TZ.say(`答對了！${q}的相反是${a}。`,{onend:()=>api.next(400)})}
+        if(el.dataset.c===a){api.ok();el.classList.add("yes");const s=$("slot");
+          TZ.fly(el,s,()=>{s.style.cssText="border-style:solid;border-color:#1f9d61;background:#eafff2;color:#2b2320;font-family:var(--kai);font-size:clamp(54px,9.5vmin,80px)";s.textContent=a;EN.sfx.pop();
+            setTimeout(()=>TZ.flyGot(s,DRINK),400)},{dur:.6,keepHidden:true});
+          TZ.say(`答對了！${q}的相反是${a}。`,{onend:()=>api.next(500)})}
         else{api.bad();el.classList.add("no");if(api.S.tries>=2)document.querySelector(`.choice[data-c="${a}"]`).classList.add("glow")}
       });
-      setTimeout(()=>TZ.say(`和${q}，意思相反的是哪一個字？`),300);
+      setTimeout(()=>{if(!api.S.busy)TZ.say(`和${q}，意思相反的是哪一個字？`)},300);
     }});
 })();
 </script>
