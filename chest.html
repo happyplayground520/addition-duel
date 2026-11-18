@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
 <link rel="stylesheet" href="en.css?v=20261118d">
 <style>
-/* 寶箱與鸚鵡：船的甲板上有一個放在兩個木桶上的寶箱；聽句子，把東西拖到寶箱的上面、裡面、下面、旁邊、左邊、右邊 */
+/* 寶箱與鸚鵡：船的甲板上，吊桿用繩子把寶箱吊在半空中；聽句子，把東西拖到寶箱的上面、裡面、下面、旁邊、左邊、右邊 */
 .say{flex:none;display:flex;justify-content:center;padding:2px 14px 6px}
 .sent{display:inline-flex;align-items:center;gap:10px;background:#fff;border:4px solid var(--ink);border-radius:22px;padding:6px 8px 6px 18px;
   font-family:var(--en);font-weight:700;font-size:clamp(20px,3.6vmin,34px);line-height:1.15;box-shadow:0 5px 0 rgba(0,0,0,.12);max-width:100%}
@@ -80,9 +80,12 @@
       <path d="M20 48l-6 27M50 48v27M80 48l6 27M35 48l-3 27M65 48l3 27" stroke="#b9773e" stroke-width=".4" fill="none"/>
       <!-- 起點：左上角的鸚鵡站架 -->
       <path d="M10 22v44" stroke="#8a5328" stroke-width="1.8"/><path d="M3 22h14" stroke="#6e4122" stroke-width="2.2" stroke-linecap="round"/><ellipse cx="10" cy="66" rx="5" ry="1.4" fill="#8a5328"/>
-      <!-- 兩個木桶 -->
-      <g fill="#b06a35"><path d="M32 40h9.5q1.5 12 0 24H32q-1.5-12 0-24z"/><path d="M58.5 40H68q1.5 12 0 24h-9.5q-1.5-12 0-24z"/></g>
-      <path d="M31.4 45h10.6M31.4 59h10.6M58 45h10.6M58 59h10.6" stroke="#6b7a86" stroke-width="1.2"/>
+      <!-- 吊桿：右邊一根木柱，上面橫桿，兩條繩子把寶箱吊在半空中 -->
+      <ellipse cx="50" cy="66.5" rx="17" ry="2.2" fill="#000" stroke="none" opacity=".13"/>
+      <path d="M95 66V2.5" stroke="#8a5328" stroke-width="2.6"/><ellipse cx="95" cy="66.5" rx="4" ry="1.2" fill="#8a5328"/>
+      <path d="M28 3.2h68.5" stroke="#8a5328" stroke-width="2.4" stroke-linecap="round"/><path d="M95 12l-9-8.6" stroke="#8a5328" stroke-width="1.6"/>
+      <circle cx="34" cy="4.6" r="1.6" fill="#6b7a86"/><circle cx="66" cy="4.6" r="1.6" fill="#6b7a86"/>
+      <path d="M34 5.6V20M66 5.6V20" stroke="#c9a46a" stroke-width=".9" stroke-dasharray="1.2 .6"/>
       <!-- 寶箱打開時：蓋子往後倒、看得到裡面（東西放進去才打開） -->
       <g class="lidOpen"><path d="M33 21l3-13h28l3 13z" fill="#a0562b"/><path d="M36 8h28" stroke="#ffd23f" stroke-width="1"/><path d="M41 9l-1.6 11.4M59 9l1.6 11.4" stroke="#ffd23f" stroke-width="1.1"/>
       <path d="M32 21h36l-1 3H33z" fill="#4a2a14"/>
@@ -160,7 +163,7 @@
   const Z={
     on:{r:[29,0,71,19],a:[50,13.4]},
     in:{r:[32,19,68,40],a:[50,29]},
-    under:{r:[41.5,40,58.5,68],a:[50,64]},
+    under:{r:[31,41,69,70],a:[50,64]},
     left:{r:[5,34,31,75],a:[20,66]},
     right:{r:[69,34,96,75],a:[80,66]}
   };
