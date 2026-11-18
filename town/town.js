@@ -79,7 +79,8 @@
     const syncT=()=>document.querySelectorAll("#totals .opt").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===S.total));
     document.querySelectorAll("#totals .opt").forEach(b=>b.onclick=()=>{S.total=+b.dataset.n;pref(cfg.key+"-total",S.total);syncT()});syncT();
     const note=$("note");
-    if(cfg.noRange)$("setup").innerHTML="";else TZ.setupPanel($("setup"),()=>{if(note)note.textContent=""});
+    // 版本和範圍在甜點小鎮地圖上設定，這裡只顯示
+    if(cfg.noRange)$("setup").innerHTML="";else{$("setup").setAttribute("data-zy-skip","");$("setup").innerHTML=`<span class="scopeTag">📖 ${TZ.zy(TZ.rangeLabel())}</span>`}
     EN.helpBtn($("help"),()=>cfg.help);
     const api={
       S,

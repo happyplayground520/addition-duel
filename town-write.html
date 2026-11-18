@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>蛋糕寫字</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="en.css?v=20261118j">
+<link rel="stylesheet" href="town/town.css?v=20261118j">
+<style>
+main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(12px,2.6vh,28px);
+  padding:0 max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
+.top .mid{flex-direction:column;gap:2px}
+.top .scope{font-size:13px}
+#start .source{margin-top:4px}
+@media (max-height:500px){main.stage2{flex-direction:row;gap:24px}.qline{font-size:19px;line-height:1.4}.qcard{gap:6px}}
+@media (orientation:portrait) and (max-height:740px){.qline{font-size:20px;line-height:1.4}.qcard{gap:8px}main.stage2{gap:12px}}
+.word{display:flex;align-items:center;gap:6px;font-family:var(--kai);font-size:clamp(46px,8vmin,72px);background:#fff;border:5px solid var(--choc);border-radius:22px;padding:6px 20px;box-shadow:0 6px 0 rgba(0,0,0,.1);position:relative}
+.word .tz-b{font-size:max(.3em,14px)}
+.zbox{display:inline-grid;place-items:center;min-width:1.1em;min-height:1.25em;border:4px dashed var(--berry);border-radius:14px;padding:2px 6px;background:#fff5f8}
+.zbox .tz-b{font-size:clamp(22px,3.8vmin,32px)!important;color:var(--berry)}
+.word .ibtn{position:absolute;right:-16px;top:-18px;width:46px;height:46px;font-size:22px;background:#ffe9a8;box-shadow:0 3px 0 #d18e0a}
+.cakebox{position:relative;padding:14px;border-radius:30px;background:#ffd1e3;border:5px solid var(--choc);box-shadow:0 8px 0 #c98a4b,0 14px 20px rgba(0,0,0,.12)}
+.cakebox::before{content:"";position:absolute;left:-5px;right:-5px;top:-5px;height:26px;border-radius:30px 30px 0 0;background:radial-gradient(circle at 18px 26px,#fff 0 14px,transparent 15px) 0 0/36px 26px repeat-x}
+.cakebox canvas{display:block;border-radius:16px;background:#fffdf6;touch-action:none}
+.adult{position:absolute;right:20px;bottom:20px;width:40px;height:40px;border-radius:12px;border:2px solid #d8c9ae;background:#fff;color:#9a8a70;font-size:20px;cursor:pointer;opacity:.75}
+.wbar{display:flex;gap:14px;align-items:center}
+.wbar .big{min-height:56px}
+.tip{font-weight:800;color:var(--choc);font-size:clamp(17px,2.8vmin,22px);min-height:1.4em}
+@media (max-height:500px){main.stage2{flex-direction:row;gap:16px}.side{display:flex;flex-direction:column;gap:10px;align-items:center}.word{font-size:36px;padding:4px 14px}.wbar{flex-direction:column}.tip{font-size:15px;max-width:150px;text-align:center}}
+.side{display:contents}
+@media (max-height:500px){.side{display:flex}}
+</style>
+<script src="zhuyin.js?v=20261118j"></script>
+<link rel="stylesheet" href="park.css?v=20261118j">
+<script src="park.js?v=20261118j"></script>
+<script src="en.js?v=20261118j"></script>
+<script src="town/zi-data.js?v=20261118j"></script>
+<script src="town/town.js?v=20261118j"></script>
+<style>body{font-family:var(--text)}</style>
+</head>
+<body>
+<header class="top">
+  <a class="ibtn" href="town.html" aria-label="回甜點小鎮">🏠</a>
+  <div class="mid"><span class="pill" id="prog">1 / 10</span><span class="scope" id="scopeTop"></span></div>
+  <div class="right"><span class="pill" id="score">⭐ 0</span></div>
+</header>
+<main class="stage2" id="main" data-zy-skip>
+<div class="side"><div class="word" id="word"></div><div class="tip" id="tip"></div></div>
+<div class="cakebox"><canvas id="cv"></canvas><button type="button" class="adult" id="adult" aria-label="大人幫忙算對">✓</button></div>
+<div class="side"><div class="wbar"><button type="button" class="big alt ico-btn" id="clr" aria-label="擦掉">🧹</button><button type="button" class="big ok" id="ok">OK</button></div></div>
+</main>
+
+<section class="panel" id="start">
+  <div class="box">
+    <h2>🎂 蛋糕寫字</h2>
+    <p class="sub" data-zy>看注音，在蛋糕上寫出國字！</p>
+    <button type="button" class="helpbtn" id="help">🔊 中文說明</button>
+    <div id="setup"></div>
+    <div class="row" id="totals">
+      <button type="button" class="opt" data-n="5" aria-label="5 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button>
+      <button type="button" class="opt" data-n="10" aria-label="10 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>10</small></button>
+      <button type="button" class="opt" data-n="15" aria-label="15 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>15</small></button>
+    </div>
+    <span class="note" id="note" data-zy></span>
+    <button type="button" class="big" id="go">READY</button>
+    <p class="source">字型：全字庫正楷體（數位發展部「CNS11643中文標準交換碼全字庫」，依政府資料開放授權條款第1版使用）<br>生字：教育部教育百科「生字詞彙表」；部首、讀音：教育部《國語辭典簡編本》；筆畫：教育部《國字標準字體筆順學習網》</p>
+  </div>
+</section>
+<section class="panel" id="end" hidden>
+  <div class="box">
+    <h2>做完了！</h2>
+    <div id="stars">⭐⭐⭐</div>
+    <div id="result">0 / 10</div>
+    <span class="earn" id="earn"></span>
+    <div class="endrow">
+      <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+      <a class="big alt ico-btn" href="town.html" aria-label="回甜點小鎮">🏠</a>
+    </div>
+  </div>
+</section>
+<script>
+(()=>{
+  const $=id=>document.getElementById(id),Z=ZI;
+  // ---- 手寫比對：孩子寫的和每個字的標準楷書都縮成一樣大、瘦成一條條骨架，量兩邊骨架的距離；
+  //      正確的字要排在最像的前 12 名（和所有生字、易混字比），而且距離不能太遠 ----
+  const N=64;
+  function bm(src){const w=src.width,h=src.height,d=src.getContext("2d").getImageData(0,0,w,h).data;let x0=w,x1=-1,y0=h,y1=-1;
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(d[(y*w+x)*4+3]>100){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+    if(x1<0)return null;const c=document.createElement("canvas");c.width=c.height=N;const g=c.getContext("2d");const bw=x1-x0+1,bh=y1-y0+1,s=(N-8)/Math.max(bw,bh);
+    g.drawImage(src,x0,y0,bw,bh,(N-bw*s)/2,(N-bh*s)/2,bw*s,bh*s);const e=g.getImageData(0,0,N,N).data,b=new Uint8Array(N*N);for(let i=0;i<N*N;i++)b[i]=e[i*4+3]>90?1:0;return b}
+  function thin(b){b=b.slice();let ch=true;const at=(x,y)=>x<0||y<0||x>=N||y>=N?0:b[y*N+x];
+    while(ch){ch=false;for(const step of [0,1]){const del=[];for(let y=0;y<N;y++)for(let x=0;x<N;x++){if(!b[y*N+x])continue;
+      const p=[at(x,y-1),at(x+1,y-1),at(x+1,y),at(x+1,y+1),at(x,y+1),at(x-1,y+1),at(x-1,y),at(x-1,y-1)],B=p.reduce((a,c)=>a+c,0);if(B<2||B>6)continue;
+      let A=0;for(let k=0;k<8;k++)if(!p[k]&&p[(k+1)%8])A++;if(A!==1)continue;
+      if(step===0?(p[0]*p[2]*p[4]===0&&p[2]*p[4]*p[6]===0):(p[0]*p[2]*p[6]===0&&p[0]*p[4]*p[6]===0))del.push(y*N+x)}if(del.length){ch=true;del.forEach(i=>b[i]=0)}}}return b}
+  function dt(b){const d=new Float32Array(N*N).fill(1e9),q=[];for(let i=0;i<N*N;i++)if(b[i]){d[i]=0;q.push(i)}
+    for(let h=0;h<q.length;h++){const i=q[h],x=i%N,y=(i/N)|0;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const X=x+dx,Y=y+dy;if(X<0||Y<0||X>=N||Y>=N)continue;const j=Y*N+X;if(d[j]>d[i]+1){d[j]=d[i]+1;q.push(j)}}}return d}
+  const pts=b=>{const p=[];for(let i=0;i<N*N;i++)if(b[i])p.push(i);return p};
+  const GL={};
+  function glyph(ch){if(GL[ch])return GL[ch];const c=document.createElement("canvas");c.width=c.height=220;const g=c.getContext("2d");
+    g.fillStyle="#000";g.font='180px "TWKaiSub"';g.textAlign="center";g.textBaseline="middle";g.fillText(ch,110,118);const b=thin(bm(c)||new Uint8Array(N*N));return GL[ch]={p:pts(b),d:dt(b)}}
+  const CAND=[...new Set([...Z.L.A,...Z.L.B].flatMap(l=>[...l.s]).concat(Object.values(Z.wrong)))];
+  // 字型載入後，慢慢先算好每個字的骨架，按 OK 時才不會等太久
+  (document.fonts?document.fonts.load('40px "TWKaiSub"',CAND.join("")):Promise.resolve()).then(()=>{let i=0;const step=()=>{const t=performance.now();while(i<CAND.length&&performance.now()-t<12)glyph(CAND[i++]);if(i<CAND.length)setTimeout(step,30)};setTimeout(step,500)});
+  function userBitmap(){const c=document.createElement("canvas");c.width=cv.width;c.height=cv.height;const g=c.getContext("2d");
+    g.strokeStyle="#000";g.lineCap=g.lineJoin="round";g.lineWidth=Math.max(8,W*.05)*dpr;
+    strokes.forEach(st=>{g.beginPath();st.forEach(([x,y],i)=>i?g.lineTo(x*dpr,y*dpr):g.moveTo(x*dpr,y*dpr));if(st.length===1)g.lineTo(st[0][0]*dpr+.5,st[0][1]*dpr);g.stroke()});
+    const b=bm(c);return b&&thin(b)}
+  function judge(target){
+    const u=userBitmap();if(!u)return{ok:false};const up=pts(u),ud=dt(u);if(up.length<3)return{ok:false};
+    const ds=CAND.concat(CAND.includes(target)?[]:[target]).map(c=>{const g=glyph(c);if(!g.p.length)return[c,99];let s1=0,s2=0;for(const i of up)s1+=Math.min(g.d[i],12);for(const i of g.p)s2+=Math.min(ud[i],12);return[c,(s1/up.length+s2/g.p.length)/2]}).sort((a,b)=>a[1]-b[1]);
+    const r=ds.findIndex(x=>x[0]===target),d=ds[r][1];
+    return{ok:r<12&&d<4.6,rank:r,d,top:ds.slice(0,5).map(x=>x[0]).join("")};
+  }
+  window.__judge=(t)=>judge(t);
+  // ---- 寫字格 ----
+  const cv=$("cv"),ctx=cv.getContext("2d");let W=300,dpr=1,strokes=[],cur=null,stage="write",target="",guide=false;
+  function setup(){const m=$("main").getBoundingClientRect(),land=innerHeight<=500;
+    W=Math.max(180,Math.min(land?m.height-40:Math.min(innerWidth-70,m.height-310),400));dpr=Math.min(2,devicePixelRatio||1);
+    cv.width=W*dpr;cv.height=W*dpr;cv.style.width=W+"px";cv.style.height=W+"px";draw()}
+  function draw(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,W);
+    ctx.strokeStyle="#f3b2c6";ctx.lineWidth=2;ctx.setLineDash([8,8]);ctx.beginPath();ctx.moveTo(W/2,6);ctx.lineTo(W/2,W-6);ctx.moveTo(6,W/2);ctx.lineTo(W-6,W/2);ctx.stroke();ctx.setLineDash([]);
+    ctx.strokeStyle="#e8577a";ctx.lineWidth=3;ctx.strokeRect(4,4,W-8,W-8);
+    if(guide){ctx.fillStyle="rgba(232,87,122,.18)";ctx.font=`${W*.82}px "TWKaiSub"`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(target,W/2,W*.54)}
+    ctx.strokeStyle="#3a2a22";ctx.lineCap=ctx.lineJoin="round";ctx.lineWidth=Math.max(8,W*.05);
+    strokes.forEach(st=>{ctx.beginPath();st.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));if(st.length===1)ctx.lineTo(st[0][0]+.1,st[0][1]);ctx.stroke()})}
+  let down=false;const pt=e=>{const r=cv.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
+  cv.onpointerdown=e=>{if(api.S.busy)return;e.preventDefault();down=true;try{cv.setPointerCapture(e.pointerId)}catch(err){}cur=[pt(e)];strokes.push(cur);draw()};
+  cv.onpointermove=e=>{if(!down)return;const p=pt(e),l=cur[cur.length-1];if(Math.hypot(p[0]-l[0],p[1]-l[1])>2){cur.push(p);draw()}};
+  cv.onpointerup=cv.onpointercancel=()=>{down=false};
+  $("clr").onclick=()=>{strokes=[];draw()};
+  const tip=t=>{$("tip").innerHTML=TZ.zy(t)};
+  // ---- 題目：課本語詞裡有這個生字，其他字照常顯示，這個字只給注音 ----
+  function pickWord(c){
+    const L=TZ.lessons(),[a,b]=TZ.range(),ok=w=>w.includes(c)&&[...w].filter(x=>x===c).length===1;
+    const near=L.slice(a,b+1).flatMap(l=>l.ci).filter(ok),all=L.flatMap(l=>l.ci).filter(ok);
+    const w=TZ.shuffle(near.length?near:all)[0];return w?{w,idx:[...w].indexOf(c)}:null;
+  }
+  let api;
+  api=TZ.run({key:"town-write",
+    help:"蛋糕寫字。看注音，想一想是哪一個字，在蛋糕上的格子裡寫出來，不用照筆順，寫出來就好。寫完按 OK。寫不出來也沒關係，會出現淡淡的字讓你描一次，再自己寫一次。旁邊的大人可以按勾勾直接算對。",
+    build:n=>TZ.deal(TZ.pool(false),n).map(c=>({c,...(pickWord(c)||{})})),
+    show:(q)=>{
+      target=q.c;strokes=[];guide=false;stage="write";setup();
+      const learned=TZ.learned();let html="";
+      if(q.w){const zs=Z.ciZy[q.w];[...q.w].forEach((ch,i)=>{html+=i===q.idx?`<span class="zbox">${TZ.charHTML("",zs[i])}</span>`:TZ.charHTML(ch,learned.has(ch)?"":zs[i])})}
+      else html=`<span class="zbox">${TZ.charHTML("",Z.ZY[q.c])}</span>`;
+      $("word").innerHTML=html+`<button type="button" class="ibtn" id="say" aria-label="念語詞">🔊</button>`;
+      $("say").onclick=()=>TZ.say(q.w||q.c);
+      tip("看注音，寫出這個字。");
+      document.fonts&&document.fonts.load('40px "TWKaiSub"',q.c);
+      setTimeout(()=>TZ.say(q.w||q.c),300);
+    }});
+  function success(first){api.S.tries=first?0:1;api.ok();guide=false;strokes=[];draw();
+    ctx.fillStyle="#1f9d61";ctx.font=`${W*.78}px "TWKaiSub"`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(target,W/2,W*.54);
+    TZ.say(`寫對了！是${target}。`,{onend:()=>api.next(500)})}
+  $("ok").onclick=async()=>{
+    if(api.S.busy)return;if(!strokes.length){tip("先在格子裡寫字喔。");return}
+    if(stage==="trace"){stage="write2";guide=false;strokes=[];draw();tip("這次自己寫寫看！");TZ.say("這次自己寫寫看");return}
+    try{await document.fonts.load('40px "TWKaiSub"',target)}catch(e){}
+    const r=judge(target);
+    if(r.ok){success(stage==="write");return}
+    EN.sfx.bad();
+    if(stage==="write"){api.S.tries++;stage="trace";strokes=[];guide=true;draw();tip("照著淡淡的字描一次。");TZ.say("照著淡淡的字描一次")}
+    else{api.S.busy=true;guide=false;strokes=[];draw();ctx.fillStyle="#3a2a22";ctx.font=`${W*.78}px "TWKaiSub"`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(target,W/2,W*.54);
+      tip("是這個字，看一看。");TZ.say(`是${target}，看一看。`,{onend:()=>api.next(900)})}
+  };
+  $("adult").onclick=()=>{if(!api.S.busy)success(stage==="write")};
+  addEventListener("resize",()=>{const keep=strokes;setup();strokes=keep;draw()});
+})();
+</script>
+</body>
+</html>

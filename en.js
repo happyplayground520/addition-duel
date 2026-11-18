@@ -234,7 +234,9 @@
     bed:`<rect x="8" y="26" width="12" height="60" rx="4" fill="#a8683a"/><rect x="18" y="52" width="74" height="22" rx="6" fill="#fff"/><path d="M42 52h44q6 0 6 6v16H42z" fill="#7cc7ff"/>
       <rect x="22" y="40" width="22" height="13" rx="6" fill="#ffc2e0"/><path d="M90 74v12M20 74v12" stroke-width="6"/>`,
     lamp:`<path d="M50 48v34" stroke-width="6"/><ellipse cx="50" cy="86" rx="20" ry="6" fill="#a8683a"/><path d="M30 16h40l13 32H17z" fill="#ffd23f"/><path d="M34 26h32" fill="none" stroke="#fff" stroke-width="3" opacity=".7"/>`,
-    pillow:`<path d="M14 32q36-14 72 0q7 18 0 36q-36 14-72 0q-7-18 0-36z" fill="#ffc2e0"/><g fill="#fff" stroke="none"><circle cx="36" cy="46" r="3"/><circle cx="52" cy="54" r="3"/><circle cx="66" cy="44" r="3"/></g>`,
+    pillow:`<path d="M12 34q-4-16 12-12q26-10 52 0q16-4 12 12q6 16 0 32q4 16-12 12q-26 10-52 0q-16 4-12-12q-6-16 0-32z" fill="#e3f1ff"/>
+      <path d="M20 36q30-8 60 0M20 64q30 8 60 0" fill="none" stroke="#9cc9ef" stroke-width="3" stroke-dasharray="4 5"/><path d="M34 50q16 6 32 0" fill="none" stroke="#9cc9ef" stroke-width="3"/>
+      <g font-family="Andika,sans-serif" font-weight="700" fill="#7a4fd6" stroke="none"><text x="78" y="20" font-size="16">z</text><text x="88" y="10" font-size="12">z</text></g>`,
     TV:`<path d="M38 10l12 12 12-12" fill="none"/><rect x="10" y="22" width="80" height="54" rx="8" fill="#3a3a50"/><rect x="18" y="29" width="64" height="40" rx="4" fill="#7cd4ff"/>
       <path d="M26 60l12-14 10 10 8-6 16 10" fill="none" stroke="#2ecc71" stroke-width="4"/><circle cx="68" cy="40" r="5" fill="#ffd93d" stroke="none"/><path d="M36 76l-6 12M64 76l6 12" stroke-width="5"/>`,
     sofa:`<rect x="18" y="28" width="64" height="32" rx="11" fill="#ff8a7a"/><rect x="22" y="52" width="56" height="22" rx="7" fill="#ff9f8f"/>

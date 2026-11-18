@@ -15,7 +15,7 @@ const MAGIC={日:"日月山",月:"月日木",山:"山水人",木:"木水手",水
 JL.LESSONS.forEach(l=>l.chars.forEach(c=>{const o=c.opts?c.opts.join(""):MAGIC[c.c];if(c.sent&&o&&!sent[c.c])sent[c.c]=[c.sent,o]}));
 Object.entries(extra.sent).forEach(([c,v])=>{sent[c]=v});
 // 一上：A 版、B 版
-const L={A:lessons.A1.map(l=>({n:l.n,s:l.sheng,r:l.ren})),B:lessons.B1.map(l=>({n:l.n,s:l.sheng,r:l.ren}))};
+const L={A:lessons.A1.map(l=>({n:l.n,s:l.sheng,r:l.ren,ci:l.ci})),B:lessons.B1.map(l=>({n:l.n,s:l.sheng,r:l.ren,ci:l.ci}))};
 // 檢查：每個字都有部首、筆畫、例句；例句裡的字都有注音
 const all=new Set([...L.A,...L.B].flatMap(l=>[...l.s,...l.r]));
 const miss={noInfo:[],noSent:[],noZy:new Set(),optBad:[]};
@@ -38,7 +38,12 @@ extra.mw.forEach(([n,m])=>[...strip(n)+m].forEach(ch=>{if(/[一-鿿]/.test(ch)&&
 [...extra.mwPool].forEach(ch=>{if(!ZY[ch])miss.noZy.add("量詞"+ch)});
 ["A","B"].forEach(v=>{if(extra.order[v].length!==L[v].length)miss.optBad.push(v+"版重組句子課數不對");
   extra.order[v].flat().forEach(t=>[...strip(t)].forEach(ch=>{if(/[一-鿿]/.test(ch)&&!ZY[ch])miss.noZy.add("重組"+ch)}))});
-const out={L,chars:chars.chars,buzy,ZY,sent,anti,trick:extra.trick,wrong:extra.wrong,mw:extra.mw,mwPool:extra.mwPool,order:extra.order};
+// 第三批：語詞的注音（輕聲照 ciZy）、擺餐桌
+const ciZy={};[...L.A,...L.B].forEach(l=>l.ci.forEach(w=>{ciZy[w]=extra.ciZy[w]?extra.ciZy[w].split(" "):[...w].map(ch=>ZY[ch]||"");
+  if(ciZy[w].length!==[...w].length)miss.optBad.push("語詞注音數量不對"+w);[...w].forEach(ch=>{if(!ZY[ch])miss.noZy.add("語詞"+ch)})}));
+extra.place.forEach(([n,m])=>[...strip(n)+m].forEach(ch=>{if(/[一-鿿]/.test(ch)&&!ZY[ch])miss.noZy.add("擺放"+ch)}));
+[..."桌子上面下面左邊右邊有一"].forEach(ch=>{if(!ZY[ch])miss.noZy.add("擺放"+ch)});
+const out={ciZy,poly:extra.poly,place:extra.place,L,chars:chars.chars,buzy,ZY,sent,anti,trick:extra.trick,wrong:extra.wrong,mw:extra.mw,mwPool:extra.mwPool,order:extra.order};
 fs.writeFileSync(here("zi-data.js"),"/* 甜點小鎮資料（自動產生，請改 build.js 的來源） */\nwindow.ZI="+JSON.stringify(out)+";\n");
 console.log("字數",all.size,"例句",Object.keys(sent).length,"注音",Object.keys(ZY).length);
 console.log("缺部首筆畫:",miss.noInfo.join(""),"| 缺例句:",miss.noSent.join(""),"| 缺注音:",[...miss.noZy].join(" "),"| 選項有問題:",miss.optBad.join(""));

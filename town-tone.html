@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>音樂甜筒</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="en.css?v=20261118j">
+<link rel="stylesheet" href="town/town.css?v=20261118j">
+<style>
+main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(12px,2.6vh,28px);
+  padding:0 max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
+.top .mid{flex-direction:column;gap:2px}
+.top .scope{font-size:13px}
+#start .source{margin-top:4px}
+@media (max-height:500px){main.stage2{flex-direction:row;gap:24px}.qline{font-size:19px;line-height:1.4}.qcard{gap:6px}}
+@media (orientation:portrait) and (max-height:740px){.qline{font-size:20px;line-height:1.4}.qcard{gap:8px}main.stage2{gap:12px}}
+.cone{position:relative;display:flex;flex-direction:column;align-items:center}
+.scoop{width:clamp(150px,27vmin,220px);aspect-ratio:1.1;border-radius:50% 50% 44% 44%;background:radial-gradient(circle at 35% 30%,#fff,#ffc2dc 60%,#ff9fc4);border:6px solid var(--choc);
+  display:grid;place-items:center;box-shadow:inset 0 -10px 0 rgba(0,0,0,.06);position:relative;z-index:1}
+.scoop .bigc{font-family:var(--kai);font-size:clamp(84px,16vmin,130px);line-height:1;color:var(--ink);display:inline-flex;align-items:center}
+.scoop .bigc .tz-b{font-size:max(.3em,16px)}
+.waffle{width:0;height:0;border-left:clamp(56px,10vmin,80px) solid transparent;border-right:clamp(56px,10vmin,80px) solid transparent;border-top:clamp(80px,14vmin,120px) solid #e8b06a;margin-top:-14px;filter:drop-shadow(0 6px 0 rgba(0,0,0,.12))}
+.notes{position:absolute;right:-30px;top:-10px;font-size:30px;animation:nt 2s ease-in-out infinite}
+@keyframes nt{50%{transform:translateY(-8px) rotate(10deg)}}
+.zyopt{min-width:clamp(84px,14vmin,110px);min-height:clamp(110px,19vmin,150px);border-radius:999px 999px 26px 26px;background:var(--c);border:5px solid var(--choc);box-shadow:0 6px 0 rgba(0,0,0,.16);padding:8px 14px}
+.zyopt .tz-b{font-size:clamp(28px,5vmin,40px);color:var(--ink);line-height:1.05}
+.tonebtn{min-width:clamp(84px,14vmin,110px);height:clamp(84px,14vmin,104px);border-radius:24px;background:var(--c);border:5px solid var(--choc);box-shadow:0 6px 0 rgba(0,0,0,.16);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.tonebtn .mk{font-size:clamp(36px,6vmin,50px);line-height:.9;font-weight:900;color:var(--choc);min-height:.9em}
+.tonebtn .lb{font-size:18px;font-weight:800}
+@media (max-height:500px){.waffle{border-top-width:60px;border-left-width:46px;border-right-width:46px}.scoop{width:130px}.scoop .bigc{font-size:76px}.zyopt{min-height:92px}.zyopt .tz-b{font-size:24px}}
+</style>
+<script src="zhuyin.js?v=20261118j"></script>
+<link rel="stylesheet" href="park.css?v=20261118j">
+<script src="park.js?v=20261118j"></script>
+<script src="en.js?v=20261118j"></script>
+<script src="town/zi-data.js?v=20261118j"></script>
+<script src="town/town.js?v=20261118j"></script>
+<style>body{font-family:var(--text)}</style>
+</head>
+<body>
+<header class="top">
+  <a class="ibtn" href="town.html" aria-label="回甜點小鎮">🏠</a>
+  <div class="mid"><span class="pill" id="prog">1 / 10</span><span class="scope" id="scopeTop"></span></div>
+  <div class="right"><span class="pill" id="score">⭐ 0</span></div>
+</header>
+<main class="stage2" id="main" data-zy-skip>
+<div class="qcard"><div class="qline" id="q"></div><div class="cone"><div class="scoop" id="scoop"><span class="bigc" id="big"></span></div><div class="waffle"></div><span class="notes">🎵</span></div></div>
+<div class="choices" id="choices"></div>
+</main>
+
+<section class="panel" id="start">
+  <div class="box">
+    <h2>🍦 音樂甜筒</h2>
+    <p class="sub" data-zy>選出對的注音，聽聽看是第幾聲！</p>
+    <button type="button" class="helpbtn" id="help">🔊 中文說明</button>
+    <div id="setup"></div>
+    <div class="row" id="totals">
+      <button type="button" class="opt" data-n="5" aria-label="5 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button>
+      <button type="button" class="opt" data-n="10" aria-label="10 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>10</small></button>
+      <button type="button" class="opt" data-n="15" aria-label="15 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>15</small></button>
+    </div>
+    <span class="note" id="note" data-zy></span>
+    <button type="button" class="big" id="go">READY</button>
+    <p class="source">字型：全字庫正楷體（數位發展部「CNS11643中文標準交換碼全字庫」，依政府資料開放授權條款第1版使用）<br>生字：教育部教育百科「生字詞彙表」；部首、讀音：教育部《國語辭典簡編本》；筆畫：教育部《國字標準字體筆順學習網》</p>
+  </div>
+</section>
+<section class="panel" id="end" hidden>
+  <div class="box">
+    <h2>做完了！</h2>
+    <div id="stars">⭐⭐⭐</div>
+    <div id="result">0 / 10</div>
+    <span class="earn" id="earn"></span>
+    <div class="endrow">
+      <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+      <a class="big alt ico-btn" href="town.html" aria-label="回甜點小鎮">🏠</a>
+    </div>
+  </div>
+</section>
+<script>
+(()=>{
+  const $=id=>document.getElementById(id),Z=ZI,COL=["#ffe08a","#a8e6cf","#b9d7ff","#ffc2dc","#d7b4ff"];
+  const TONES=["ˊ","ˇ","ˋ"],noT=z=>z.replace(/[ˊˇˋ˙]/g,"");
+  const toneOf=z=>z[0]==="˙"?0:z.includes("ˊ")?2:z.includes("ˇ")?3:z.includes("ˋ")?4:1;
+  const withTone=(base,t)=>t===0?"˙"+base:t===1?base:base+TONES[t-2];
+  // 容易混的注音：ㄓㄗ、ㄔㄘ、ㄕㄙ、ㄣㄥ、ㄢㄤ……
+  const SW={ㄓ:"ㄗ",ㄗ:"ㄓ",ㄔ:"ㄘ",ㄘ:"ㄔ",ㄕ:"ㄙ",ㄙ:"ㄕ",ㄣ:"ㄥ",ㄥ:"ㄣ",ㄢ:"ㄤ",ㄤ:"ㄢ",ㄈ:"ㄏ",ㄏ:"ㄈ",ㄋ:"ㄌ",ㄌ:"ㄋ",ㄅ:"ㄆ",ㄆ:"ㄅ",ㄉ:"ㄊ",ㄊ:"ㄉ",ㄍ:"ㄎ",ㄎ:"ㄍ",ㄛ:"ㄡ",ㄡ:"ㄛ",ㄧ:"ㄩ",ㄩ:"ㄧ",ㄜ:"ㄝ",ㄝ:"ㄜ"};
+  function fakes(z){
+    const base=noT(z),t=toneOf(z),out=new Set();
+    [1,2,3,4].filter(x=>x!==t).forEach(x=>out.add(withTone(base,x)));
+    [...base].forEach((ch,i)=>{if(SW[ch]){const b=[...base];b[i]=SW[ch];out.add(withTone(b.join(""),t))}});
+    out.delete(z);return TZ.shuffle([...out]);
+  }
+  const zyHTML=z=>{const light=z[0]==="˙",syms=[...(light?z.slice(1):z)],tone=/[ˊˇˋ]/.test(syms[syms.length-1])?syms.pop():"";
+    return `<span class="tz-b">${light?'<span class="zy-lt">˙</span>':""}${syms.map((s,k)=>`<span>${s}${k===syms.length-1&&tone?`<span class="zy-t">${tone}</span>`:""}</span>`).join("")}</span>`};
+  const api=TZ.run({key:"town-tone",
+    help:"音樂甜筒。有兩種題目。第一種，看甜筒上的字，選出它正確的注音。第二種，字的注音沒有聲調，請你念念看，想一想它是第幾聲，點一聲、二聲、三聲、四聲或輕聲。",
+    build:n=>TZ.deal(TZ.pool(true).filter(c=>Z.ZY[c]&&!Z.poly.includes(c)),n).map((c,i)=>({c,type:i%2?"tone":"pick"})),
+    show:({c,type})=>{
+      const z=Z.ZY[c];
+      if(type==="pick"){
+        $("big").textContent=c;
+        $("q").innerHTML=TZ.zy("這個字的注音是哪一個？")+`<button type="button" class="ibtn" id="say" aria-label="念這個字">🔊</button>`;
+        $("say").onclick=()=>TZ.say(c);
+        const opts=TZ.shuffle([z,...fakes(z).slice(0,2)]);
+        $("choices").innerHTML=opts.map((x,i)=>`<button type="button" class="choice zyopt" style="--c:${COL[i]}" data-z="${x}" aria-label="注音選項${i+1}">${zyHTML(x)}</button>`).join("");
+        document.querySelectorAll(".choice").forEach(el=>el.onclick=()=>{
+          if(api.S.busy)return;
+          if(el.dataset.z===z){api.ok();el.classList.add("yes");$("big").innerHTML=TZ.charHTML(c,z);TZ.say(`答對了！${c}。`,{onend:()=>api.next(400)})}
+          else{api.bad();el.classList.add("no");if(api.S.tries>=2)document.querySelector(`.choice[data-z="${z}"]`).classList.add("glow")}
+        });
+      }else{
+        const t=toneOf(z);
+        $("big").innerHTML=TZ.charHTML(c,noT(z));
+        $("q").innerHTML=TZ.zy("念念看，這個字是第幾聲？")+`<button type="button" class="ibtn" id="say" aria-label="念這個字">🔊</button>`;
+        $("say").onclick=()=>TZ.say(c);
+        const L=[[1,"ˉ","一聲"],[2,"ˊ","二聲"],[3,"ˇ","三聲"],[4,"ˋ","四聲"]];if(t===0)L.push([0,"˙","輕聲"]);
+        $("choices").innerHTML=L.map(([v,mk,lb],i)=>`<button type="button" class="choice tonebtn" style="--c:${COL[i]}" data-t="${v}" aria-label="${lb}"><span class="mk">${mk}</span><span class="lb">${TZ.zy(lb)}</span></button>`).join("");
+        document.querySelectorAll(".choice").forEach(el=>el.onclick=()=>{
+          if(api.S.busy)return;
+          if(+el.dataset.t===t){api.ok();el.classList.add("yes");$("big").innerHTML=TZ.charHTML(c,z);TZ.say(`答對了！${c}是${["輕聲","一聲","二聲","三聲","四聲"][t]}。`,{onend:()=>api.next(400)})}
+          else{api.bad();el.classList.add("no");if(api.S.tries>=2)document.querySelector(`.choice[data-t="${t}"]`).classList.add("glow")}
+        });
+        setTimeout(()=>TZ.say(c),300);
+      }
+    }});
+})();
+</script>
+</body>
+</html>

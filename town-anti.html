@@ -7,8 +7,8 @@
 <title>冰火飲料店</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261118g">
-<link rel="stylesheet" href="town/town.css?v=20261118g">
+<link rel="stylesheet" href="en.css?v=20261118j">
+<link rel="stylesheet" href="town/town.css?v=20261118j">
 <style>
 main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(12px,2.6vh,28px);
   padding:0 max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
@@ -34,12 +34,12 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
 @media (max-height:500px){.cup{--w:84px}.cup.big{--w:104px}.cup.big b{font-size:64px}.cup b{font-size:46px}.vs{margin-top:30px}.choices{margin-top:30px}.vs .arrow{font-size:28px}}
 .vs .q{width:clamp(110px,19vmin,150px);aspect-ratio:.8;border:5px dashed var(--berry);border-radius:10px 10px 34px 34px;display:grid;place-items:center;font-size:48px;color:var(--berry);background:#fff}
 </style>
-<script src="zhuyin.js?v=20261118g"></script>
-<link rel="stylesheet" href="park.css?v=20261118g">
-<script src="park.js?v=20261118g"></script>
-<script src="en.js?v=20261118g"></script>
-<script src="town/zi-data.js?v=20261118g"></script>
-<script src="town/town.js?v=20261118g"></script>
+<script src="zhuyin.js?v=20261118j"></script>
+<link rel="stylesheet" href="park.css?v=20261118j">
+<script src="park.js?v=20261118j"></script>
+<script src="en.js?v=20261118j"></script>
+<script src="town/zi-data.js?v=20261118j"></script>
+<script src="town/town.js?v=20261118j"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
 <body>
@@ -91,7 +91,7 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
     return TZ.deal(items,n);
   }
   const api=TZ.run({key:"town-anti",
-    help:"冰火飲料店。左邊的冰飲料上有一個字，請你找出意思和它相反的字，例如大和小、上和下。點那一杯飲料。沒學過的字會有注音。",
+    help:"冰火飲料店。左邊的冰飲料上有一個字，請你找出意思和它相反的字，例如大和小、上和下。點那一杯飲料。",
     empty:"這個範圍沒有足夠的相反字題目，請多選幾課。",
     build:questions,
     show:([q,a])=>{
@@ -103,7 +103,7 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
       const bad=new Set([q,a]);Z.anti.forEach(([x,y])=>{if(x===q)bad.add(y);if(y===q)bad.add(x)});
       const pool=TZ.shuffle([...TZ.learned()].filter(c=>!bad.has(c)&&Z.ZY[c]));
       const opts=TZ.shuffle([a,pool[0],pool[1]]);
-      $("choices").innerHTML=opts.map((c,i)=>`<button type="button" class="choice cup" style="--c:${COL[i]}" data-c="${c}" aria-label="${c}"><b>${TZ.charHTML(c,zyIf(c))}</b></button>`).join("");
+      $("choices").innerHTML=opts.map((c,i)=>`<button type="button" class="choice cup" style="--c:${COL[i]}" data-c="${c}" aria-label="${c}"><b>${c}</b></button>`).join("");
       document.querySelectorAll(".choice").forEach(el=>el.onclick=()=>{
         if(api.S.busy)return;
         if(el.dataset.c===a){api.ok();el.classList.add("yes");const s=$("slot");s.style.cssText="border-style:solid;border-color:#1f9d61;background:#eafff2;color:#2b2320;font-family:var(--kai);font-size:clamp(54px,9.5vmin,80px)";s.textContent=a;

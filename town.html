@@ -7,8 +7,8 @@
 <title>甜點小鎮</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261118g">
-<link rel="stylesheet" href="town/town.css?v=20261118g">
+<link rel="stylesheet" href="en.css?v=20261118j">
+<link rel="stylesheet" href="town/town.css?v=20261118j">
 <style>
 /* 甜點小鎮地圖：粉紅色的小鎮，一條糖果條紋的小路彎來彎去，連起 12 家甜點店（先開放 4 家） */
 body{align-items:center;justify-content:center;gap:clamp(6px,1.2vmin,12px);
@@ -20,6 +20,13 @@ header .right{position:absolute;right:0;top:50%;transform:translateY(-50%);displ
 h1{margin:0;font-size:clamp(26px,5vmin,52px);line-height:1.15;font-weight:800;letter-spacing:.08em;color:#fff;padding:.18em .9em .22em;border-radius:22px 22px 14px 14px;border:4px solid #fff;
   background:repeating-linear-gradient(90deg,#ff6f98 0 28px,#ff94b3 28px 56px);text-shadow:0 3px 0 #b8365a;box-shadow:0 6px 0 #c23d63,0 12px 22px rgba(0,0,0,.18);display:flex;align-items:center;gap:.3em}
 h1 .star{font-size:.7em;text-shadow:none}
+.ttl{gap:4px}
+header .home2{position:absolute;left:62px;top:50%;transform:translateY(-50%)}
+header .home2:active{transform:translateY(calc(-50% + 3px))}
+@media (max-width:600px){header{display:grid!important;grid-template-columns:auto auto 1fr auto;gap:8px;align-items:center}
+  header .home,header .home2,header .right{position:static!important;transform:none!important;grid-row:1}
+  header .home{grid-column:1}header .home2{grid-column:2}header .right{grid-column:4}
+  header .ttl{grid-column:1/-1;grid-row:2;padding:0!important}}
 .ttl .sub{margin:0;font-weight:800;font-size:clamp(14px,2.3vmin,19px);color:#7a4b12;background:#ffe27a;border:3px solid #fff;border-radius:999px;padding:0 14px;box-shadow:0 3px 0 #e2b23b}
 .map{position:relative;z-index:1;width:min(100%,calc((100dvh - 120px) * 1.6));aspect-ratio:16/10;border-radius:30px;overflow:hidden;
   background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E %3Cg stroke-linecap='round' stroke-width='6' opacity='.55'%3E %3Cpath d='M14 20l12 6' stroke='%23ff7aa8'/%3E%3Cpath d='M70 14l4 12' stroke='%237cc7ff'/%3E%3Cpath d='M120 30l12-4' stroke='%23ffd23f'/%3E %3Cpath d='M40 66l10 8' stroke='%239ef0b9'/%3E%3Cpath d='M96 70l-6 11' stroke='%23c79bff'/%3E%3Cpath d='M146 86l-10 6' stroke='%23ff9f5a'/%3E %3Cpath d='M20 120l12-2' stroke='%237cc7ff'/%3E%3Cpath d='M66 132l6 10' stroke='%23ff7aa8'/%3E%3Cpath d='M118 126l11 5' stroke='%239ef0b9'/%3E %3C/g%3E%3Cg opacity='.5'%3E%3Ccircle cx='52' cy='30' r='3.5' fill='%23ffd23f'/%3E%3Ccircle cx='142' cy='140' r='3.5' fill='%23ff7aa8'/%3E%3Ccircle cx='100' cy='104' r='3' fill='%237cc7ff'/%3E%3Ccircle cx='12' cy='84' r='3' fill='%23c79bff'/%3E%3C/g%3E%3C/svg%3E") 0 0/140px 140px,radial-gradient(ellipse at 50% 40%,#fff6f9,#ffe0ea 70%,#ffd0df);border:6px solid #fff;box-shadow:0 0 0 4px #ff8fb0,0 14px 30px rgba(0,0,0,.16);container-type:inline-size}
@@ -61,16 +68,19 @@ html.phone.land .spot .icon{width:70px}
   padding:10px 20px;border-radius:999px;font-size:18px;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,.25);transition:opacity .25s;white-space:nowrap}
 .toast[hidden]{display:block!important;opacity:0;pointer-events:none}
 </style>
-<script src="zhuyin.js?v=20261118g"></script>
-<link rel="stylesheet" href="park.css?v=20261118g">
-<script src="park.js?v=20261118g"></script>
-<script src="en.js?v=20261118g"></script>
+<script src="zhuyin.js?v=20261118j"></script>
+<link rel="stylesheet" href="park.css?v=20261118j">
+<script src="park.js?v=20261118j"></script>
+<script src="en.js?v=20261118j"></script>
+<script src="town/zi-data.js?v=20261118j"></script>
+<script src="town/town.js?v=20261118j"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
 <body>
 <header>
   <a class="ibtn home" href="./" aria-label="回數學遊樂園">🎡</a>
-  <div class="ttl"><h1><span class="star">🍓</span>甜點小鎮<span class="star">🍓</span></h1><p class="sub" data-zy>點一家甜點店開始玩！</p></div>
+  <a class="ibtn home2" href="cove.html" aria-label="去海盜灣"><svg viewBox="0 0 100 100" width="40" height="40" aria-hidden="true"><g stroke="#3a2a22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><path d="M50 70V12" fill="none"/><path d="M53 16v40h30z" fill="#fff"/><path d="M47 22v34H22z" fill="#fff"/><path d="M50 12l16 5-16 5z" fill="#2b2b3a"/><path d="M10 66h80l-12 20H22z" fill="#a8683a"/><path d="M4 92q8-6 16 0t16 0 16 0 16 0 16 0 16 0" fill="none" stroke="#4da3ff" stroke-width="4"/></g></svg></a>
+  <div class="ttl"><h1><span class="star">🍓</span>甜點小鎮<span class="star">🍓</span></h1><p class="sub" data-zy>點一家甜點店開始玩！</p><button type="button" class="setbtn" id="setBtn" data-zy-skip>📖 <span id="setLbl"></span> ⚙️</button></div>
   <div class="right"><span class="pill" id="coins">0</span></div>
 </header>
 <div class="map" id="map" role="navigation" aria-label="甜點小鎮地圖">
@@ -78,6 +88,14 @@ html.phone.land .spot .icon{width:70px}
   <div id="decos" aria-hidden="true"></div>
 </div>
 <div class="toast" id="toast" role="status" data-zy hidden></div>
+<section class="panel" id="setp" hidden>
+  <div class="box">
+    <h2>📖 選擇版本和課次</h2>
+    <p class="sub" data-zy>每一家甜點店都會照這個範圍出題。</p>
+    <div id="setup2"></div>
+    <button type="button" class="big ok" id="setOk">OK</button>
+  </div>
+</section>
 
 <script>
 (()=>{
@@ -102,11 +120,11 @@ html.phone.land .spot .icon{width:70px}
     {k:"fill",name:"麵包店送貨",tag:"選詞填空",c:"#e0772b",href:"town-fill.html",ic:"bread"},
     {k:"anti",name:"冰火飲料店",tag:"相反字",c:"#2f8fdb",href:"town-anti.html",ic:"drink"},
     {k:"say",name:"點餐櫃台",tag:"說出造詞",c:"#7a4fd6",ic:"bell"},
-    {k:"write",name:"蛋糕寫字",tag:"寫國字",c:"#d1478f",ic:"cake"},
-    {k:"place",name:"擺餐桌",tag:"看圖擺位置",c:"#2b7f50",ic:"table"},
+    {k:"write",href:"town-write.html",name:"蛋糕寫字",tag:"寫國字",c:"#d1478f",ic:"cake"},
+    {k:"place",href:"town-place.html",name:"擺餐桌",tag:"看圖擺位置",c:"#2b7f50",ic:"table"},
     {k:"wrong",name:"挑壞蘋果",tag:"找錯字",c:"#c0392b",href:"town-wrong.html",ic:"apple"},
     {k:"mw",name:"市場秤一秤",tag:"量詞",c:"#14a99c",href:"town-mw.html",ic:"scale"},
-    {k:"tone",name:"音樂甜筒",tag:"注音聲調",c:"#c04fd6",ic:"icecream"},
+    {k:"tone",href:"town-tone.html",name:"音樂甜筒",tag:"注音聲調",c:"#c04fd6",ic:"icecream"},
     {k:"order",name:"串糖葫蘆",tag:"句子重組",c:"#e8433a",href:"town-order.html",ic:"candied"},
     {k:"story",name:"午茶說故事",tag:"成語故事",c:"#14a99c",ic:"tea"}
   ];
@@ -147,6 +165,11 @@ html.phone.land .spot .icon{width:70px}
   matchMedia("(orientation:portrait)").addEventListener?.("change",layout);phoneMQ.addEventListener?.("change",layout);
   let rz=0;addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(layout,150)});addEventListener("load",layout);
   let tt=0;function toast(t){const e=$("toast");e.textContent=t;e.hidden=false;clearTimeout(tt);tt=setTimeout(()=>e.hidden=true,1800)}
+  // 版本和課次範圍：第一次來先選，之後點上面的按鈕可以改
+  const syncSet=()=>{$("setLbl").innerHTML=TZ.zy(TZ.rangeLabel())};
+  const openSet=()=>{TZ.setupPanel($("setup2"),syncSet);$("setp").hidden=false};
+  $("setBtn").onclick=openSet;$("setOk").onclick=()=>{$("setp").hidden=true;syncSet()};
+  syncSet();if(TZ.pref("town-ver")==null)openSet();
   const syncCoins=()=>{$("coins").innerHTML=`${EN.coinSvg}${EN.coins()}`};syncCoins();addEventListener("pageshow",syncCoins);
 })();
 </script>

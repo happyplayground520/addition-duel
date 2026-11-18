@@ -1,7 +1,7 @@
 # 產生甜點小鎮的四關頁面：python pages.py（每一關共用標題列、開始畫面、結束畫面，只有題目區和玩法不同）
 import os
 HERE=os.path.dirname(os.path.abspath(__file__));ROOT=os.path.dirname(HERE)
-V="20261118g"
+V="20261118j"
 HEAD='''<!doctype html>
 <html lang="zh-Hant">
 <head>
@@ -231,7 +231,7 @@ script='''(()=>{
     return TZ.deal(items,n);
   }
   const api=TZ.run({key:"town-anti",
-    help:"冰火飲料店。左邊的冰飲料上有一個字，請你找出意思和它相反的字，例如大和小、上和下。點那一杯飲料。沒學過的字會有注音。",
+    help:"冰火飲料店。左邊的冰飲料上有一個字，請你找出意思和它相反的字，例如大和小、上和下。點那一杯飲料。",
     empty:"這個範圍沒有足夠的相反字題目，請多選幾課。",
     build:questions,
     show:([q,a])=>{
@@ -243,7 +243,7 @@ script='''(()=>{
       const bad=new Set([q,a]);Z.anti.forEach(([x,y])=>{if(x===q)bad.add(y);if(y===q)bad.add(x)});
       const pool=TZ.shuffle([...TZ.learned()].filter(c=>!bad.has(c)&&Z.ZY[c]));
       const opts=TZ.shuffle([a,pool[0],pool[1]]);
-      $("choices").innerHTML=opts.map((c,i)=>`<button type="button" class="choice cup" style="--c:${COL[i]}" data-c="${c}" aria-label="${c}"><b>${TZ.charHTML(c,zyIf(c))}</b></button>`).join("");
+      $("choices").innerHTML=opts.map((c,i)=>`<button type="button" class="choice cup" style="--c:${COL[i]}" data-c="${c}" aria-label="${c}"><b>${c}</b></button>`).join("");
       document.querySelectorAll(".choice").forEach(el=>el.onclick=()=>{
         if(api.S.busy)return;
         if(el.dataset.c===a){api.ok();el.classList.add("yes");const s=$("slot");s.style.cssText="border-style:solid;border-color:#1f9d61;background:#eafff2;color:#2b2320;font-family:var(--kai);font-size:clamp(54px,9.5vmin,80px)";s.textContent=a;
@@ -403,6 +403,249 @@ script="""(()=>{
           api.S.busy=false;mark()},550);
       }
     }});
+})();""")
+
+# ---------- 8. 音樂甜筒（選注音、聲調） ----------
+page("town-tone.html",title="音樂甜筒",icon="🍦",sub="選出對的注音，聽聽看是第幾聲！",
+style=""".cone{position:relative;display:flex;flex-direction:column;align-items:center}
+.scoop{width:clamp(150px,27vmin,220px);aspect-ratio:1.1;border-radius:50% 50% 44% 44%;background:radial-gradient(circle at 35% 30%,#fff,#ffc2dc 60%,#ff9fc4);border:6px solid var(--choc);
+  display:grid;place-items:center;box-shadow:inset 0 -10px 0 rgba(0,0,0,.06);position:relative;z-index:1}
+.scoop .bigc{font-family:var(--kai);font-size:clamp(84px,16vmin,130px);line-height:1;color:var(--ink);display:inline-flex;align-items:center}
+.scoop .bigc .tz-b{font-size:max(.3em,16px)}
+.waffle{width:0;height:0;border-left:clamp(56px,10vmin,80px) solid transparent;border-right:clamp(56px,10vmin,80px) solid transparent;border-top:clamp(80px,14vmin,120px) solid #e8b06a;margin-top:-14px;filter:drop-shadow(0 6px 0 rgba(0,0,0,.12))}
+.notes{position:absolute;right:-30px;top:-10px;font-size:30px;animation:nt 2s ease-in-out infinite}
+@keyframes nt{50%{transform:translateY(-8px) rotate(10deg)}}
+.zyopt{min-width:clamp(84px,14vmin,110px);min-height:clamp(110px,19vmin,150px);border-radius:999px 999px 26px 26px;background:var(--c);border:5px solid var(--choc);box-shadow:0 6px 0 rgba(0,0,0,.16);padding:8px 14px}
+.zyopt .tz-b{font-size:clamp(28px,5vmin,40px);color:var(--ink);line-height:1.05}
+.tonebtn{min-width:clamp(84px,14vmin,110px);height:clamp(84px,14vmin,104px);border-radius:24px;background:var(--c);border:5px solid var(--choc);box-shadow:0 6px 0 rgba(0,0,0,.16);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.tonebtn .mk{font-size:clamp(36px,6vmin,50px);line-height:.9;font-weight:900;color:var(--choc);min-height:.9em}
+.tonebtn .lb{font-size:18px;font-weight:800}
+@media (max-height:500px){.waffle{border-top-width:60px;border-left-width:46px;border-right-width:46px}.scoop{width:130px}.scoop .bigc{font-size:76px}.zyopt{min-height:92px}.zyopt .tz-b{font-size:24px}}""",
+main="""<div class="qcard"><div class="qline" id="q"></div><div class="cone"><div class="scoop" id="scoop"><span class="bigc" id="big"></span></div><div class="waffle"></div><span class="notes">🎵</span></div></div>
+<div class="choices" id="choices"></div>""",
+script="""(()=>{
+  const $=id=>document.getElementById(id),Z=ZI,COL=["#ffe08a","#a8e6cf","#b9d7ff","#ffc2dc","#d7b4ff"];
+  const TONES=["ˊ","ˇ","ˋ"],noT=z=>z.replace(/[ˊˇˋ˙]/g,"");
+  const toneOf=z=>z[0]==="˙"?0:z.includes("ˊ")?2:z.includes("ˇ")?3:z.includes("ˋ")?4:1;
+  const withTone=(base,t)=>t===0?"˙"+base:t===1?base:base+TONES[t-2];
+  // 容易混的注音：ㄓㄗ、ㄔㄘ、ㄕㄙ、ㄣㄥ、ㄢㄤ……
+  const SW={ㄓ:"ㄗ",ㄗ:"ㄓ",ㄔ:"ㄘ",ㄘ:"ㄔ",ㄕ:"ㄙ",ㄙ:"ㄕ",ㄣ:"ㄥ",ㄥ:"ㄣ",ㄢ:"ㄤ",ㄤ:"ㄢ",ㄈ:"ㄏ",ㄏ:"ㄈ",ㄋ:"ㄌ",ㄌ:"ㄋ",ㄅ:"ㄆ",ㄆ:"ㄅ",ㄉ:"ㄊ",ㄊ:"ㄉ",ㄍ:"ㄎ",ㄎ:"ㄍ",ㄛ:"ㄡ",ㄡ:"ㄛ",ㄧ:"ㄩ",ㄩ:"ㄧ",ㄜ:"ㄝ",ㄝ:"ㄜ"};
+  function fakes(z){
+    const base=noT(z),t=toneOf(z),out=new Set();
+    [1,2,3,4].filter(x=>x!==t).forEach(x=>out.add(withTone(base,x)));
+    [...base].forEach((ch,i)=>{if(SW[ch]){const b=[...base];b[i]=SW[ch];out.add(withTone(b.join(""),t))}});
+    out.delete(z);return TZ.shuffle([...out]);
+  }
+  const zyHTML=z=>{const light=z[0]==="˙",syms=[...(light?z.slice(1):z)],tone=/[ˊˇˋ]/.test(syms[syms.length-1])?syms.pop():"";
+    return `<span class="tz-b">${light?'<span class="zy-lt">˙</span>':""}${syms.map((s,k)=>`<span>${s}${k===syms.length-1&&tone?`<span class="zy-t">${tone}</span>`:""}</span>`).join("")}</span>`};
+  const api=TZ.run({key:"town-tone",
+    help:"音樂甜筒。有兩種題目。第一種，看甜筒上的字，選出它正確的注音。第二種，字的注音沒有聲調，請你念念看，想一想它是第幾聲，點一聲、二聲、三聲、四聲或輕聲。",
+    build:n=>TZ.deal(TZ.pool(true).filter(c=>Z.ZY[c]&&!Z.poly.includes(c)),n).map((c,i)=>({c,type:i%2?"tone":"pick"})),
+    show:({c,type})=>{
+      const z=Z.ZY[c];
+      if(type==="pick"){
+        $("big").textContent=c;
+        $("q").innerHTML=TZ.zy("這個字的注音是哪一個？")+`<button type="button" class="ibtn" id="say" aria-label="念這個字">🔊</button>`;
+        $("say").onclick=()=>TZ.say(c);
+        const opts=TZ.shuffle([z,...fakes(z).slice(0,2)]);
+        $("choices").innerHTML=opts.map((x,i)=>`<button type="button" class="choice zyopt" style="--c:${COL[i]}" data-z="${x}" aria-label="注音選項${i+1}">${zyHTML(x)}</button>`).join("");
+        document.querySelectorAll(".choice").forEach(el=>el.onclick=()=>{
+          if(api.S.busy)return;
+          if(el.dataset.z===z){api.ok();el.classList.add("yes");$("big").innerHTML=TZ.charHTML(c,z);TZ.say(`答對了！${c}。`,{onend:()=>api.next(400)})}
+          else{api.bad();el.classList.add("no");if(api.S.tries>=2)document.querySelector(`.choice[data-z="${z}"]`).classList.add("glow")}
+        });
+      }else{
+        const t=toneOf(z);
+        $("big").innerHTML=TZ.charHTML(c,noT(z));
+        $("q").innerHTML=TZ.zy("念念看，這個字是第幾聲？")+`<button type="button" class="ibtn" id="say" aria-label="念這個字">🔊</button>`;
+        $("say").onclick=()=>TZ.say(c);
+        const L=[[1,"ˉ","一聲"],[2,"ˊ","二聲"],[3,"ˇ","三聲"],[4,"ˋ","四聲"]];if(t===0)L.push([0,"˙","輕聲"]);
+        $("choices").innerHTML=L.map(([v,mk,lb],i)=>`<button type="button" class="choice tonebtn" style="--c:${COL[i]}" data-t="${v}" aria-label="${lb}"><span class="mk">${mk}</span><span class="lb">${TZ.zy(lb)}</span></button>`).join("");
+        document.querySelectorAll(".choice").forEach(el=>el.onclick=()=>{
+          if(api.S.busy)return;
+          if(+el.dataset.t===t){api.ok();el.classList.add("yes");$("big").innerHTML=TZ.charHTML(c,z);TZ.say(`答對了！${c}是${["輕聲","一聲","二聲","三聲","四聲"][t]}。`,{onend:()=>api.next(400)})}
+          else{api.bad();el.classList.add("no");if(api.S.tries>=2)document.querySelector(`.choice[data-t="${t}"]`).classList.add("glow")}
+        });
+        setTimeout(()=>TZ.say(c),300);
+      }
+    }});
+})();""")
+
+# ---------- 9. 擺餐桌（看圖擺位置） ----------
+page("town-place.html",title="擺餐桌",icon="🍽️",sub="照著這段話，把東西放到桌子的上面、下面、左邊、右邊！",
+style=""".lines{background:#fff;border:5px solid var(--choc);border-radius:20px;padding:8px 18px;box-shadow:0 6px 0 rgba(0,0,0,.1);display:flex;flex-direction:column;gap:2px;max-width:96vw}
+.ln{font-size:clamp(20px,3.4vmin,28px);font-weight:800;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ln.done{color:var(--good)}
+.ln .ck{width:28px;text-align:center}
+.stage3{position:relative;width:var(--sw,600px);aspect-ratio:4/3;max-width:96vw;border-radius:22px;background:linear-gradient(#fff3e0 0 70%,#e8c38a 70%);border:5px solid var(--choc);overflow:hidden;touch-action:none}
+.stage3>svg{position:absolute;inset:0;width:100%;height:100%}
+.zone{position:absolute;border:4px dashed transparent;border-radius:16px;pointer-events:none}
+.zone.hot{border-color:#ff8fb0;background:rgba(255,143,176,.15)}
+.zone.hint{border-color:#ffd23f;background:rgba(255,226,120,.3);animation:glow 1s infinite}
+.thing{position:absolute;width:17%;aspect-ratio:1;transform:translate(-50%,-100%);pointer-events:none}
+.thing .ic{width:100%;height:100%}
+.tray{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;min-height:96px}
+.item{width:clamp(78px,13vmin,104px);aspect-ratio:1;border-radius:20px;background:#fff;border:4px solid var(--choc);box-shadow:0 5px 0 rgba(0,0,0,.14);cursor:grab;touch-action:none;padding:6px;display:grid;place-items:center}
+.item .ic{width:100%;height:100%}
+.item.used{visibility:hidden}
+.item.float{position:fixed;z-index:40;cursor:grabbing;box-shadow:0 14px 20px rgba(0,0,0,.25);pointer-events:none}
+.item.back{animation:wig .4s}
+@media (max-height:500px){main.stage2{display:grid;grid-template-columns:auto auto;align-content:center;justify-content:center;gap:8px 16px}.lines{grid-column:1;grid-row:1}.tray{grid-column:1;grid-row:2;min-height:0}.stage3{grid-column:2;grid-row:1/3}.ln{font-size:16px}.item{width:62px}}""",
+main="""<div class="lines" id="lines"></div>
+<div class="stage3" id="stage"><svg viewBox="0 0 400 300" aria-hidden="true"><g stroke="#6b3f22" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+  <rect x="120" y="150" width="160" height="18" rx="6" fill="#c98a4b"/><path d="M110 150h180" stroke-width="7"/><path d="M135 168v74M265 168v74" stroke-width="10"/>
+  <path d="M112 150q88 22 176 0" fill="#ffb3c7" stroke-width="3" opacity=".9"/></g>
+  <g fill="#fff" opacity=".7"><circle cx="40" cy="40" r="10"/><circle cx="60" cy="36" r="14"/><circle cx="80" cy="42" r="9"/><circle cx="330" cy="50" r="12"/><circle cx="350" cy="46" r="15"/></g></svg>
+  <div class="zone" data-p="上面" style="left:28%;top:8%;width:44%;height:42%"></div><div class="zone" data-p="下面" style="left:35%;top:57%;width:30%;height:26%"></div>
+  <div class="zone" data-p="左邊" style="left:2%;top:30%;width:25%;height:56%"></div><div class="zone" data-p="右邊" style="left:73%;top:30%;width:25%;height:56%"></div></div>
+<div class="tray" id="tray"></div>""",
+script="""(()=>{
+  const $=id=>document.getElementById(id),Z=ZI,POS=["上面","下面","左邊","右邊"];
+  // 放好的位置（東西底部的中間，% ）
+  const ANCHOR={上面:[50,49],下面:[50,80],左邊:[15,80],右邊:[85,80]};
+  function fit(){const m=$("main").getBoundingClientRect(),land=innerHeight<=500;
+    const w=land?Math.min(innerWidth*.46,(innerHeight-100)*4/3):Math.min(innerWidth-32,(m.height-($("lines").offsetHeight+130))*4/3,720);
+    document.documentElement.style.setProperty("--sw",Math.max(240,w)+"px")}
+  addEventListener("resize",fit);
+  const api=TZ.run({key:"town-place",noRange:true,
+    help:"擺餐桌。上面的一段話說了東西要放在哪裡，例如桌子上面、桌子下面、桌子左邊、桌子右邊。請你看看注音，把下面的東西一個一個拖到對的位置。",
+    build:n=>[...Array(n)].map(()=>{const ps=TZ.shuffle(POS.slice()).slice(0,3),its=TZ.shuffle(Z.place.slice()).slice(0,3);return ps.map((p,i)=>({p,it:its[i]}))}),
+    show:(round)=>{
+      document.querySelectorAll(".thing").forEach(e=>e.remove());
+      const text=x=>`桌子[˙ㄗ]${x.p}有一${x.it[1]}${x.it[0]}。`;
+      $("lines").innerHTML=round.map((x,i)=>`<div class="ln" data-i="${i}"><span class="ck">🍽️</span>${TZ.zy(text(x))}</div>`).join("");
+      $("tray").innerHTML=TZ.shuffle(round.map((x,i)=>i)).map(i=>`<div class="item" data-i="${i}" role="button" aria-label="${TZ.plain(round[i].it[0])}">${EN.icon(round[i].it[2])}</div>`).join("");
+      fit();let left=round.length;
+      setTimeout(()=>TZ.say(round.map(x=>TZ.plain(text(x))).join("")),300);
+      document.querySelectorAll(".item").forEach(el=>{
+        let fl=null,ox=0,oy=0;
+        el.addEventListener("pointerdown",e=>{if(api.S.busy||el.classList.contains("used"))return;e.preventDefault();try{el.setPointerCapture(e.pointerId)}catch(err){}
+          const r=el.getBoundingClientRect();ox=e.clientX-r.left;oy=e.clientY-r.top;fl=el.cloneNode(true);fl.classList.add("float");fl.style.width=r.width+"px";fl.style.left=r.left+"px";fl.style.top=r.top+"px";
+          document.body.appendChild(fl);el.classList.add("used");EN.sfx.pop();TZ.say(TZ.plain(round[+el.dataset.i].it[0]))});
+        el.addEventListener("pointermove",e=>{if(!fl)return;fl.style.left=(e.clientX-ox)+"px";fl.style.top=(e.clientY-oy)+"px";const z=zoneAt(e.clientX,e.clientY);document.querySelectorAll(".zone").forEach(x=>x.classList.toggle("hot",x===z))});
+        const up=e=>{if(!fl)return;const z=e&&zoneAt(e.clientX,e.clientY);fl.remove();fl=null;document.querySelectorAll(".zone").forEach(x=>x.classList.remove("hot"));
+          const i=+el.dataset.i,x=round[i];
+          if(z&&z.dataset.p===x.p){
+            const [ax,ay]=ANCHOR[x.p],t=document.createElement("div");t.className="thing";t.style.left=ax+"%";t.style.top=ay+"%";t.innerHTML=EN.icon(x.it[2]);$("stage").appendChild(t);
+            const ln=document.querySelector(`.ln[data-i="${i}"]`);ln.classList.add("done");ln.querySelector(".ck").textContent="✅";EN.sfx.good();
+            document.querySelectorAll(".zone").forEach(q=>q.classList.remove("hint"));
+            left--;if(left===0){api.ok();TZ.say("全部擺好了！",{onend:()=>api.next(600)})}else TZ.say(TZ.plain(text(x)));
+          }else{el.classList.remove("used");if(z){api.bad();el.classList.remove("back");void el.offsetWidth;el.classList.add("back");
+            if(api.S.tries>=2)document.querySelector(`.zone[data-p="${x.p}"]`).classList.add("hint");TZ.say(TZ.plain(text(x)))}}};
+        el.addEventListener("pointerup",up);el.addEventListener("pointercancel",()=>up(null));
+      });
+    }});
+  function zoneAt(x,y){return [...document.querySelectorAll(".zone")].find(z=>{const r=z.getBoundingClientRect();return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom})}
+})();""")
+
+# ---------- 10. 蛋糕寫字（看注音寫國字） ----------
+page("town-write.html",title="蛋糕寫字",icon="🎂",sub="看注音，在蛋糕上寫出國字！",
+style=""".word{display:flex;align-items:center;gap:6px;font-family:var(--kai);font-size:clamp(46px,8vmin,72px);background:#fff;border:5px solid var(--choc);border-radius:22px;padding:6px 20px;box-shadow:0 6px 0 rgba(0,0,0,.1);position:relative}
+.word .tz-b{font-size:max(.3em,14px)}
+.zbox{display:inline-grid;place-items:center;min-width:1.1em;min-height:1.25em;border:4px dashed var(--berry);border-radius:14px;padding:2px 6px;background:#fff5f8}
+.zbox .tz-b{font-size:clamp(22px,3.8vmin,32px)!important;color:var(--berry)}
+.word .ibtn{position:absolute;right:-16px;top:-18px;width:46px;height:46px;font-size:22px;background:#ffe9a8;box-shadow:0 3px 0 #d18e0a}
+.cakebox{position:relative;padding:14px;border-radius:30px;background:#ffd1e3;border:5px solid var(--choc);box-shadow:0 8px 0 #c98a4b,0 14px 20px rgba(0,0,0,.12)}
+.cakebox::before{content:"";position:absolute;left:-5px;right:-5px;top:-5px;height:26px;border-radius:30px 30px 0 0;background:radial-gradient(circle at 18px 26px,#fff 0 14px,transparent 15px) 0 0/36px 26px repeat-x}
+.cakebox canvas{display:block;border-radius:16px;background:#fffdf6;touch-action:none}
+.adult{position:absolute;right:20px;bottom:20px;width:40px;height:40px;border-radius:12px;border:2px solid #d8c9ae;background:#fff;color:#9a8a70;font-size:20px;cursor:pointer;opacity:.75}
+.wbar{display:flex;gap:14px;align-items:center}
+.wbar .big{min-height:56px}
+.tip{font-weight:800;color:var(--choc);font-size:clamp(17px,2.8vmin,22px);min-height:1.4em}
+@media (max-height:500px){main.stage2{flex-direction:row;gap:16px}.side{display:flex;flex-direction:column;gap:10px;align-items:center}.word{font-size:36px;padding:4px 14px}.wbar{flex-direction:column}.tip{font-size:15px;max-width:150px;text-align:center}}
+.side{display:contents}
+@media (max-height:500px){.side{display:flex}}""",
+main="""<div class="side"><div class="word" id="word"></div><div class="tip" id="tip"></div></div>
+<div class="cakebox"><canvas id="cv"></canvas><button type="button" class="adult" id="adult" aria-label="大人幫忙算對">✓</button></div>
+<div class="side"><div class="wbar"><button type="button" class="big alt ico-btn" id="clr" aria-label="擦掉">🧹</button><button type="button" class="big ok" id="ok">OK</button></div></div>""",
+script="""(()=>{
+  const $=id=>document.getElementById(id),Z=ZI;
+  // ---- 手寫比對：孩子寫的和每個字的標準楷書都縮成一樣大、瘦成一條條骨架，量兩邊骨架的距離；
+  //      正確的字要排在最像的前 12 名（和所有生字、易混字比），而且距離不能太遠 ----
+  const N=64;
+  function bm(src){const w=src.width,h=src.height,d=src.getContext("2d").getImageData(0,0,w,h).data;let x0=w,x1=-1,y0=h,y1=-1;
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(d[(y*w+x)*4+3]>100){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+    if(x1<0)return null;const c=document.createElement("canvas");c.width=c.height=N;const g=c.getContext("2d");const bw=x1-x0+1,bh=y1-y0+1,s=(N-8)/Math.max(bw,bh);
+    g.drawImage(src,x0,y0,bw,bh,(N-bw*s)/2,(N-bh*s)/2,bw*s,bh*s);const e=g.getImageData(0,0,N,N).data,b=new Uint8Array(N*N);for(let i=0;i<N*N;i++)b[i]=e[i*4+3]>90?1:0;return b}
+  function thin(b){b=b.slice();let ch=true;const at=(x,y)=>x<0||y<0||x>=N||y>=N?0:b[y*N+x];
+    while(ch){ch=false;for(const step of [0,1]){const del=[];for(let y=0;y<N;y++)for(let x=0;x<N;x++){if(!b[y*N+x])continue;
+      const p=[at(x,y-1),at(x+1,y-1),at(x+1,y),at(x+1,y+1),at(x,y+1),at(x-1,y+1),at(x-1,y),at(x-1,y-1)],B=p.reduce((a,c)=>a+c,0);if(B<2||B>6)continue;
+      let A=0;for(let k=0;k<8;k++)if(!p[k]&&p[(k+1)%8])A++;if(A!==1)continue;
+      if(step===0?(p[0]*p[2]*p[4]===0&&p[2]*p[4]*p[6]===0):(p[0]*p[2]*p[6]===0&&p[0]*p[4]*p[6]===0))del.push(y*N+x)}if(del.length){ch=true;del.forEach(i=>b[i]=0)}}}return b}
+  function dt(b){const d=new Float32Array(N*N).fill(1e9),q=[];for(let i=0;i<N*N;i++)if(b[i]){d[i]=0;q.push(i)}
+    for(let h=0;h<q.length;h++){const i=q[h],x=i%N,y=(i/N)|0;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const X=x+dx,Y=y+dy;if(X<0||Y<0||X>=N||Y>=N)continue;const j=Y*N+X;if(d[j]>d[i]+1){d[j]=d[i]+1;q.push(j)}}}return d}
+  const pts=b=>{const p=[];for(let i=0;i<N*N;i++)if(b[i])p.push(i);return p};
+  const GL={};
+  function glyph(ch){if(GL[ch])return GL[ch];const c=document.createElement("canvas");c.width=c.height=220;const g=c.getContext("2d");
+    g.fillStyle="#000";g.font='180px "TWKaiSub"';g.textAlign="center";g.textBaseline="middle";g.fillText(ch,110,118);const b=thin(bm(c)||new Uint8Array(N*N));return GL[ch]={p:pts(b),d:dt(b)}}
+  const CAND=[...new Set([...Z.L.A,...Z.L.B].flatMap(l=>[...l.s]).concat(Object.values(Z.wrong)))];
+  // 字型載入後，慢慢先算好每個字的骨架，按 OK 時才不會等太久
+  (document.fonts?document.fonts.load('40px "TWKaiSub"',CAND.join("")):Promise.resolve()).then(()=>{let i=0;const step=()=>{const t=performance.now();while(i<CAND.length&&performance.now()-t<12)glyph(CAND[i++]);if(i<CAND.length)setTimeout(step,30)};setTimeout(step,500)});
+  function userBitmap(){const c=document.createElement("canvas");c.width=cv.width;c.height=cv.height;const g=c.getContext("2d");
+    g.strokeStyle="#000";g.lineCap=g.lineJoin="round";g.lineWidth=Math.max(8,W*.05)*dpr;
+    strokes.forEach(st=>{g.beginPath();st.forEach(([x,y],i)=>i?g.lineTo(x*dpr,y*dpr):g.moveTo(x*dpr,y*dpr));if(st.length===1)g.lineTo(st[0][0]*dpr+.5,st[0][1]*dpr);g.stroke()});
+    const b=bm(c);return b&&thin(b)}
+  function judge(target){
+    const u=userBitmap();if(!u)return{ok:false};const up=pts(u),ud=dt(u);if(up.length<3)return{ok:false};
+    const ds=CAND.concat(CAND.includes(target)?[]:[target]).map(c=>{const g=glyph(c);if(!g.p.length)return[c,99];let s1=0,s2=0;for(const i of up)s1+=Math.min(g.d[i],12);for(const i of g.p)s2+=Math.min(ud[i],12);return[c,(s1/up.length+s2/g.p.length)/2]}).sort((a,b)=>a[1]-b[1]);
+    const r=ds.findIndex(x=>x[0]===target),d=ds[r][1];
+    return{ok:r<12&&d<4.6,rank:r,d,top:ds.slice(0,5).map(x=>x[0]).join("")};
+  }
+  window.__judge=(t)=>judge(t);
+  // ---- 寫字格 ----
+  const cv=$("cv"),ctx=cv.getContext("2d");let W=300,dpr=1,strokes=[],cur=null,stage="write",target="",guide=false;
+  function setup(){const m=$("main").getBoundingClientRect(),land=innerHeight<=500;
+    W=Math.max(180,Math.min(land?m.height-40:Math.min(innerWidth-70,m.height-310),400));dpr=Math.min(2,devicePixelRatio||1);
+    cv.width=W*dpr;cv.height=W*dpr;cv.style.width=W+"px";cv.style.height=W+"px";draw()}
+  function draw(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,W);
+    ctx.strokeStyle="#f3b2c6";ctx.lineWidth=2;ctx.setLineDash([8,8]);ctx.beginPath();ctx.moveTo(W/2,6);ctx.lineTo(W/2,W-6);ctx.moveTo(6,W/2);ctx.lineTo(W-6,W/2);ctx.stroke();ctx.setLineDash([]);
+    ctx.strokeStyle="#e8577a";ctx.lineWidth=3;ctx.strokeRect(4,4,W-8,W-8);
+    if(guide){ctx.fillStyle="rgba(232,87,122,.18)";ctx.font=`${W*.82}px "TWKaiSub"`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(target,W/2,W*.54)}
+    ctx.strokeStyle="#3a2a22";ctx.lineCap=ctx.lineJoin="round";ctx.lineWidth=Math.max(8,W*.05);
+    strokes.forEach(st=>{ctx.beginPath();st.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));if(st.length===1)ctx.lineTo(st[0][0]+.1,st[0][1]);ctx.stroke()})}
+  let down=false;const pt=e=>{const r=cv.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
+  cv.onpointerdown=e=>{if(api.S.busy)return;e.preventDefault();down=true;try{cv.setPointerCapture(e.pointerId)}catch(err){}cur=[pt(e)];strokes.push(cur);draw()};
+  cv.onpointermove=e=>{if(!down)return;const p=pt(e),l=cur[cur.length-1];if(Math.hypot(p[0]-l[0],p[1]-l[1])>2){cur.push(p);draw()}};
+  cv.onpointerup=cv.onpointercancel=()=>{down=false};
+  $("clr").onclick=()=>{strokes=[];draw()};
+  const tip=t=>{$("tip").innerHTML=TZ.zy(t)};
+  // ---- 題目：課本語詞裡有這個生字，其他字照常顯示，這個字只給注音 ----
+  function pickWord(c){
+    const L=TZ.lessons(),[a,b]=TZ.range(),ok=w=>w.includes(c)&&[...w].filter(x=>x===c).length===1;
+    const near=L.slice(a,b+1).flatMap(l=>l.ci).filter(ok),all=L.flatMap(l=>l.ci).filter(ok);
+    const w=TZ.shuffle(near.length?near:all)[0];return w?{w,idx:[...w].indexOf(c)}:null;
+  }
+  let api;
+  api=TZ.run({key:"town-write",
+    help:"蛋糕寫字。看注音，想一想是哪一個字，在蛋糕上的格子裡寫出來，不用照筆順，寫出來就好。寫完按 OK。寫不出來也沒關係，會出現淡淡的字讓你描一次，再自己寫一次。旁邊的大人可以按勾勾直接算對。",
+    build:n=>TZ.deal(TZ.pool(false),n).map(c=>({c,...(pickWord(c)||{})})),
+    show:(q)=>{
+      target=q.c;strokes=[];guide=false;stage="write";setup();
+      const learned=TZ.learned();let html="";
+      if(q.w){const zs=Z.ciZy[q.w];[...q.w].forEach((ch,i)=>{html+=i===q.idx?`<span class="zbox">${TZ.charHTML("",zs[i])}</span>`:TZ.charHTML(ch,learned.has(ch)?"":zs[i])})}
+      else html=`<span class="zbox">${TZ.charHTML("",Z.ZY[q.c])}</span>`;
+      $("word").innerHTML=html+`<button type="button" class="ibtn" id="say" aria-label="念語詞">🔊</button>`;
+      $("say").onclick=()=>TZ.say(q.w||q.c);
+      tip("看注音，寫出這個字。");
+      document.fonts&&document.fonts.load('40px "TWKaiSub"',q.c);
+      setTimeout(()=>TZ.say(q.w||q.c),300);
+    }});
+  function success(first){api.S.tries=first?0:1;api.ok();guide=false;strokes=[];draw();
+    ctx.fillStyle="#1f9d61";ctx.font=`${W*.78}px "TWKaiSub"`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(target,W/2,W*.54);
+    TZ.say(`寫對了！是${target}。`,{onend:()=>api.next(500)})}
+  $("ok").onclick=async()=>{
+    if(api.S.busy)return;if(!strokes.length){tip("先在格子裡寫字喔。");return}
+    if(stage==="trace"){stage="write2";guide=false;strokes=[];draw();tip("這次自己寫寫看！");TZ.say("這次自己寫寫看");return}
+    try{await document.fonts.load('40px "TWKaiSub"',target)}catch(e){}
+    const r=judge(target);
+    if(r.ok){success(stage==="write");return}
+    EN.sfx.bad();
+    if(stage==="write"){api.S.tries++;stage="trace";strokes=[];guide=true;draw();tip("照著淡淡的字描一次。");TZ.say("照著淡淡的字描一次")}
+    else{api.S.busy=true;guide=false;strokes=[];draw();ctx.fillStyle="#3a2a22";ctx.font=`${W*.78}px "TWKaiSub"`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(target,W/2,W*.54);
+      tip("是這個字，看一看。");TZ.say(`是${target}，看一看。`,{onend:()=>api.next(900)})}
+  };
+  $("adult").onclick=()=>{if(!api.S.busy)success(stage==="write")};
+  addEventListener("resize",()=>{const keep=strokes;setup();strokes=keep;draw()});
 })();""")
 
 for fn,k in PAGES.items():

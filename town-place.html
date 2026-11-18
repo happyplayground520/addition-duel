@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>擺餐桌</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="en.css?v=20261118j">
+<link rel="stylesheet" href="town/town.css?v=20261118j">
+<style>
+main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(12px,2.6vh,28px);
+  padding:0 max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
+.top .mid{flex-direction:column;gap:2px}
+.top .scope{font-size:13px}
+#start .source{margin-top:4px}
+@media (max-height:500px){main.stage2{flex-direction:row;gap:24px}.qline{font-size:19px;line-height:1.4}.qcard{gap:6px}}
+@media (orientation:portrait) and (max-height:740px){.qline{font-size:20px;line-height:1.4}.qcard{gap:8px}main.stage2{gap:12px}}
+.lines{background:#fff;border:5px solid var(--choc);border-radius:20px;padding:8px 18px;box-shadow:0 6px 0 rgba(0,0,0,.1);display:flex;flex-direction:column;gap:2px;max-width:96vw}
+.ln{font-size:clamp(20px,3.4vmin,28px);font-weight:800;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ln.done{color:var(--good)}
+.ln .ck{width:28px;text-align:center}
+.stage3{position:relative;width:var(--sw,600px);aspect-ratio:4/3;max-width:96vw;border-radius:22px;background:linear-gradient(#fff3e0 0 70%,#e8c38a 70%);border:5px solid var(--choc);overflow:hidden;touch-action:none}
+.stage3>svg{position:absolute;inset:0;width:100%;height:100%}
+.zone{position:absolute;border:4px dashed transparent;border-radius:16px;pointer-events:none}
+.zone.hot{border-color:#ff8fb0;background:rgba(255,143,176,.15)}
+.zone.hint{border-color:#ffd23f;background:rgba(255,226,120,.3);animation:glow 1s infinite}
+.thing{position:absolute;width:17%;aspect-ratio:1;transform:translate(-50%,-100%);pointer-events:none}
+.thing .ic{width:100%;height:100%}
+.tray{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;min-height:96px}
+.item{width:clamp(78px,13vmin,104px);aspect-ratio:1;border-radius:20px;background:#fff;border:4px solid var(--choc);box-shadow:0 5px 0 rgba(0,0,0,.14);cursor:grab;touch-action:none;padding:6px;display:grid;place-items:center}
+.item .ic{width:100%;height:100%}
+.item.used{visibility:hidden}
+.item.float{position:fixed;z-index:40;cursor:grabbing;box-shadow:0 14px 20px rgba(0,0,0,.25);pointer-events:none}
+.item.back{animation:wig .4s}
+@media (max-height:500px){main.stage2{display:grid;grid-template-columns:auto auto;align-content:center;justify-content:center;gap:8px 16px}.lines{grid-column:1;grid-row:1}.tray{grid-column:1;grid-row:2;min-height:0}.stage3{grid-column:2;grid-row:1/3}.ln{font-size:16px}.item{width:62px}}
+</style>
+<script src="zhuyin.js?v=20261118j"></script>
+<link rel="stylesheet" href="park.css?v=20261118j">
+<script src="park.js?v=20261118j"></script>
+<script src="en.js?v=20261118j"></script>
+<script src="town/zi-data.js?v=20261118j"></script>
+<script src="town/town.js?v=20261118j"></script>
+<style>body{font-family:var(--text)}</style>
+</head>
+<body>
+<header class="top">
+  <a class="ibtn" href="town.html" aria-label="回甜點小鎮">🏠</a>
+  <div class="mid"><span class="pill" id="prog">1 / 10</span><span class="scope" id="scopeTop"></span></div>
+  <div class="right"><span class="pill" id="score">⭐ 0</span></div>
+</header>
+<main class="stage2" id="main" data-zy-skip>
+<div class="lines" id="lines"></div>
+<div class="stage3" id="stage"><svg viewBox="0 0 400 300" aria-hidden="true"><g stroke="#6b3f22" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+  <rect x="120" y="150" width="160" height="18" rx="6" fill="#c98a4b"/><path d="M110 150h180" stroke-width="7"/><path d="M135 168v74M265 168v74" stroke-width="10"/>
+  <path d="M112 150q88 22 176 0" fill="#ffb3c7" stroke-width="3" opacity=".9"/></g>
+  <g fill="#fff" opacity=".7"><circle cx="40" cy="40" r="10"/><circle cx="60" cy="36" r="14"/><circle cx="80" cy="42" r="9"/><circle cx="330" cy="50" r="12"/><circle cx="350" cy="46" r="15"/></g></svg>
+  <div class="zone" data-p="上面" style="left:28%;top:8%;width:44%;height:42%"></div><div class="zone" data-p="下面" style="left:35%;top:57%;width:30%;height:26%"></div>
+  <div class="zone" data-p="左邊" style="left:2%;top:30%;width:25%;height:56%"></div><div class="zone" data-p="右邊" style="left:73%;top:30%;width:25%;height:56%"></div></div>
+<div class="tray" id="tray"></div>
+</main>
+
+<section class="panel" id="start">
+  <div class="box">
+    <h2>🍽️ 擺餐桌</h2>
+    <p class="sub" data-zy>照著這段話，把東西放到桌子的上面、下面、左邊、右邊！</p>
+    <button type="button" class="helpbtn" id="help">🔊 中文說明</button>
+    <div id="setup"></div>
+    <div class="row" id="totals">
+      <button type="button" class="opt" data-n="5" aria-label="5 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button>
+      <button type="button" class="opt" data-n="10" aria-label="10 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>10</small></button>
+      <button type="button" class="opt" data-n="15" aria-label="15 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>15</small></button>
+    </div>
+    <span class="note" id="note" data-zy></span>
+    <button type="button" class="big" id="go">READY</button>
+    <p class="source">字型：全字庫正楷體（數位發展部「CNS11643中文標準交換碼全字庫」，依政府資料開放授權條款第1版使用）<br>生字：教育部教育百科「生字詞彙表」；部首、讀音：教育部《國語辭典簡編本》；筆畫：教育部《國字標準字體筆順學習網》</p>
+  </div>
+</section>
+<section class="panel" id="end" hidden>
+  <div class="box">
+    <h2>做完了！</h2>
+    <div id="stars">⭐⭐⭐</div>
+    <div id="result">0 / 10</div>
+    <span class="earn" id="earn"></span>
+    <div class="endrow">
+      <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+      <a class="big alt ico-btn" href="town.html" aria-label="回甜點小鎮">🏠</a>
+    </div>
+  </div>
+</section>
+<script>
+(()=>{
+  const $=id=>document.getElementById(id),Z=ZI,POS=["上面","下面","左邊","右邊"];
+  // 放好的位置（東西底部的中間，% ）
+  const ANCHOR={上面:[50,49],下面:[50,80],左邊:[15,80],右邊:[85,80]};
+  function fit(){const m=$("main").getBoundingClientRect(),land=innerHeight<=500;
+    const w=land?Math.min(innerWidth*.46,(innerHeight-100)*4/3):Math.min(innerWidth-32,(m.height-($("lines").offsetHeight+130))*4/3,720);
+    document.documentElement.style.setProperty("--sw",Math.max(240,w)+"px")}
+  addEventListener("resize",fit);
+  const api=TZ.run({key:"town-place",noRange:true,
+    help:"擺餐桌。上面的一段話說了東西要放在哪裡，例如桌子上面、桌子下面、桌子左邊、桌子右邊。請你看看注音，把下面的東西一個一個拖到對的位置。",
+    build:n=>[...Array(n)].map(()=>{const ps=TZ.shuffle(POS.slice()).slice(0,3),its=TZ.shuffle(Z.place.slice()).slice(0,3);return ps.map((p,i)=>({p,it:its[i]}))}),
+    show:(round)=>{
+      document.querySelectorAll(".thing").forEach(e=>e.remove());
+      const text=x=>`桌子[˙ㄗ]${x.p}有一${x.it[1]}${x.it[0]}。`;
+      $("lines").innerHTML=round.map((x,i)=>`<div class="ln" data-i="${i}"><span class="ck">🍽️</span>${TZ.zy(text(x))}</div>`).join("");
+      $("tray").innerHTML=TZ.shuffle(round.map((x,i)=>i)).map(i=>`<div class="item" data-i="${i}" role="button" aria-label="${TZ.plain(round[i].it[0])}">${EN.icon(round[i].it[2])}</div>`).join("");
+      fit();let left=round.length;
+      setTimeout(()=>TZ.say(round.map(x=>TZ.plain(text(x))).join("")),300);
+      document.querySelectorAll(".item").forEach(el=>{
+        let fl=null,ox=0,oy=0;
+        el.addEventListener("pointerdown",e=>{if(api.S.busy||el.classList.contains("used"))return;e.preventDefault();try{el.setPointerCapture(e.pointerId)}catch(err){}
+          const r=el.getBoundingClientRect();ox=e.clientX-r.left;oy=e.clientY-r.top;fl=el.cloneNode(true);fl.classList.add("float");fl.style.width=r.width+"px";fl.style.left=r.left+"px";fl.style.top=r.top+"px";
+          document.body.appendChild(fl);el.classList.add("used");EN.sfx.pop();TZ.say(TZ.plain(round[+el.dataset.i].it[0]))});
+        el.addEventListener("pointermove",e=>{if(!fl)return;fl.style.left=(e.clientX-ox)+"px";fl.style.top=(e.clientY-oy)+"px";const z=zoneAt(e.clientX,e.clientY);document.querySelectorAll(".zone").forEach(x=>x.classList.toggle("hot",x===z))});
+        const up=e=>{if(!fl)return;const z=e&&zoneAt(e.clientX,e.clientY);fl.remove();fl=null;document.querySelectorAll(".zone").forEach(x=>x.classList.remove("hot"));
+          const i=+el.dataset.i,x=round[i];
+          if(z&&z.dataset.p===x.p){
+            const [ax,ay]=ANCHOR[x.p],t=document.createElement("div");t.className="thing";t.style.left=ax+"%";t.style.top=ay+"%";t.innerHTML=EN.icon(x.it[2]);$("stage").appendChild(t);
+            const ln=document.querySelector(`.ln[data-i="${i}"]`);ln.classList.add("done");ln.querySelector(".ck").textContent="✅";EN.sfx.good();
+            document.querySelectorAll(".zone").forEach(q=>q.classList.remove("hint"));
+            left--;if(left===0){api.ok();TZ.say("全部擺好了！",{onend:()=>api.next(600)})}else TZ.say(TZ.plain(text(x)));
+          }else{el.classList.remove("used");if(z){api.bad();el.classList.remove("back");void el.offsetWidth;el.classList.add("back");
+            if(api.S.tries>=2)document.querySelector(`.zone[data-p="${x.p}"]`).classList.add("hint");TZ.say(TZ.plain(text(x)))}}};
+        el.addEventListener("pointerup",up);el.addEventListener("pointercancel",()=>up(null));
+      });
+    }});
+  function zoneAt(x,y){return [...document.querySelectorAll(".zone")].find(z=>{const r=z.getBoundingClientRect();return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom})}
+})();
+</script>
+</body>
+</html>
