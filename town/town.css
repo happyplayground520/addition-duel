@@ -1,0 +1,48 @@
+/* 甜點小鎮共用外觀：奶油色、草莓粉、巧克力咖啡；題目的國字用全字庫正楷體 */
+@font-face{font-family:"TWKaiSub";src:url("kai.woff2?v=1") format("woff2");font-display:swap}
+:root{--kai:"TWKaiSub","BiauKai","DFKai-SB","KaiTi","STKaiti",serif;--cream:#fff7e8;--choc:#6b3f22;--choc2:#8a5a36;--berry:#e8577a;--berry2:#ffb3c7;
+  --mint:#7fd6b2;--lemon:#ffd95a;--accent:#e8577a;--accent-dark:#b8365a;--zyc:#3d5a8a}
+body{background:radial-gradient(circle at 15% 20%,rgba(255,255,255,.55) 0 3px,transparent 4px) 0 0/46px 46px,linear-gradient(#ffe4ec,#fff3e0)}
+.kai{font-family:var(--kai)}
+/* 直式注音（考試內容用，不會被首頁的注音開關關掉） */
+.tz{display:inline-flex;align-items:center;vertical-align:middle;line-height:1;white-space:nowrap}
+.tz-h{display:inline-block}
+.tz-b{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;margin-left:.05em;font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;
+  font-weight:400;font-size:max(.36em,10px);line-height:1.02;color:var(--zyc)}
+.tz-b>span{position:relative;display:block}
+.tz-b .zy-t{position:absolute;left:92%;top:-.45em;font-size:1em}
+.tz-b .zy-lt{line-height:.7}
+.tp{display:inline-block}
+.blank{display:inline-block;width:1.3em;height:1.3em;vertical-align:middle;margin:0 .1em;border-radius:10px;border:3px dashed var(--berry);background:#fff;position:relative}
+.blank.fill{border-style:solid;border-color:var(--good);background:#eafff2;display:inline-grid;place-items:center;font-family:var(--kai);color:var(--ink);width:auto;min-width:1.3em;padding:0 .1em}
+/* 範圍選擇 */
+.rangeRow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
+.stepper{display:flex;align-items:center;gap:6px;background:#fff;border:3px solid #e3d3b8;border-radius:16px;padding:4px}
+.sbtn{width:44px;height:44px;border-radius:12px;border:0;background:var(--berry2);color:var(--choc);font-size:18px;cursor:pointer}
+.sbtn:disabled{opacity:.3}
+.sname{min-width:min(220px,52vw);text-align:center;font-weight:800;font-size:17px}
+.rlab{font-weight:900;font-size:17px}
+.rsel select{font:inherit;font-size:17px;font-weight:700;padding:8px 10px;border-radius:14px;border:3px solid #e3d3b8;background:#fff;color:var(--ink);min-height:48px;max-width:46vw}
+.rto{font-weight:900;font-size:20px;color:var(--muted)}
+.scope{font-size:15px;color:var(--muted);font-weight:700}
+/* 題目卡和選項 */
+.qcard{display:flex;flex-direction:column;align-items:center;gap:12px}
+.qline{font-size:clamp(22px,4vmin,34px);font-weight:800;text-align:center;line-height:1.6;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center}
+.qline .ibtn{width:48px;height:48px;font-size:24px;background:#ffe9a8;box-shadow:0 3px 0 #d18e0a}
+.choices{display:flex;gap:clamp(10px,2.4vmin,22px);flex-wrap:wrap;justify-content:center}
+.choice{position:relative;border:0;background:none;padding:0;cursor:pointer;font:inherit;color:var(--ink);display:grid;place-items:center;transition:transform .15s}
+.choice:active{transform:scale(.95)}
+.choice.no{opacity:.35;pointer-events:none;filter:grayscale(.6)}
+.choice.yes{animation:yes .6s}
+@keyframes yes{40%{transform:scale(1.15) rotate(-4deg)}}
+.choice.glow{animation:glow 1s infinite}
+@keyframes glow{50%{filter:drop-shadow(0 0 10px #ffd23f)}}
+.choice.shake{animation:wig .4s}
+@keyframes wig{25%{translate:-8px 0}75%{translate:8px 0}}
+.source{font-size:12px;color:var(--muted);text-align:center;line-height:1.5;margin:0}
+@media (prefers-reduced-motion:reduce){.choice.yes,.choice.glow,.choice.shake{animation:none}}
+
+.opt.ver{min-width:96px;flex-direction:row;font-size:19px}
+@media (max-height:500px){.sname{min-width:150px;font-size:15px}.sbtn{width:40px;height:40px}.stepper{padding:2px}}
+@media (max-width:400px){.sname{min-width:160px;font-size:15px}}
+.panel{background:rgba(255,214,228,.9)}

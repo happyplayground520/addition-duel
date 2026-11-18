@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>冰火飲料店</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="en.css?v=20261118f">
+<link rel="stylesheet" href="town/town.css?v=20261118f">
+<style>
+main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(12px,2.6vh,28px);
+  padding:0 max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
+.top .mid{flex-direction:column;gap:2px}
+.top .scope{font-size:13px}
+#start .source{margin-top:4px}
+@media (max-height:500px){main.stage2{flex-direction:row;gap:24px}.qline{font-size:19px;line-height:1.4}.qcard{gap:6px}}
+@media (orientation:portrait) and (max-height:740px){.qline{font-size:20px;line-height:1.4}.qcard{gap:8px}main.stage2{gap:12px}}
+.cup{position:relative;width:var(--w,clamp(110px,19vmin,150px));aspect-ratio:.8;border:5px solid var(--choc);border-radius:10px 10px 34px 34px;
+  background:linear-gradient(transparent 18%,var(--c) 18%);box-shadow:0 6px 0 rgba(0,0,0,.15);display:grid;place-items:center}
+.cup::before{content:"";position:absolute;left:-8%;right:-8%;top:-14px;height:18px;border-radius:10px;background:#fff;border:5px solid var(--choc)}
+.cup::after{content:"";position:absolute;left:58%;top:-46px;width:9px;height:44px;border-radius:5px;background:var(--berry);border:3px solid var(--choc);transform:rotate(12deg)}
+.cup b{font-family:var(--kai);font-weight:400;font-size:clamp(54px,9.5vmin,80px);line-height:1;color:var(--ink);margin-top:10%}
+.cup .tz-b{font-size:17px}
+.cup.big{--w:clamp(150px,27vmin,220px)}.cup.big b{font-size:clamp(84px,15vmin,130px)}
+.ice{position:absolute;left:12%;top:24%;font-size:26px}
+.vs{display:flex;align-items:center;gap:18px}
+.vs .arrow{font-size:clamp(34px,6vmin,52px);color:var(--choc);font-weight:900}
+.choices{margin-top:34px}
+.vs{margin-top:30px}
+.cup.big{--w:clamp(150px,27vmin,220px)}
+@media (max-height:740px),(max-width:420px){.cup{--w:92px}.cup.big{--w:118px}.cup b{font-size:52px}.cup.big b{font-size:76px}.vs .q{width:92px!important;font-size:36px!important}.choices{margin-top:26px}.vs{margin-top:22px}}
+@media (max-height:500px){.cup{--w:84px}.cup.big{--w:104px}.cup.big b{font-size:64px}.cup b{font-size:46px}.vs{margin-top:30px}.choices{margin-top:30px}.vs .arrow{font-size:28px}}
+.vs .q{width:clamp(110px,19vmin,150px);aspect-ratio:.8;border:5px dashed var(--berry);border-radius:10px 10px 34px 34px;display:grid;place-items:center;font-size:48px;color:var(--berry);background:#fff}
+</style>
+<script src="zhuyin.js?v=20261118f"></script>
+<link rel="stylesheet" href="park.css?v=20261118f">
+<script src="park.js?v=20261118f"></script>
+<script src="en.js?v=20261118f"></script>
+<script src="town/zi-data.js?v=20261118f"></script>
+<script src="town/town.js?v=20261118f"></script>
+<style>body{font-family:var(--text)}</style>
+</head>
+<body>
+<header class="top">
+  <a class="ibtn" href="town.html" aria-label="回甜點小鎮">🏠</a>
+  <div class="mid"><span class="pill" id="prog">1 / 10</span><span class="scope" id="scopeTop"></span></div>
+  <div class="right"><span class="pill" id="score">⭐ 0</span></div>
+</header>
+<main class="stage2" id="main" data-zy-skip>
+<div class="qcard"><div class="qline" id="q"></div><div class="vs"><div class="cup big" id="pcup" style="--c:#bfe6ff"><span class="ice">🧊</span><b id="ch"></b></div><span class="arrow">⇄</span><div class="q" id="slot">？</div></div></div>
+<div class="choices" id="choices"></div>
+</main>
+
+<section class="panel" id="start">
+  <div class="box">
+    <h2>🧋 冰火飲料店</h2>
+    <p class="sub" data-zy>冰的配熱的，找出意思相反的字！</p>
+    <button type="button" class="helpbtn" id="help">🔊 中文說明</button>
+    <div id="setup"></div>
+    <div class="row" id="totals">
+      <button type="button" class="opt" data-n="5" aria-label="5 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button>
+      <button type="button" class="opt" data-n="10" aria-label="10 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>10</small></button>
+      <button type="button" class="opt" data-n="15" aria-label="15 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>15</small></button>
+    </div>
+    <span class="note" id="note" data-zy></span>
+    <button type="button" class="big" id="go">READY</button>
+    <p class="source">字型：全字庫正楷體（數位發展部「CNS11643中文標準交換碼全字庫」，依政府資料開放授權條款第1版使用）<br>生字：教育部教育百科「生字詞彙表」；部首、讀音：教育部《國語辭典簡編本》；筆畫：教育部《國字標準字體筆順學習網》</p>
+  </div>
+</section>
+<section class="panel" id="end" hidden>
+  <div class="box">
+    <h2>做完了！</h2>
+    <div id="stars">⭐⭐⭐</div>
+    <div id="result">0 / 10</div>
+    <span class="earn" id="earn"></span>
+    <div class="endrow">
+      <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+      <a class="big alt ico-btn" href="town.html" aria-label="回甜點小鎮">🏠</a>
+    </div>
+  </div>
+</section>
+<script>
+(()=>{
+  const $=id=>document.getElementById(id),Z=ZI,COL=["#ffc27a","#ffb3c7","#c9f2d8","#fff1a8"];
+  // 題目：範圍裡的字，有相反字的才出
+  function questions(n){
+    const pool=new Set(TZ.pool(true)),items=[];
+    Z.anti.forEach(([a,b])=>{if(pool.has(a))items.push([a,b]);if(pool.has(b))items.push([b,a])});
+    return TZ.deal(items,n);
+  }
+  const api=TZ.run({key:"town-anti",
+    help:"冰火飲料店。左邊的冰飲料上有一個字，請你找出意思和它相反的字，例如大和小、上和下。點那一杯飲料。沒學過的字會有注音。",
+    empty:"這個範圍沒有足夠的相反字題目，請多選幾課。",
+    build:questions,
+    show:([q,a])=>{
+      const learned=TZ.learned(),zyIf=c=>learned.has(c)?"":(Z.ZY[c]||"");
+      $("ch").innerHTML=TZ.charHTML(q,zyIf(q));$("slot").textContent="？";$("slot").style.cssText="";
+      $("q").innerHTML=TZ.zy("和「")+`<b class="kai" style="font-size:1.3em">${q}</b>`+TZ.zy("」意思相反的是哪一個字？")+`<button type="button" class="ibtn" id="say" aria-label="念題目">🔊</button>`;
+      $("say").onclick=()=>TZ.say(`和${q}，意思相反的是哪一個字？`);
+      // 干擾選項：學過的字，但不能是其他相反字組裡和題目相反的字
+      const bad=new Set([q,a]);Z.anti.forEach(([x,y])=>{if(x===q)bad.add(y);if(y===q)bad.add(x)});
+      const pool=TZ.shuffle([...TZ.learned()].filter(c=>!bad.has(c)&&Z.ZY[c]));
+      const opts=TZ.shuffle([a,pool[0],pool[1]]);
+      $("choices").innerHTML=opts.map((c,i)=>`<button type="button" class="choice cup" style="--c:${COL[i]}" data-c="${c}" aria-label="${c}"><b>${TZ.charHTML(c,zyIf(c))}</b></button>`).join("");
+      document.querySelectorAll(".choice").forEach(el=>el.onclick=()=>{
+        if(api.S.busy)return;
+        if(el.dataset.c===a){api.ok();el.classList.add("yes");const s=$("slot");s.style.cssText="border-style:solid;border-color:#1f9d61;background:#eafff2;color:#2b2320;font-family:var(--kai);font-size:clamp(54px,9.5vmin,80px)";s.textContent=a;
+          TZ.say(`答對了！${q}的相反是${a}。`,{onend:()=>api.next(400)})}
+        else{api.bad();el.classList.add("no");if(api.S.tries>=2)document.querySelector(`.choice[data-c="${a}"]`).classList.add("glow")}
+      });
+      setTimeout(()=>TZ.say(`和${q}，意思相反的是哪一個字？`),300);
+    }});
+})();
+</script>
+</body>
+</html>

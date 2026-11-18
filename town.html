@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>甜點小鎮</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="en.css?v=20261118f">
+<link rel="stylesheet" href="town/town.css?v=20261118f">
+<style>
+/* 甜點小鎮地圖：粉紅色的小鎮，一條糖果條紋的小路彎來彎去，連起 12 家甜點店（先開放 4 家） */
+body{align-items:center;justify-content:center;gap:clamp(6px,1.2vmin,12px);
+  padding:max(10px,env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) max(10px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
+header{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;gap:12px;width:100%;max-width:1100px}
+header .home{position:absolute;left:0;top:50%;transform:translateY(-50%)}
+header .right{position:absolute;right:0;top:50%;transform:translateY(-50%);display:flex;gap:8px;align-items:center}
+.ttl{display:flex;flex-direction:column;align-items:center;gap:2px}
+h1{margin:0;font-size:clamp(26px,5vmin,52px);line-height:1.15;font-weight:800;letter-spacing:.08em;color:#fff;padding:.18em .9em .22em;border-radius:22px 22px 14px 14px;border:4px solid #fff;
+  background:repeating-linear-gradient(90deg,#ff6f98 0 28px,#ff94b3 28px 56px);text-shadow:0 3px 0 #b8365a;box-shadow:0 6px 0 #c23d63,0 12px 22px rgba(0,0,0,.18);display:flex;align-items:center;gap:.3em}
+h1 .star{font-size:.7em;text-shadow:none}
+.ttl .sub{margin:0;font-weight:800;font-size:clamp(14px,2.3vmin,19px);color:#7a4b12;background:#ffe27a;border:3px solid #fff;border-radius:999px;padding:0 14px;box-shadow:0 3px 0 #e2b23b}
+.map{position:relative;z-index:1;width:min(100%,calc((100dvh - 120px) * 1.6));aspect-ratio:16/10;border-radius:30px;overflow:hidden;
+  background:radial-gradient(circle,rgba(255,255,255,.5) 1.5px,transparent 2px) 0 0/24px 24px,#ffd6e3;border:6px solid #fff;box-shadow:0 0 0 4px #ff8fb0,0 14px 30px rgba(0,0,0,.16);container-type:inline-size}
+.map>svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.spot{position:absolute;transform:translate(-50%,-38%);display:flex;flex-direction:column;align-items:center;gap:3px;z-index:3;border:0;background:none;padding:0;cursor:pointer;
+  font:inherit;color:inherit;text-decoration:none;touch-action:manipulation}
+.spot .icon{position:relative;width:clamp(46px,8.6cqw,130px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;
+  background:radial-gradient(circle at 35% 30%,#fff 0 55%,color-mix(in srgb,var(--c) 14%,#fff));border:clamp(3px,.5cqw,6px) solid var(--c);
+  box-shadow:0 5px 0 color-mix(in srgb,var(--c) 70%,#000),0 10px 16px rgba(0,0,0,.18)}
+.spot .icon svg{width:74%;height:74%;display:block;overflow:visible}
+.spot:active .icon{transform:translateY(4px)}
+.spot .name{background:var(--c);color:#fff;border:2px solid #fff;border-radius:12px;padding:0 clamp(6px,1cqw,12px);font-weight:800;white-space:nowrap;box-shadow:0 3px 0 rgba(0,0,0,.14);font-size:clamp(13px,2cqw,26px)}
+.spot .tag{white-space:nowrap;font-weight:800;color:color-mix(in srgb,var(--c) 75%,#000);background:rgba(255,255,255,.92);border-radius:999px;padding:0 9px;box-shadow:0 2px 0 rgba(0,0,0,.08);font-size:clamp(11px,1.4cqw,18px)}
+.spot.open .icon{animation:bob 2.6s ease-in-out infinite}
+.spot.open:nth-of-type(2n) .icon{animation-delay:-1.3s}
+@keyframes bob{50%{transform:translateY(-5px)}}
+.spot.lock .icon{filter:grayscale(.8);opacity:.75}
+.spot.lock .icon::after{content:"🔒";position:absolute;right:-8%;bottom:-6%;font-size:clamp(15px,2.6cqw,30px);filter:none}
+.spot.lock .name{background:#a59aa0}
+.deco{position:absolute;transform:translate(-50%,-60%);pointer-events:none;z-index:2}
+.deco svg{display:block;width:100%;height:100%}
+@media (orientation:portrait){.map{aspect-ratio:4/5;width:min(100%,calc((100dvh - 130px) * .8))}
+  .spot .icon{width:clamp(46px,12cqw,140px)} .spot .name{font-size:clamp(13px,2.9cqw,28px)} .spot .tag{font-size:clamp(11px,2cqw,19px)}}
+html.phone,html.phone body{height:auto;min-height:100%}
+html.phone body{overflow-y:auto;justify-content:flex-start}
+html.phone .map{width:100%;aspect-ratio:auto;height:calc((100vw - 28px) * 2.55);max-height:none}
+html.phone .spot .icon{width:80px} html.phone .spot .name{font-size:16px} html.phone .spot .tag{font-size:13px}
+@media (max-width:370px){html.phone .spot .name{font-size:14px}html.phone .spot .icon{width:72px}}
+@media (max-height:500px){h1{font-size:22px;border-width:3px}h1 .star{display:none}.ttl .sub{display:none}}
+@media (max-width:600px){header{flex-direction:column}header .home,header .right{top:4px;transform:none}h1{font-size:21px;padding:.18em .6em .22em}h1 .star{display:none}header .ttl{padding:0 52px}}
+html.phone.land .map{height:calc((100vw - 28px) * .92)}
+html.phone.land .spot .icon{width:70px}
+.toast{position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:9;background:var(--ink);color:#fff;
+  padding:10px 20px;border-radius:999px;font-size:18px;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,.25);transition:opacity .25s;white-space:nowrap}
+.toast[hidden]{display:block!important;opacity:0;pointer-events:none}
+</style>
+<script src="zhuyin.js?v=20261118f"></script>
+<link rel="stylesheet" href="park.css?v=20261118f">
+<script src="park.js?v=20261118f"></script>
+<script src="en.js?v=20261118f"></script>
+<style>body{font-family:var(--text)}</style>
+</head>
+<body>
+<header>
+  <a class="ibtn home" href="./" aria-label="回數學遊樂園">🎡</a>
+  <div class="ttl"><h1><span class="star">🍓</span>甜點小鎮<span class="star">🍓</span></h1><p class="sub" data-zy>點一家甜點店開始玩！</p></div>
+  <div class="right"><span class="pill" id="coins">0</span></div>
+</header>
+<div class="map" id="map" role="navigation" aria-label="甜點小鎮地圖">
+  <svg id="art" aria-hidden="true"></svg>
+  <div id="decos" aria-hidden="true"></div>
+</div>
+<div class="toast" id="toast" role="status" data-zy hidden></div>
+
+<script>
+(()=>{
+  const $=id=>document.getElementById(id),K="#3a2a22";
+  const g=b=>`<svg viewBox="0 0 100 100" aria-hidden="true"><g stroke="${K}" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round">${b}</g></svg>`;
+  const EI=w=>EN.icon(w).replace('class="ic "','class="ic"');
+  const IC={
+    jar:g(`<rect x="34" y="10" width="32" height="12" rx="4" fill="#ff6f98"/><path d="M28 22h44q8 0 8 10v44q0 14-14 14H34q-14 0-14-14V32q0-10 8-10z" fill="#eaf6ff"/>
+      <circle cx="40" cy="52" r="7" fill="#ff9fb2"/><circle cx="58" cy="46" r="7" fill="#9ef0b9"/><circle cx="52" cy="66" r="7" fill="#ffe08a"/><circle cx="66" cy="64" r="6" fill="#9fd3ff"/><circle cx="36" cy="70" r="6" fill="#d7b4ff"/>`),
+    drink:g(`<path d="M58 6l-8 30" fill="none" stroke="#ff6f98" stroke-width="6"/><path d="M24 30h52l-7 58H31z" fill="#ffd08a"/><path d="M20 26h60v8H20z" fill="#fff"/>
+      <g fill="#6b3f22" stroke="none"><circle cx="38" cy="76" r="4"/><circle cx="50" cy="80" r="4"/><circle cx="62" cy="75" r="4"/><circle cx="44" cy="68" r="4"/></g><rect x="56" y="44" width="10" height="10" rx="2" fill="#dff4ff" stroke-width="3"/>`),
+    bell:g(`<path d="M50 14v8" fill="none"/><path d="M22 70q0-46 28-46t28 46z" fill="#ffd23f"/><rect x="14" y="70" width="72" height="10" rx="5" fill="#c98a4b"/><circle cx="50" cy="12" r="5" fill="#ffd23f"/>`),
+    scale:g(`<path d="M50 20v60M30 86h40" fill="none" stroke-width="6"/><path d="M18 30h64" fill="none" stroke-width="5"/><path d="M18 30 8 56h22zM82 30 72 56h22z" fill="#ffe08a"/><circle cx="50" cy="20" r="6" fill="#ff6f98"/>
+      <circle cx="16" cy="50" r="5" fill="#ff4d4d" stroke-width="2.5"/><circle cx="85" cy="50" r="5" fill="#5cc24a" stroke-width="2.5"/>`),
+    tea:g(`<path d="M74 44q16-2 16 12t-16 14" fill="none" stroke-width="6"/><path d="M22 44 8 34" fill="none" stroke-width="7"/><path d="M20 40h56v24q0 22-28 22T20 64z" fill="#a8e6cf"/>
+      <ellipse cx="48" cy="40" rx="28" ry="7" fill="#7fd6b2"/><circle cx="48" cy="28" r="6" fill="#ff9fb2"/><path d="M34 60q14 6 28 0" fill="none" stroke="#fff" stroke-width="3"/>`),
+    cookie:EI("cookie"),bread:EI("bread"),cake:EI("cake"),table:EI("table"),apple:EI("apple"),icecream:EI("ice cream"),candied:EI("candied fruit")
+  };
+  const SPOTS=[
+    {k:"bu",name:"餅乾模子",tag:"部首",c:"#c98a4b",href:"town-bu.html",ic:"cookie"},
+    {k:"n",name:"數糖果",tag:"筆畫",c:"#e8577a",href:"town-n.html",ic:"jar"},
+    {k:"fill",name:"麵包店送貨",tag:"選詞填空",c:"#e0772b",href:"town-fill.html",ic:"bread"},
+    {k:"anti",name:"冰火飲料店",tag:"相反字",c:"#2f8fdb",href:"town-anti.html",ic:"drink"},
+    {k:"say",name:"點餐櫃台",tag:"說出造詞",c:"#7a4fd6",ic:"bell"},
+    {k:"write",name:"蛋糕寫字",tag:"寫國字",c:"#d1478f",ic:"cake"},
+    {k:"place",name:"擺餐桌",tag:"看圖擺位置",c:"#2b7f50",ic:"table"},
+    {k:"wrong",name:"挑壞蘋果",tag:"找錯字",c:"#c0392b",ic:"apple"},
+    {k:"mw",name:"市場秤一秤",tag:"量詞",c:"#14a99c",ic:"scale"},
+    {k:"tone",name:"音樂甜筒",tag:"注音聲調",c:"#c04fd6",ic:"icecream"},
+    {k:"order",name:"串糖葫蘆",tag:"句子重組",c:"#e8433a",ic:"candied"},
+    {k:"story",name:"午茶說故事",tag:"成語故事",c:"#14a99c",ic:"tea"}
+  ];
+  const map=$("map");
+  SPOTS.forEach(s=>{
+    const a=document.createElement(s.href?"a":"button");a.className="spot "+(s.href?"open":"lock");a.style.setProperty("--c",s.c);a.dataset.k=s.k;
+    if(s.href)a.href=s.href;else a.type="button";
+    a.innerHTML=`<span class="icon">${IC[s.ic]}</span><span class="name" data-zy>${s.name}</span><span class="tag" data-zy>${s.tag}</span>`;
+    if(!s.href)a.addEventListener("click",()=>toast("即將開放，敬請期待！"));
+    map.appendChild(a);
+  });
+  // 小路：一排一排來回（蛇形）
+  const snake=(cols,rows,x0,x1,y0,y1)=>{const pts=[];for(let r=0;r<rows;r++){const y=y0+(y1-y0)*r/(rows-1);const xs=[...Array(cols)].map((_,c)=>x0+(x1-x0)*c/(cols-1));(r%2?xs.reverse():xs).forEach(x=>pts.push([x,y]))}return pts};
+  const LAY={
+    land:{H:62.5,pts:snake(4,3,13,87,20,80),decos:[]},
+    port:{H:125,pts:snake(3,4,18,82,11,88),decos:[]},
+    phone:{H:255,pts:snake(2,6,26,74,6,93),decos:[]},
+    phoneLand:{H:92,pts:snake(4,3,13,87,17,82),decos:[]}
+  };
+  function path(P){
+    // 彎道：一排走完，在旁邊轉一個圓弧接到下一排
+    let d=`M${P[0][0]} ${P[0][1]}`;
+    for(let i=1;i<P.length;i++){const [x0,y0]=P[i-1],[x1,y1]=P[i];
+      if(Math.abs(y1-y0)<.01)d+=` L${x1} ${y1}`;else{const side=x0>50?1:-1,r=(y1-y0)/2;d+=` C${x0+side*r*1.1} ${y0} ${x1+side*r*1.1} ${y1} ${x1} ${y1}`}}
+    return d;
+  }
+  const phoneMQ=matchMedia("(max-width:600px),(max-height:500px)");
+  function layout(){
+    const phone=phoneMQ.matches,land=innerWidth>innerHeight;document.documentElement.classList.toggle("phone",phone);document.documentElement.classList.toggle("land",phone&&land);
+    const L=phone?(land?LAY.phoneLand:LAY.phone):matchMedia("(orientation:portrait)").matches?LAY.port:LAY.land,H=L.H;
+    const P=L.pts.map(([x,y])=>[x,y*H/100]),d=path(P);
+    $("art").setAttribute("viewBox",`0 0 100 ${H}`);
+    $("art").innerHTML=`<path d="${d}" fill="none" stroke="#fff" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="${d}" fill="none" stroke="#ff8fb0" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2.2 2.2"/>`;
+    SPOTS.forEach((s,i)=>{const a=map.querySelector(`[data-k="${s.k}"]`);a.style.left=L.pts[i][0]+"%";a.style.top=L.pts[i][1]+"%"});
+  }
+  layout();
+  matchMedia("(orientation:portrait)").addEventListener?.("change",layout);phoneMQ.addEventListener?.("change",layout);
+  let rz=0;addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(layout,150)});addEventListener("load",layout);
+  let tt=0;function toast(t){const e=$("toast");e.textContent=t;e.hidden=false;clearTimeout(tt);tt=setTimeout(()=>e.hidden=true,1800)}
+  const syncCoins=()=>{$("coins").innerHTML=`${EN.coinSvg}${EN.coins()}`};syncCoins();addEventListener("pageshow",syncCoins);
+})();
+</script>
+</body>
+</html>

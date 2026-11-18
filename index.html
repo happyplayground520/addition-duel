@@ -44,14 +44,20 @@ header,.map,.toast{position:relative;z-index:1}
 .zybtn[aria-pressed="true"] .sw::after{transform:translateX(22px)}
 .zybtn .st{min-width:1.2em;color:var(--muted)}
 /* 注音開關在右上角（左上角是海盜灣的小船），直放橫放都一樣；直放時標題小一點，才不會碰到 */
-@media (orientation:portrait){html:not(.phone) header{margin-top:52px}
-  html:not(.phone) .map{width:min(100%,calc((100dvh - 186px) * .8))!important}}
+@media (orientation:portrait){html:not(.phone) header{margin-top:clamp(60px,5.6vh,80px)}
+  html:not(.phone) .map{flex:none;width:min(100%,calc((100dvh - 140px - clamp(60px,5.6vh,80px)) * .8))!important}}
 /* 左上角：開船去海盜灣（英文區），一個小圖示按鈕 */
 .covebtn{position:fixed;z-index:5;top:max(10px,env(safe-area-inset-top,0px));left:max(12px,env(safe-area-inset-left,0px));
   width:56px;height:56px;border-radius:16px;background:#fff;display:grid;place-items:center;text-decoration:none;box-shadow:0 4px 0 #b9dff5,0 8px 16px rgba(0,0,0,.12)}
 .covebtn:active{transform:translateY(3px)}
 .covebtn svg{width:44px;height:44px;display:block;animation:rock 2.4s ease-in-out infinite;transform-origin:50% 80%}
 @keyframes rock{50%{transform:rotate(-7deg)}}
+.townbtn{position:fixed;z-index:5;top:max(10px,env(safe-area-inset-top,0px));left:calc(max(12px,env(safe-area-inset-left,0px)) + 66px);
+  width:56px;height:56px;border-radius:16px;background:#fff;display:grid;place-items:center;text-decoration:none;box-shadow:0 4px 0 #f5b9cc,0 8px 16px rgba(0,0,0,.12)}
+.townbtn:active{transform:translateY(3px)}
+.townbtn svg{width:44px;height:44px;display:block;animation:rock 2.4s ease-in-out infinite;animation-delay:-1.2s;transform-origin:50% 80%}
+html.phone .townbtn{position:absolute;left:auto;right:max(6px,env(safe-area-inset-right,0px));top:max(6px,env(safe-area-inset-top,0px));width:46px;height:46px}html.phone .townbtn svg{width:38px;height:38px}
+
 html.phone .covebtn{position:absolute;top:max(6px,env(safe-area-inset-top,0px));width:46px;height:46px}html.phone .covebtn svg{width:38px;height:38px}
 /* 標題招牌：紅白條紋的帳篷布，下面一條緞帶 */
 header{display:flex;flex-direction:column;align-items:center;gap:4px}
@@ -144,7 +150,7 @@ h1 .star{font-size:.7em;text-shadow:none}
   .map{width:min(100%,calc((100dvh - 56px) * 1.6))}
 }
 </style>
-<script src="zhuyin.js?v=20261118e"></script>
+<script src="zhuyin.js?v=20261118f"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
 <style>:root{--text:"Chiron GoRound TC","PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif}
 /* ---- 手機：地圖變成長長的步道，往下捲著逛（一排 2 個，手機橫放一排 4 個） ---- */
@@ -230,6 +236,10 @@ html.phone .bunting{height:36px}
   <path d="M50 70V12" fill="none"/><path d="M53 16v40h30z" fill="#fff"/><path d="M47 22v34H22z" fill="#fff"/><path d="M50 12l16 5-16 5z" fill="#2b2b3a"/>
   <path d="M10 66h80l-12 20H22z" fill="#a8683a"/><circle cx="34" cy="74" r="3" fill="#ffd23f" stroke="none"/><circle cx="50" cy="74" r="3" fill="#ffd23f" stroke="none"/><circle cx="66" cy="74" r="3" fill="#ffd23f" stroke="none"/>
   <path d="M4 92q8-6 16 0t16 0 16 0 16 0 16 0 16 0" fill="none" stroke="#4da3ff" stroke-width="4"/></g></svg></a>
+<a class="townbtn" href="town.html" aria-label="去甜點小鎮，練習國字"><svg viewBox="0 0 100 100" aria-hidden="true"><g stroke="#3a2a22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+  <ellipse cx="50" cy="86" rx="42" ry="7" fill="#d7f0ff"/><rect x="16" y="48" width="68" height="34" rx="6" fill="#ffe0b0"/>
+  <path d="M16 57q0-9 9-9h50q9 0 9 9q-5 7-10 0q-6 7-12 0q-6 7-12 0q-6 7-12 0q-6 7-12 0q-4 6-10 0z" fill="#ffb3c7"/>
+  <rect x="47" y="25" width="6" height="22" rx="2" fill="#7ec8ff"/><path d="M50 12q7 7 0 12q-7-5 0-12z" fill="#ffc53d" stroke-width="2.5"/><circle cx="30" cy="44" r="6" fill="#ff4d4d"/><circle cx="70" cy="44" r="6" fill="#ff4d4d"/></g></svg></a>
 <button type="button" class="zybtn" id="zyBtn" aria-pressed="true" data-zy-skip>ㄅㄆㄇ 注音<span class="sw" aria-hidden="true"></span><span class="st" id="zySt">開</span></button>
 <div class="toast" id="toast" role="status" hidden></div>
 

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>數糖果</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="en.css?v=20261118f">
+<link rel="stylesheet" href="town/town.css?v=20261118f">
+<style>
+main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(12px,2.6vh,28px);
+  padding:0 max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
+.top .mid{flex-direction:column;gap:2px}
+.top .scope{font-size:13px}
+#start .source{margin-top:4px}
+@media (max-height:500px){main.stage2{flex-direction:row;gap:24px}.qline{font-size:19px;line-height:1.4}.qcard{gap:6px}}
+@media (orientation:portrait) and (max-height:740px){.qline{font-size:20px;line-height:1.4}.qcard{gap:8px}main.stage2{gap:12px}}
+.jar{position:relative;width:clamp(170px,32vmin,270px);aspect-ratio:.86;border:6px solid var(--choc);border-radius:30px 30px 40px 40px;background:rgba(255,255,255,.75);
+  display:grid;place-items:center;box-shadow:0 10px 0 rgba(0,0,0,.12)}
+.jar::before{content:"";position:absolute;left:12%;right:12%;top:-22px;height:22px;border-radius:12px 12px 0 0;background:var(--berry);border:6px solid var(--choc);border-bottom:0}
+.jar b{font-family:var(--kai);font-weight:400;font-size:clamp(100px,20vmin,170px);line-height:1;color:var(--choc)}
+.count{position:absolute;right:-18px;top:-18px;min-width:56px;height:56px;border-radius:999px;background:var(--lemon);border:4px solid var(--choc);display:grid;place-items:center;
+  font-family:var(--num);font-weight:800;font-size:28px;color:var(--choc);opacity:0;transform:scale(.6);transition:.2s}
+.count.on{opacity:1;transform:none}
+.sweets{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;max-width:min(560px,90vw);min-height:26px}
+.sweets i{width:22px;height:22px;border-radius:50%;background:var(--c);border:3px solid var(--choc);animation:bpop .25s}
+.moe{margin-top:2px}
+@media (max-height:500px){.jar{width:120px}.jar b{font-size:84px}.sweets{min-height:22px}.sweets i{width:16px;height:16px}.candy{min-width:84px;height:72px;font-size:36px}.moe{min-height:40px;font-size:14px;padding:2px 10px}}
+@media (orientation:portrait) and (max-height:740px){.jar{width:150px}.jar b{font-size:100px}}
+.candy{min-width:clamp(96px,17vmin,130px);height:clamp(84px,14vmin,110px);border-radius:999px;background:var(--c);border:5px solid var(--choc);box-shadow:0 6px 0 rgba(0,0,0,.18);
+  font-family:var(--num);font-weight:800;font-size:clamp(40px,7vmin,58px);color:var(--choc);position:relative;display:flex;align-items:center;justify-content:center;gap:4px}
+.moe{font-weight:800;font-size:16px;color:var(--zyc);text-decoration:none;background:#fff;border:3px solid #cfe0f5;border-radius:999px;padding:4px 14px;min-height:44px;display:inline-flex;align-items:center}
+.candy::before,.candy::after{content:"";position:absolute;top:50%;width:26px;height:34px;background:var(--c);border:4px solid var(--choc);transform:translateY(-50%)}
+.candy::before{left:-24px;clip-path:polygon(0 0,100% 50%,0 100%);border:0}.candy::after{right:-24px;clip-path:polygon(100% 0,0 50%,100% 100%);border:0}
+.candy small{font-family:var(--text);font-size:.42em;margin-left:2px}
+</style>
+<script src="zhuyin.js?v=20261118f"></script>
+<link rel="stylesheet" href="park.css?v=20261118f">
+<script src="park.js?v=20261118f"></script>
+<script src="en.js?v=20261118f"></script>
+<script src="town/zi-data.js?v=20261118f"></script>
+<script src="town/town.js?v=20261118f"></script>
+<style>body{font-family:var(--text)}</style>
+</head>
+<body>
+<header class="top">
+  <a class="ibtn" href="town.html" aria-label="回甜點小鎮">🏠</a>
+  <div class="mid"><span class="pill" id="prog">1 / 10</span><span class="scope" id="scopeTop"></span></div>
+  <div class="right"><span class="pill" id="score">⭐ 0</span></div>
+</header>
+<main class="stage2" id="main" data-zy-skip>
+<div class="qcard"><div class="qline" id="q"></div><div class="jar" id="jar"><b id="ch"></b><span class="count" id="count">0</span></div><div class="sweets" id="sweets"></div><a class="moe" id="moe" target="_blank" rel="noopener"></a></div>
+<div class="choices" id="choices"></div>
+</main>
+
+<section class="panel" id="start">
+  <div class="box">
+    <h2>🍬 數糖果</h2>
+    <p class="sub" data-zy>這個字有幾畫？一畫一顆糖果！</p>
+    <button type="button" class="helpbtn" id="help">🔊 中文說明</button>
+    <div id="setup"></div>
+    <div class="row" id="totals">
+      <button type="button" class="opt" data-n="5" aria-label="5 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button>
+      <button type="button" class="opt" data-n="10" aria-label="10 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>10</small></button>
+      <button type="button" class="opt" data-n="15" aria-label="15 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>15</small></button>
+    </div>
+    <span class="note" id="note" data-zy></span>
+    <button type="button" class="big" id="go">READY</button>
+    <p class="source">字型：全字庫正楷體（數位發展部「CNS11643中文標準交換碼全字庫」，依政府資料開放授權條款第1版使用）<br>生字：教育部教育百科「生字詞彙表」；部首、讀音：教育部《國語辭典簡編本》；筆畫：教育部《國字標準字體筆順學習網》</p>
+  </div>
+</section>
+<section class="panel" id="end" hidden>
+  <div class="box">
+    <h2>做完了！</h2>
+    <div id="stars">⭐⭐⭐</div>
+    <div id="result">0 / 10</div>
+    <span class="earn" id="earn"></span>
+    <div class="endrow">
+      <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+      <a class="big alt ico-btn" href="town.html" aria-label="回甜點小鎮">🏠</a>
+    </div>
+  </div>
+</section>
+<script>
+(()=>{
+  const $=id=>document.getElementById(id),Z=ZI,COL=["#ff9fb2","#9ef0b9","#ffe08a","#9fd3ff","#d7b4ff"];
+  // 答完：一顆一顆放糖果數到總筆畫（字形一直是教育部標準字體，不放其他來源的筆順動畫）
+  function countUp(c,n,done){
+    const sw=$("sweets"),cnt=$("count");sw.innerHTML="";cnt.textContent="0";cnt.classList.add("on");
+    let k=0;const t=setInterval(()=>{k++;cnt.textContent=k;sw.insertAdjacentHTML("beforeend",`<i style="--c:${COL[k%COL.length]}"></i>`);EN.sfx.pop();
+      if(k>=n){clearInterval(t);TZ.say(`${n}畫`);setTimeout(done,1100)}},300);
+  }
+  const api=TZ.run({key:"town-n",
+    help:"數糖果。看糖果罐上的字，數一數這個字有幾畫，點對的數字。答完以後，一畫會放一顆糖果，一起數一數。想看怎麼寫，可以按「看教育部的筆順」。",
+    build:n=>TZ.deal(TZ.pool(false),n),
+    show:(c)=>{
+      const n=Z.chars[c].n;$("sweets").innerHTML="";$("count").classList.remove("on");
+      $("moe").href="https://stroke-order.learningweb.moe.edu.tw/dictView.jsp?ID="+c.codePointAt(0);$("moe").innerHTML="✍️ "+TZ.zy("看教育部的筆順");
+      $("ch").textContent=c;
+      $("q").innerHTML=TZ.zy("「")+`<b class="kai" style="font-size:1.3em">${c}</b>`+TZ.zy("」有幾畫？")+`<button type="button" class="ibtn" id="say" aria-label="念題目">🔊</button>`;
+      $("say").onclick=()=>TZ.say(`${c}，有幾畫？`);
+      const set=new Set([n]);const d=[-2,-1,1,2,3];TZ.shuffle(d);for(const x of d){if(set.size>=3)break;if(n+x>=1)set.add(n+x)}
+      $("choices").innerHTML=TZ.shuffle([...set]).map((v,i)=>`<button type="button" class="choice candy" style="--c:${COL[i]}" data-v="${v}" aria-label="${v} 畫">${v}<small>${TZ.charHTML("畫",ZI.ZY["畫"])}</small></button>`).join("");
+      const finish=()=>countUp(c,n,()=>api.next(200));
+      document.querySelectorAll(".choice").forEach(el=>el.onclick=()=>{
+        if(api.S.busy)return;
+        if(+el.dataset.v===n){api.ok();el.classList.add("yes");TZ.say(`答對了！${c}有${n}畫。`);setTimeout(finish,500)}
+        else{api.bad();el.classList.add("no");if(api.S.tries>=2){api.S.busy=true;document.querySelector(`.choice[data-v="${n}"]`).classList.add("glow");TZ.say(`${c}有${n}畫，我們一起數一數。`);setTimeout(finish,800)}}
+      });
+      setTimeout(()=>TZ.say(`${c}，有幾畫？`),300);
+    }});
+})();
+</script>
+</body>
+</html>
