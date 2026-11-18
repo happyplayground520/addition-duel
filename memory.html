@@ -37,6 +37,8 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
 .msg{flex:1;text-align:center;font-weight:800;font-size:clamp(17px,3vmin,28px);color:var(--muted)}
 .msg.good{color:var(--good)} .msg.bad{color:var(--bad)} .msg.go{color:var(--c)}
 .pairs{display:flex;align-items:center;gap:6px;font-family:var(--num);font-weight:800;font-size:clamp(22px,4vmin,36px);color:var(--c);white-space:nowrap}
+.pairs .mini.bump{animation:mbump .4s cubic-bezier(.3,1.6,.5,1)}
+@keyframes mbump{40%{transform:scale(1.6) rotate(-10deg)}}
 .pairs .mini{display:inline-block;width:.75em;height:1em;border-radius:4px;background:var(--c);box-shadow:3px -3px 0 color-mix(in srgb,var(--c) 50%,#fff)}
 .homeb{display:grid;place-items:center;min-width:64px;font-size:30px;line-height:1;padding:8px 14px;border:2px solid #cfd8dc;background:#fff;
   border-radius:14px;text-decoration:none;box-shadow:0 4px 0 rgba(0,0,0,.08)}
@@ -95,10 +97,10 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   .overlay h2{display:none} .overlay .opt small{display:none}
 }
 </style>
-<script src="zhuyin.js?v=20261118q"></script>
+<script src="zhuyin.js?v=20261118r"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261118q">
-<script src="park.js?v=20261118q"></script>
+<link rel="stylesheet" href="park.css?v=20261118r">
+<script src="park.js?v=20261118r"></script>
 <style>:root{--theme:#2b7f50}</style>
 </head>
 <body>
@@ -227,7 +229,14 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
       G.score[G.turn]++;ui[G.turn].pairs.textContent=G.score[G.turn];
       ui[G.turn].msg.textContent=`湊成 ${T}！再翻一次`;ui[G.turn].msg.className="msg good";
       await sleep(900);
-      [a,b].forEach(x=>{x.done=true;x.el.classList.add("got")});
+      // 兩張牌一起飛到這位玩家的牌堆
+      const pile=ui[G.turn].el.querySelector(".pairs .mini");
+      [a,b].forEach((x,i)=>{x.done=true;
+        try{const r=x.el.getBoundingClientRect(),t=pile.getBoundingClientRect(),c=x.el.cloneNode(true);
+          c.style.cssText=`position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;margin:0;z-index:40;pointer-events:none;transition:transform .55s cubic-bezier(.4,0,.3,1) ${i*.08}s,opacity .2s ${.4+i*.08}s`;
+          c.classList.remove("got");document.body.appendChild(c);x.el.style.visibility="hidden";
+          requestAnimationFrame(()=>requestAnimationFrame(()=>{c.style.transform=`translate(${t.left+t.width/2-r.left-r.width/2}px,${t.top+t.height/2-r.top-r.height/2}px) scale(.25) rotate(${i?20:-20}deg)`;c.style.opacity="0"}));
+          setTimeout(()=>{c.remove();pile.classList.remove("bump");void pile.offsetWidth;pile.classList.add("bump")},650+i*80)}catch(e){x.el.classList.add("got")}});
       await sleep(600);[a,b].forEach(x=>x.el.classList.add("gone"));
       G.left--;G.busy=false;
       if(G.left<=0)return finish();
@@ -272,6 +281,7 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
       u.h2.textContent=w<0?"平手！🤝":p===w?"你贏了！🏆":"再接再厲！";
       u.big.hidden=false;u.big.textContent=`${G.score[p]} 對`;
       u.lvs[0].parentElement.hidden=true;u.vbtn.parentElement.hidden=true;u.ready.textContent="🔁";u.ready.classList.remove("on")});
+    if(w>=0)try{window.parkWin&&parkWin(ui[w].ov)}catch(e){}
     say(w<0?`平手！兩邊都拿到${a}對`:`${NAMES[w]}拿到${G.score[w]}對，${NAMES[w]}贏了！`,true);
   }
   showReady();

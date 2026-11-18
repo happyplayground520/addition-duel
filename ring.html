@@ -66,6 +66,8 @@ body{background:linear-gradient(#ffe3ef,#fff3f8 58%,#ffd9a8 58%);color:var(--ink
   font-size:clamp(24px,5vmin,50px);line-height:1.15;color:var(--ink);box-shadow:0 2px 0 rgba(0,0,0,.08)}
 .bottle.hit .body{animation:hop .45s}
 @keyframes hop{40%{transform:translateY(-14px) scale(1.05)}}
+.bottle.hit .face u{width:22%;border-radius:0 0 999px 999px;background:#3a2e39;border:0;aspect-ratio:2/1.1}
+.bottle.hit .face i{aspect-ratio:1/.6;border-radius:50% 50% 0 0}
 .bottle.wrong .face u{border-radius:999px 999px 0 0;border-top:3px solid #3a2e39;border-bottom:0;top:42%}
 .bottle:active .body{transform:translateY(2px)}
 .bottle.wrong .body{animation:shake .35s}
@@ -112,12 +114,12 @@ body{background:linear-gradient(#ffe3ef,#fff3f8 58%,#ffd9a8 58%);color:var(--ink
   .top>a.ibtn{grid-area:home} .top>.stats{grid-area:stats} .top>#again{grid-area:again} .top>.q{grid-area:mid;justify-self:center}
 }
 </style>
-<script src="zhuyin.js?v=20261118q"></script>
+<script src="zhuyin.js?v=20261118r"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261118q">
-<script src="park.js?v=20261118q"></script>
+<link rel="stylesheet" href="park.css?v=20261118r">
+<script src="park.js?v=20261118r"></script>
 </head>
-<body>
+<body data-park>
 <header class="top">
   <a class="ibtn" href="./" aria-label="回遊樂園地圖">🏠</a>
   <div class="q" id="q" data-zy><svg class="ringico" viewBox="0 0 64 64" width="1em" height="1em" aria-hidden="true" style="vertical-align:-.12em"><rect x="27" y="10" width="10" height="20" rx="3" fill="#b9ece4"/><rect x="25.5" y="7" width="13" height="6" rx="2" fill="#7fd6c8"/><rect x="17" y="27" width="30" height="31" rx="10" fill="#b9ece4"/><circle cx="26" cy="42" r="2.2" fill="#1f2b33"/><circle cx="38" cy="42" r="2.2" fill="#1f2b33"/><path d="M28.5 47q3.5 3 7 0" stroke="#1f2b33" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="22" cy="46" r="2.6" fill="#ffb3c7" opacity=".8"/><circle cx="42" cy="46" r="2.6" fill="#ffb3c7" opacity=".8"/><ellipse cx="32" cy="24" rx="17" ry="6" fill="none" stroke="#ff6b9a" stroke-width="5" transform="rotate(-10 32 24)"/><ellipse cx="32" cy="24" rx="17" ry="6" fill="none" stroke="#ffd23f" stroke-width="5" stroke-dasharray="9 9" transform="rotate(-10 32 24)"/></svg> 套圈圈</div>
@@ -238,9 +240,9 @@ body{background:linear-gradient(#ffe3ef,#fff3f8 58%,#ffd9a8 58%);color:var(--ink
     const w=ring.offsetWidth,h=ring.offsetHeight,sx=innerWidth/2-w/2,sy=innerHeight-h-10,ex=r.left+r.width/2-w/2,ey=r.top+r.height*.6-h/2;
     const right=+b.dataset.v===S.k*S.n;
     const anim=ring.animate([
-      {transform:`translate(${sx}px,${sy}px) rotateX(60deg) scale(1.2)`},
-      {transform:`translate(${(sx+ex)/2}px,${Math.min(sy,ey)-80}px) rotateX(65deg) scale(1)`,offset:.55},
-      {transform:`translate(${ex}px,${ey}px) rotateX(70deg) scale(.9)`}
+      {transform:`translate(${sx}px,${sy}px) rotateX(60deg) rotate(0deg) scale(1.2)`},
+      {transform:`translate(${(sx+ex)/2}px,${Math.min(sy,ey)-80}px) rotateX(65deg) rotate(400deg) scale(1)`,offset:.55},
+      {transform:`translate(${ex}px,${ey}px) rotateX(70deg) rotate(720deg) scale(.9)`}
     ],{duration:380,easing:"ease-out",fill:"forwards"});
     S.phase="toss";
     // 用計時器判斷結果，不依賴動畫事件（畫面在背景時動畫可能不會跑完）
@@ -248,6 +250,9 @@ body{background:linear-gradient(#ffe3ef,#fff3f8 58%,#ffd9a8 58%);color:var(--ink
       if(right){
         S.score++;sfx.good();b.classList.add("hit");$("score").textContent=`⭐ ${S.score}`;floatTxt(r,"+1","plus");
         $("q").querySelector(".ans").textContent=S.k*S.n;
+        // 圈圈在瓶口晃一晃，再滑下去套住
+        try{ring.animate([{transform:`translate(${ex}px,${ey}px) rotateX(70deg) rotate(720deg) scale(.9)`},{transform:`translate(${ex-6}px,${ey+6}px) rotateX(70deg) rotate(728deg) scale(.9)`,offset:.3},
+          {transform:`translate(${ex+5}px,${ey+12}px) rotateX(70deg) rotate(714deg) scale(.9)`,offset:.6},{transform:`translate(${ex}px,${ey+r.height*.9}px) rotateX(70deg) rotate(720deg) scale(.95)`}],{duration:400,easing:"ease-in",fill:"forwards"})}catch(e){}
         setTimeout(()=>{ring.remove();if(S.phase==="toss"){S.phase="play";setQ()}},420);
       }else{
         S.miss++;sfx.bad();b.classList.remove("wrong");void b.offsetWidth;b.classList.add("wrong");S.endAt-=2000;floatTxt(r,"−2 秒","minus");

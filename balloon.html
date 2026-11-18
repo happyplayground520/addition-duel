@@ -51,6 +51,10 @@ body{background:linear-gradient(#8fd3ff,#d9f1ff 70%,#c3eaa8 70%);color:var(--ink
 .b.pop{pointer-events:none}
 .b.pop .body{animation:pop .3s forwards}
 .b.pop::after{opacity:0}
+.flyn{position:fixed;z-index:30;pointer-events:none;font-family:var(--num);font-weight:800;color:#fff;line-height:1;transform-origin:center;
+  translate:-50% -50%;text-shadow:0 2px 0 rgba(0,0,0,.25),0 0 12px rgba(224,71,123,.7);transition:transform .5s cubic-bezier(.4,0,.3,1)}
+.q .ans.land{animation:land .45s cubic-bezier(.3,1.6,.5,1)}
+@keyframes land{40%{transform:scale(1.5)}}
 @keyframes shake{25%{translate:-8px 0}75%{translate:8px 0}}
 @keyframes pop{60%{transform:scale(1.35);opacity:.8}100%{transform:scale(1.6);opacity:0}}
 .spark{position:absolute;width:10px;height:10px;border-radius:2px;pointer-events:none;animation:fly .7s ease-out forwards}
@@ -88,12 +92,12 @@ body{background:linear-gradient(#8fd3ff,#d9f1ff 70%,#c3eaa8 70%);color:var(--ink
   .panel .stars{font-size:36px}
 }
 </style>
-<script src="zhuyin.js?v=20261118q"></script>
+<script src="zhuyin.js?v=20261118r"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261118q">
-<script src="park.js?v=20261118q"></script>
+<link rel="stylesheet" href="park.css?v=20261118r">
+<script src="park.js?v=20261118r"></script>
 </head>
-<body>
+<body data-park>
 <header class="top">
   <a class="ibtn" href="./" aria-label="回遊樂園地圖">🏠</a>
   <div class="ttl">🎈 射氣球</div>
@@ -102,7 +106,7 @@ body{background:linear-gradient(#8fd3ff,#d9f1ff 70%,#c3eaa8 70%);color:var(--ink
 </header>
 <div class="qbar"><div class="q" id="q" aria-live="polite"></div></div>
 <main class="sky" id="sky">
-  <div class="msg" id="msg" hidden></div>
+  <div class="msg" id="msg" data-zy hidden></div>
 
   <section class="panel" id="start">
     <div class="card">
@@ -276,7 +280,13 @@ body{background:linear-gradient(#8fd3ff,#d9f1ff 70%,#c3eaa8 70%);color:var(--ink
     if(S.phase!=="play"||b.dead||b.fast)return;
     if(b.n===S.q.ans){
       S.phase="reveal";S.score++;if(!S.missed)S.firstTry++;
-      b.el.classList.add("pop");b.dead=true;burst(b);sfx.good();showQ(S.q.ans);updateScore();
+      b.el.classList.add("pop");b.dead=true;burst(b);sfx.good();updateScore();
+      // 氣球上的數字飛進算式的「?」
+      {const r=b.el.getBoundingClientRect(),n=document.createElement("span");n.className="flyn";n.textContent=S.q.ans;
+       n.style.cssText=`left:${r.left+r.width/2}px;top:${r.top+r.height*.45}px;font-size:${r.width*.5}px`;document.body.appendChild(n);
+       const t=$("q").querySelector(".ans")||$("q"),tr=t.getBoundingClientRect();
+       requestAnimationFrame(()=>requestAnimationFrame(()=>{n.style.transform=`translate(${tr.left+tr.width/2-r.left-r.width/2}px,${tr.top+tr.height/2-r.top-r.height*.45}px) scale(1.4)`}));
+       setTimeout(()=>{n.remove();showQ(S.q.ans);const a=$("q").querySelector(".ans");a&&a.classList.add("land")},520)}
       setTimeout(()=>b.el.remove(),320);
       const m=$("msg");m.textContent=["答對了！","好棒！","太厲害了！","戳破了！"][rnd(0,3)];m.hidden=false;
       balloons.forEach(o=>{if(!o.dead)o.fast=true});

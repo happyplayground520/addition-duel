@@ -45,6 +45,9 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:minma
 .spin .horse{animation-duration:.4s}
 .spin .bulb{animation:blink .25s steps(1) infinite}
 .bulb{fill:#fff3b0}
+.ride{position:relative}
+.mnote{position:absolute;bottom:22%;font-size:clamp(28px,6vmin,46px);font-weight:900;pointer-events:none;z-index:3;animation:mnote 1.8s ease-out both}
+@keyframes mnote{0%{transform:translateY(0) scale(.4);opacity:0}20%{opacity:1}100%{transform:translateY(-220px) translateX(30px) rotate(20deg);opacity:0}}
 @keyframes blink{50%{fill:var(--gold)}}
 .canopy-stripes{transform-origin:200px 70px}
 .spin .canopy-stripes{animation:wiggle .5s ease-in-out 3}
@@ -98,13 +101,13 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:minma
 .wheel,.ride{position:relative;height:100%;min-height:0}
 .wheel svg,.ride svg{position:absolute;inset:0;width:100%;height:100%;max-height:none}
 </style>
-<script src="zhuyin.js?v=20261118q"></script>
+<script src="zhuyin.js?v=20261118r"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261118q">
-<script src="park.js?v=20261118q"></script>
+<link rel="stylesheet" href="park.css?v=20261118r">
+<script src="park.js?v=20261118r"></script>
 <style>body{background:repeating-linear-gradient(115deg,rgba(255,255,255,.35) 0 22px,transparent 22px 44px),radial-gradient(circle at 50% 30%,#fff3f8,#ffe0ec 60%,#f9cfe0)}</style>
 </head>
-<body>
+<body data-park>
 <header class="top">
   <a class="ibtn" href="./" aria-label="回遊樂園地圖">🏠</a>
   <div class="title">🎠 旋轉木馬時鐘</div>
@@ -156,8 +159,8 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:minma
       </div>
       <button type="button" class="big" id="check" aria-label="撥好了">OK</button>
     </div>
-    <div class="msg" id="msg" aria-live="polite"></div>
-    <div class="hint" id="hint">短針是時針、長針是分針</div>
+    <div class="msg" id="msg" data-zy aria-live="polite"></div>
+    <div class="hint" id="hint" data-zy>短針是時針、長針是分針</div>
   </div>
 
   <section class="cover" id="start">
@@ -284,7 +287,8 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:minma
     S.target=newTime();
     document.body.classList.toggle("setmode",S.kind==="set");
     if(S.kind==="read"){
-      S.h=S.target.h;S.m=S.target.m;draw();
+      // 指針轉到新的時間（第一題直接放好）
+      if(S.round===1){S.h=S.target.h;S.m=S.target.m;draw()}else animateTo(S.target.h,S.target.m);
       $("ask").innerHTML="旋轉木馬上的時鐘<br>現在是幾點？";
       const list=[S.target,...decoys(S.target.h,S.target.m)].sort(()=>Math.random()-.5);
       $("choices").innerHTML=list.map(t=>`<button type="button" class="ch" data-h="${t.h}" data-m="${t.m}">${fmt(t.h,t.m)}</button>`).join("");
@@ -302,6 +306,9 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:minma
   function correct(){
     S.phase="reveal";if(S.tries===0)S.score++;upd();sfx.good();
     $("ride").classList.add("spin");setTimeout(()=>$("ride").classList.remove("spin"),1600);
+    // 音樂響起：音符從木馬飄上去
+    ["♪","♫","♪","♬"].forEach((n,i)=>{const e=document.createElement("span");e.className="mnote";e.textContent=n;
+      e.style.cssText=`left:${18+i*21}%;animation-delay:${i*.18}s;color:${["#d1478f","#2f8fdb","#f08a24","#1f9d61"][i]}`;$("ride").appendChild(e);setTimeout(()=>e.remove(),2200)});
     $("msg").textContent=["答對了！","好棒！","木馬轉起來囉！"][rnd(0,2)];$("msg").className="msg good";
     say(`答對了，${speak(S.target.h,S.target.m)}`);
     setTimeout(next,2400);

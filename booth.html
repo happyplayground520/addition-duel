@@ -40,6 +40,13 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
   background:repeating-linear-gradient(90deg,#e0477b 0 28px,#fff 28px 56px)}
 .ticket{display:flex;align-items:center;gap:clamp(10px,2vmin,18px);background:#fff;border-radius:14px;padding:10px 18px;
   border:3px dashed #f2b705}
+.ticket{position:relative}
+.ticket.print{animation:tprint .9s cubic-bezier(.3,1.5,.5,1)}
+@keyframes tprint{0%{transform:translateY(-30px) scaleY(.6);opacity:.3}60%{transform:translateY(8px)}100%{transform:none}}
+.stamp{position:absolute;right:22%;top:50%;z-index:2;padding:2px 12px;border:4px solid #e0302a;border-radius:10px;color:#e0302a;
+  font-weight:900;font-size:clamp(18px,3.4vmin,28px);letter-spacing:.1em;background:rgba(255,255,255,.75);transform:translateY(-50%) rotate(-14deg);pointer-events:none}
+.stamp.thump{animation:thump .45s .35s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes thump{0%{transform:translateY(-50%) rotate(-14deg) scale(2.6);opacity:0}100%{transform:translateY(-50%) rotate(-14deg) scale(1);opacity:1}}
 .ticket .ico{font-size:clamp(40px,8vmin,70px);line-height:1}
 .ticket .what{flex:1;font-weight:800;font-size:clamp(18px,3.2vmin,28px);line-height:1.3}
 .ticket .what small{display:block;font-size:.6em;color:var(--muted)}
@@ -99,13 +106,13 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
   .wallet{grid-column:2;grid-row:1/3;align-content:center;overflow:auto}
 }
 </style>
-<script src="zhuyin.js?v=20261118q"></script>
+<script src="zhuyin.js?v=20261118r"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261118q">
-<script src="park.js?v=20261118q"></script>
+<link rel="stylesheet" href="park.css?v=20261118r">
+<script src="park.js?v=20261118r"></script>
 <style>body{background:radial-gradient(circle,rgba(224,119,43,.13) 2.5px,transparent 3px) 0 0/30px 30px,linear-gradient(#ffe7c4,#fff4e2)}</style>
 </head>
-<body>
+<body data-park>
 <header class="top">
   <a class="ibtn" href="./" aria-label="回遊樂園地圖">🏠</a>
   <div class="title">🎟️ 售票亭買門票</div>
@@ -113,7 +120,7 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
 </header>
 <main>
   <div class="booth">
-    <div class="ticket"><span class="ico" id="tIco">🎠</span><span class="what" id="tWhat" data-zy></span><span class="price" id="tPrice"></span></div>
+    <div class="ticket" id="ticket"><span class="stamp" id="stamp" data-zy hidden>已付款</span><span class="ico" id="tIco">🎠</span><span class="what" id="tWhat" data-zy></span><span class="price" id="tPrice"></span></div>
   </div>
   <div class="tray">
     <div class="head"><span>付款盤（點錢幣可以拿回來）</span><span class="sum" id="sum">0 元</span></div>
@@ -266,7 +273,7 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
   // ---- 錢包與付款盤 ----
   function renderWallet(){
     $("wallet").innerHTML=LV[S.lv].money.slice().reverse().map(v=>`<button type="button" class="money" data-v="${v}" aria-label="放一個${label(v)}">${moneySVG(v,S.lv===3?.8:1)}</button>`).join("");
-    $("wallet").querySelectorAll(".money").forEach(b=>b.addEventListener("click",()=>add(+b.dataset.v)));
+    $("wallet").querySelectorAll(".money").forEach(b=>b.addEventListener("click",()=>add(+b.dataset.v,b)));
   }
   const sum=()=>S.paid.reduce((a,b)=>a+b,0);
   function renderPaid(){
@@ -276,10 +283,19 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
     p.querySelectorAll(".money").forEach(b=>b.addEventListener("click",()=>{if(S.phase!=="play")return;S.paid.splice(+b.dataset.i,1);sfx.paper();renderPaid()}));
     const t=sum(),el=$("sum");el.textContent=`${t} 元`;el.className="sum"+(t>S.price?" over":t===S.price?" ok":"");
   }
-  function add(v){
+  // 錢從錢包飛到付款盤
+  function flyMoney(from,to){
+    try{const a=from.getBoundingClientRect(),b=to.getBoundingClientRect(),c=from.cloneNode(true);
+      c.style.cssText=`position:fixed;left:${a.left}px;top:${a.top}px;width:${a.width}px;height:${a.height}px;margin:0;z-index:60;pointer-events:none;transition:transform .38s cubic-bezier(.4,0,.3,1)`;
+      document.body.appendChild(c);to.style.visibility="hidden";
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{c.style.transform=`translate(${b.left+b.width/2-a.left-a.width/2}px,${b.top+b.height/2-a.top-a.height/2}px) scale(${b.width/a.width}) rotate(-12deg)`}));
+      setTimeout(()=>{c.remove();to.style.visibility=""},400)}catch(e){to.style.visibility=""}
+  }
+  function add(v,src){
     if(S.phase!=="play")return;
     if(S.paid.length>=40){$("msg").textContent="付款盤滿了，換大一點的錢試試看";$("msg").className="msg bad";return}
     S.paid.push(v);S.paid.sort((a,b)=>b-a);COIN[v]?sfx.coin():sfx.paper();$("msg").textContent="";renderPaid();
+    const to=$("paid").querySelector(`.money[data-i="${S.paid.indexOf(v)}"]`);if(src&&to)flyMoney(src,to);
   }
   // 最少要幾個錢幣／紙鈔
   const fewest=p=>LV[S.lv].money.slice().reverse().reduce((n,v)=>{n+=Math.floor(p/v);p%=v;return n},0);
@@ -294,7 +310,7 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
   const upd=()=>{$("score").textContent=`⭐ ${S.score} / ${S.total}`};
   function next(){
     if(S.round>=S.total)return finish();
-    S.round++;S.tries=0;S.phase="play";S.paid=[];clearTimeout(advTimer);
+    S.round++;S.tries=0;S.phase="play";S.paid=[];clearTimeout(advTimer);$("stamp").hidden=true;$("ticket").classList.remove("print");
     $("pay").hidden=false;$("clear").hidden=false;$("nextBtn").hidden=true;
     const L=LV[S.lv];S.price=rnd(L.min,L.max);
     let ri;do{ri=rnd(0,RIDES.length-1)}while(ri===S.lastRide);S.lastRide=ri;
@@ -309,6 +325,9 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
     const t=sum();
     if(t===S.price){
       S.phase="reveal";if(S.tries===0)S.score++;upd();sfx.good();
+      // 售票亭蓋上「已付款」章，門票從窗口印出來
+      const st=$("stamp");st.hidden=false;st.classList.remove("thump");void st.offsetWidth;st.classList.add("thump");
+      const tk=$("ticket");tk.classList.remove("print");void tk.offsetWidth;tk.classList.add("print");
       const best=fewest(S.price),used=S.paid.length;
       $("msg").textContent=used===best?`付剛好！而且用最少的 ${used} 個，好聰明！🎟️`:`付剛好！門票給你 🎟️（最少只要 ${best} 個喔）`;
       $("msg").className="msg good";

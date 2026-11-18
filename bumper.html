@@ -95,10 +95,10 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   .head{grid-column:1/3} .q{font-size:34px} .ch{font-size:28px;padding:.12em 0}
 }
 </style>
-<script src="zhuyin.js?v=20261118q"></script>
+<script src="zhuyin.js?v=20261118r"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261118q">
-<script src="park.js?v=20261118q"></script>
+<link rel="stylesheet" href="park.css?v=20261118r">
+<script src="park.js?v=20261118r"></script>
 <style>:root{--theme:#2f6fdb}</style>
 </head>
 <body>
@@ -261,6 +261,7 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
     phase="over";sfx.win();sfx.honk();
     ui.forEach((u,p)=>{u.ov.hidden=false;u.h2.textContent=p===w?"你贏了！🏆":"再接再厲！";u.big.hidden=false;u.big.textContent=`${P[p].pos} / ${GOAL}`;
       u.lvs.forEach(b=>b.parentElement.hidden=true);u.vbtn.parentElement.hidden=true;u.ready.textContent="🔁";u.ready.classList.remove("on")});
+    try{window.parkWin&&parkWin(ui[w].ov)}catch(e){}
     sayNow(`${NAMES[w]}的碰碰車先到終點，${NAMES[w]}贏了！`);
   }
   autoVoice();showReady();

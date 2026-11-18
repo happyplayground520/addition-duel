@@ -46,6 +46,18 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:mi
 .build .cell{background:#f3e3d0;cursor:pointer}
 .build .cell.on{background:none}
 .cell.lit{animation:lit .5s}
+.tray{position:relative}
+.tray:not(.build) .dn{animation:dpop .35s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes dpop{from{transform:scale(0) rotate(-90deg)}}
+/* 答對數完：盒蓋從上面蓋下來，綁上蝴蝶結 */
+.lid{position:absolute;inset:-10px;border-radius:26px;z-index:3;pointer-events:none;
+  background:linear-gradient(90deg,transparent 46%,#e0477b 46% 54%,transparent 54%),repeating-linear-gradient(45deg,#ffd6e6 0 16px,#ffc2da 16px 32px);
+  border:6px solid #fff;box-shadow:0 8px 0 #e8a3bf;animation:lid .55s cubic-bezier(.3,1.4,.5,1) both}
+@keyframes lid{from{transform:translateY(-120%) rotate(-6deg);opacity:0}}
+.lid .bow{position:absolute;left:50%;top:50%;width:64px;height:40px;transform:translate(-50%,-50%);
+  background:radial-gradient(circle,#e0477b 0 9px,transparent 10px),radial-gradient(ellipse at 22% 50%,#ff6f9f 0 46%,transparent 48%),radial-gradient(ellipse at 78% 50%,#ff6f9f 0 46%,transparent 48%);
+  animation:bow .4s .45s cubic-bezier(.3,1.8,.5,1) both}
+@keyframes bow{from{transform:translate(-50%,-50%) scale(0)}}
 /* 甜甜圈：麵包圈 + 糖霜 + 彩色糖粒，口味由 --ic（糖霜）和 --s1/--s2/--s3（糖粒）決定 */
 .dn{display:block;width:88%;aspect-ratio:1;border-radius:50%;
   background:
@@ -97,14 +109,17 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:mi
 .opt[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:#fff}
 .stars{font-size:clamp(40px,9vmin,72px);letter-spacing:.1em;line-height:1}
 @media (max-height:560px){.box{gap:8px;padding:14px 18px}.box h2{font-size:24px}#start .box>p{display:none}}
+
+/* 手機橫放：題目框字小一點，才不會頂到右上角的按鈕 */
+@media (max-height:500px){.story{font-size:15px;line-height:1.3;padding:.3em .7em}}
 </style>
-<script src="zhuyin.js?v=20261118q"></script>
+<script src="zhuyin.js?v=20261118r"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261118q">
-<script src="park.js?v=20261118q"></script>
+<link rel="stylesheet" href="park.css?v=20261118r">
+<script src="park.js?v=20261118r"></script>
 <style>body{background:radial-gradient(circle at 20% 30%,#ff9fc0 0 2.5px,transparent 3px) 0 0/48px 48px,radial-gradient(circle at 70% 60%,#7bd3f7 0 2.5px,transparent 3px) 0 0/48px 48px,radial-gradient(circle at 45% 85%,#ffd23f 0 2.5px,transparent 3px) 0 0/48px 48px,#fdeef3}</style>
 </head>
-<body>
+<body data-park>
 <div class="awning" aria-hidden="true"></div>
 <header class="top">
   <a class="ibtn" href="./" aria-label="回遊樂園地圖">🏠</a>
@@ -209,7 +224,10 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:mi
   // 看盤子算：n 排、每排 k 個
   function drawRead(){
     tray.className="tray";tray.style.gridTemplateColumns=`repeat(${S.k},var(--cell))`;fit(S.n,S.k);
-    tray.innerHTML=Array.from({length:S.n*S.k},(_,i)=>`<span class="cell" data-r="${Math.floor(i/S.k)}"><i class="dn"></i></span>`).join("");
+    // 每一排換一種口味，一排一排數比較清楚
+    const fl=[S.fl,...FLAVORS.filter(x=>x!==S.fl).sort(()=>Math.random()-.5)];
+    tray.innerHTML=Array.from({length:S.n*S.k},(_,i)=>{const r=Math.floor(i/S.k),f=fl[r%fl.length];
+      return`<span class="cell" data-r="${r}"><i class="dn" style="--ic:${f.ic};--s1:${f.s[0]};--s2:${f.s[1]};--s3:${f.s[2]};animation-delay:${(i*Math.min(.03,.6/(S.n*S.k))).toFixed(3)}s"></i></span>`}).join("");
   }
   // 排排看：空盤子，點一格放一個甜甜圈，再點一次拿走
   const maxCols=()=>Math.max(...LV[S.lv]),maxRows=()=>S.lv===1?5:9;
@@ -302,6 +320,9 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:mi
       seq.push(per*(r+1));$("skip").textContent=seq.join("、");sfx.pip(r);
     },400*r));
     say(`${S.k}乘以${S.n}等於${ans}`);
+    // 數完之後蓋上甜甜圈盒子
+    setTimeout(()=>{if(S.phase!=="reveal")return;tray.querySelectorAll(".lid").forEach(e=>e.remove());
+      tray.insertAdjacentHTML("beforeend",'<span class="lid"><i class="bow"></i></span>');sfx.pip(8)},400*rows+700);
     setTimeout(next,Math.max(3000,400*rows+2000));
   }
   function pick(b){

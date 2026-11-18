@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>*,*::before,*::after{box-sizing:border-box}html,body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}</style>
-<script src="zhuyin.js?v=20261118q"></script>
+<script src="zhuyin.js?v=20261118r"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261118q">
-<script src="park.js?v=20261118q"></script>
+<link rel="stylesheet" href="park.css?v=20261118r">
+<script src="park.js?v=20261118r"></script>
 <style>:root{--theme:#8e3fb0}</style>
 </head>
 <body>
@@ -811,6 +811,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
       u.final.hidden=false;
       u.readyBtn.classList.remove("on");u.readyBtn.textContent="🔁";
     });
+    if(a!==b)try{window.parkWin&&parkWin(ui[a>b?0:1].ov)}catch(e){}
     say(a===b?`平手！${a} 比 ${b}`:`${a>b?"藍色":"橘色"}這邊獲勝！${Math.max(a,b)} 比 ${Math.min(a,b)}`);
   }
 

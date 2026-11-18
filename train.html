@@ -43,6 +43,10 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
 .qline{display:flex;align-items:center;gap:clamp(10px,2vmin,20px)}
 .die{width:clamp(56px,10vmin,96px);aspect-ratio:1;border-radius:18%;background:#fff;border:3px solid var(--c);display:grid;place-items:center;
   font-family:var(--num);font-weight:800;font-size:clamp(34px,6.5vmin,62px);color:var(--c);box-shadow:0 4px 0 color-mix(in srgb,var(--c) 45%,#c9d2d6)}
+.tk.hop{animation:thop .3s ease-out}
+@keyframes thop{40%{transform:translateY(-16px) scale(1.12)}}
+rect.land{animation:sqland .9s ease-out}
+@keyframes sqland{30%{fill:#ffe066;stroke:#f2b705;stroke-width:6}}
 .die.spin{animation:spin .12s linear infinite}
 @keyframes spin{50%{transform:rotate(12deg) scale(.92)}}
 .q{font-family:var(--num);font-weight:800;font-size:clamp(36px,7.5vmin,80px);line-height:1;white-space:nowrap}
@@ -102,10 +106,10 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   font-weight:800;font-size:clamp(20px,4vmin,34px);box-shadow:0 8px 24px rgba(0,0,0,.2);pointer-events:none;white-space:nowrap}
 .toast.flip{transform:translate(-50%,-50%) rotate(180deg)}
 </style>
-<script src="zhuyin.js?v=20261118q"></script>
+<script src="zhuyin.js?v=20261118r"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261118q">
-<script src="park.js?v=20261118q"></script>
+<link rel="stylesheet" href="park.css?v=20261118r">
+<script src="park.js?v=20261118r"></script>
 <style>:root{--theme:#c0392b}</style>
 </head>
 <body>
@@ -144,7 +148,7 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   function tone(fs,dur=.12,type="triangle",vol=.15){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume();
     fs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*dur;o.type=type;o.frequency.value=f;
       g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)})}catch(e){}}
-  const sfx={good:()=>tone([784,1175],.12,"sine",.28),bad:()=>tone([150],.3,"square",.15),tick:()=>tone([600],.08),step:()=>tone([700],.05,"square",.05),
+  const sfx={good:()=>tone([784,1175],.12,"sine",.28),bad:()=>tone([150],.3,"square",.15),tick:()=>tone([600],.08),step:()=>tone([700],.05,"square",.05),toot:()=>{tone([440],.16,"triangle",.14);setTimeout(()=>tone([440],.22,"triangle",.14),220)},
     roll:()=>tone([300,400,500],.04,"square",.05),choo:()=>tone([523,659],.18,"sawtooth",.06),win:()=>tone([523,659,784,1047],.16)};
   {const _g=sfx.good;sfx.good=(...a)=>{try{window.parkBurst&&parkBurst()}catch(err){}return _g(...a)}}
   function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
@@ -162,9 +166,10 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   SQ.push([X0,Y0+(Y1-Y0)/3],[X0,Y1-(Y1-Y0)/3]);
   mk("rect",{x:X0,y:Y0,width:X1-X0,height:Y1-Y0,rx:40,fill:"none",stroke:"#8a6a4a","stroke-width":22});
   mk("rect",{x:X0,y:Y0,width:X1-X0,height:Y1-Y0,rx:40,fill:"none",stroke:"#c9a27a","stroke-width":14,"stroke-dasharray":"4 10"});
+  const sqEl=[];
   SQ.forEach(([x,y],i)=>{
     const sp=SPECIAL[i];
-    mk("rect",{x:x-27,y:y-27,width:54,height:54,rx:13,fill:i===0?"#fff3b0":sp==="fast"?"#d6f5d6":sp==="tunnel"?"#e3dcef":"#fff",stroke:"#5a6b75","stroke-width":2.5});
+    sqEl[i]=mk("rect",{x:x-27,y:y-27,width:54,height:54,rx:13,fill:i===0?"#fff3b0":sp==="fast"?"#d6f5d6":sp==="tunnel"?"#e3dcef":"#fff",stroke:"#5a6b75","stroke-width":2.5});
     const t=mk("text",{x,y:y+1,"text-anchor":"middle","dominant-baseline":"central","font-size":i===0||sp?30:18,"font-weight":800,fill:"#5a6b75","font-family":"Baloo 2,sans-serif"});
     t.textContent=i===0?"🏁":sp==="fast"?"⭐":sp==="tunnel"?"🚇":i;
   });
@@ -173,8 +178,11 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   ibox.innerHTML='<div class="fo big flip" data-zy></div><div class="fo small" data-zy>⭐ 再走 2 格　🚇 退後 2 格</div><div class="fo big" data-zy></div>';
   svg.parentElement.appendChild(ibox);
   const info=[ibox.children[2],ibox.children[0]];
-  const tokens=[0,1].map(p=>{const g=mk("g",{});mk("circle",{r:21,fill:COLORS[p],stroke:"#fff","stroke-width":3},g);
-    const t=mk("text",{"text-anchor":"middle","dominant-baseline":"central","font-size":24},g);t.textContent="🚂";return g});
+  const tokens=[0,1].map(p=>{const g0=mk("g",{}),g=mk("g",{class:"tk"},g0);mk("circle",{r:21,fill:COLORS[p],stroke:"#fff","stroke-width":3},g);
+    const t=mk("text",{"text-anchor":"middle","dominant-baseline":"central","font-size":24},g);t.textContent="🚂";return g0});
+  // 小火車每走一格跳一下；停下來的那一格亮一下
+  const hop=p=>{const g=tokens[p].firstChild;g.classList.remove("hop");void g.getBoundingClientRect();g.classList.add("hop")};
+  const flashSq=i=>{const r=sqEl[i%N];if(!r)return;r.classList.remove("land");void r.getBoundingClientRect();r.classList.add("land")};
   function placeTokens(){
     tokens.forEach((g,p)=>{const i=Math.min(P[p].pos,N)%N,[x,y]=SQ[i],same=(Math.min(P[0].pos,N)%N)===(Math.min(P[1].pos,N)%N);
       g.setAttribute("transform",`translate(${x+(same?(p?12:-12):0)} ${y+(same?(p?-10:10):0)})`)});
@@ -277,10 +285,10 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   }
   // 一格一格走
   function move(p,steps,done){
-    const dir=steps>0?1:-1;let left=Math.abs(steps);
+    const dir=steps>0?1:-1;let left=Math.abs(steps);if(dir>0)sfx.toot();
     const iv=setInterval(()=>{
-      if(left<=0||P[p].pos>=N){clearInterval(iv);done();return}
-      P[p].pos=Math.max(0,P[p].pos+dir);left--;sfx.step();placeTokens();
+      if(left<=0||P[p].pos>=N){clearInterval(iv);flashSq(Math.min(P[p].pos,N));done();return}
+      P[p].pos=Math.max(0,P[p].pos+dir);left--;sfx.step();placeTokens();hop(p);
     },320);
   }
   function landed(p){
@@ -295,6 +303,7 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
     phase="over";sfx.win();placeTokens();setInfo(`🏆 ${NAMES[w]} 贏了！`);
     ui.forEach((u,p)=>{u.el.classList.remove("wait");u.ov.hidden=false;u.h2.textContent=p===w?"你贏了！🏆":"再接再厲！";
       u.lvs[0].parentElement.hidden=true;u.vbtn.parentElement.hidden=true;u.ready.textContent="🔁";u.ready.classList.remove("on")});
+    try{window.parkWin&&parkWin(ui[w].ov)}catch(e){}
     say(`${NAMES[w]}的小火車先回到終點，${NAMES[w]}贏了！`);
   }
   showReady();

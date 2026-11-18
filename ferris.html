@@ -34,7 +34,13 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:minma
 @media (orientation:portrait){main{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1.3fr) auto}}
 .wheel{height:100%;min-height:0;display:grid;place-items:center}
 .wheel svg{width:100%;height:100%;overflow:visible}
-.car.lit rect{stroke:#f2b705;stroke-width:5}
+.car.lit rect{stroke:#f2b705;stroke-width:6}
+/* 車廂吊在輪子上輕輕搖晃；數到的車廂裡，小動物跳一下 */
+.car .sw{transform-origin:0 0;animation:fsw 2.4s ease-in-out infinite alternate}
+@keyframes fsw{from{transform:rotate(-5deg)}to{transform:rotate(5deg)}}
+.car.lit text{animation:fhop .45s ease-out}
+@keyframes fhop{40%{transform:translateY(-12px)}}
+@media (prefers-reduced-motion:reduce){.car .sw{animation:none}}
 .panel{display:flex;flex-direction:column;align-items:center;gap:clamp(10px,2vmin,18px);text-align:center;min-width:0}
 .story{font-size:clamp(18px,3.2vmin,28px);font-weight:800;line-height:1.5;background:rgba(255,255,255,.9);border-radius:18px;padding:.5em .9em}
 .story b{color:var(--accent)}
@@ -81,13 +87,16 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:minma
 /* 圖一定要縮在畫面內，手機橫放也不會超出去 */
 .wheel,.ride{position:relative;height:100%;min-height:0}
 .wheel svg,.ride svg{position:absolute;inset:0;width:100%;height:100%;max-height:none}
+
+/* 手機橫放：題目框字小一點，才不會頂到右上角的按鈕 */
+@media (max-height:500px){.story{font-size:15px;line-height:1.3;padding:.3em .7em}}
 </style>
-<script src="zhuyin.js?v=20261118q"></script>
+<script src="zhuyin.js?v=20261118r"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261118q">
-<script src="park.js?v=20261118q"></script>
+<link rel="stylesheet" href="park.css?v=20261118r">
+<script src="park.js?v=20261118r"></script>
 </head>
-<body>
+<body data-park>
 <header class="top">
   <a class="ibtn" href="./" aria-label="回遊樂園地圖">🏠</a>
   <div class="title">🎡 摩天輪乘法</div>
@@ -178,20 +187,23 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:minma
   function build(){
     spokes.innerHTML="";carsG.innerHTML="";cars=[];
     const n=S.n,k=S.k,cols=k<=3?k:k<=4?2:3,rows=Math.ceil(k/cols);
-    const C=26,w=Math.max(54,cols*C+14),h=Math.max(44,rows*C+14);
-    const animal=ANIMALS[rnd(0,ANIMALS.length-1)];
+    // 車廂盡量做大，但不能跟旁邊的車廂撞在一起
+    const room=2*Math.PI*R/Math.max(n,1)-14,C=Math.max(24,Math.min(34,(room-14)/cols,(130-14)/rows)),w=Math.max(60,cols*C+14),h=Math.max(50,rows*C+14);
+    // 每個車廂坐不同的小動物（同一個車廂裡都一樣，比較好數）
+    const zoo=[...ANIMALS].sort(()=>Math.random()-.5);
     for(let i=0;i<n;i++){
       const a=i/n*360;
       mk("line",{x1:CX,y1:CY,x2:CX+R*Math.sin(a*Math.PI/180),y2:CY-R*Math.cos(a*Math.PI/180),stroke:"#ffffff","stroke-width":4},spokes);
-      const g=mk("g",{class:"car"},carsG);
+      const g0=mk("g",{class:"car"},carsG),g=mk("g",{class:"sw",style:`animation-delay:${(-i*.37).toFixed(2)}s`},g0);
       mk("line",{x1:0,y1:0,x2:0,y2:10,stroke:"#5a6b75","stroke-width":3},g);
-      mk("rect",{x:-w/2,y:10,width:w,height:h,rx:12,fill:COLORS[i%COLORS.length],stroke:"#ffffff","stroke-width":3},g);
+      mk("rect",{x:-w/2,y:10,width:w,height:h,rx:14,fill:COLORS[i%COLORS.length],stroke:"#ffffff","stroke-width":3},g);
+      const animal=zoo[i%zoo.length];
       for(let j=0;j<k;j++){
         const c=j%cols,r=Math.floor(j/cols),rowCount=Math.min(cols,k-r*cols);
         const x=(c-(rowCount-1)/2)*C,y=10+7+r*C+C/2;
-        const t=mk("text",{x,y,"font-size":23,"text-anchor":"middle","dominant-baseline":"central"},g);t.textContent=animal;
+        const t=mk("text",{x,y,"font-size":Math.round(C*.9),"text-anchor":"middle","dominant-baseline":"central",style:`animation-delay:${j*.06}s`},g);t.textContent=animal;
       }
-      cars.push({g,a});
+      cars.push({g:g0,a});
     }
     place();
   }

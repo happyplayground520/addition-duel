@@ -56,7 +56,12 @@ body{background:linear-gradient(#ffd9a8,#ffeedd 55%,#fff6ec);color:var(--ink);fo
   border-radius:50%;background:#33414a;border:3px solid #cfd8dc}
 .card::before{left:18%} .card::after{right:18%}
 .card.wrong{filter:grayscale(.8);animation:shake .35s}
-.card.right{background:var(--good);color:#fff;transition:opacity .35s,scale .35s;opacity:0;scale:1.3}
+.card.right{background:var(--good);color:#fff;transition:opacity .3s .42s,scale .35s;opacity:0;scale:1.2;pointer-events:none}
+/* 答對：乘客跳起來、舉手歡呼 */
+.card.right .rider{animation:cheer .5s ease-out}
+@keyframes cheer{40%{transform:translateX(-50%) translateY(-60%) rotate(-10deg)}}
+.card .cheer{position:absolute;left:calc(50% + var(--h)*.5);bottom:100%;font-size:calc(var(--h)*.42);line-height:1;transform:translate(-50%,-40%);animation:hands .5s ease-out both;pointer-events:none}
+@keyframes hands{from{transform:translate(-50%,40%) scale(.3);opacity:0}}
 .card.gone{transition:opacity .25s;opacity:0;pointer-events:none}
 @keyframes shake{25%{translate:-8px 0}75%{translate:8px 0}}
 .float{position:absolute;font-family:var(--num);font-weight:800;font-size:28px;pointer-events:none;animation:up .8s forwards}
@@ -97,13 +102,16 @@ body{background:linear-gradient(#ffd9a8,#ffeedd 55%,#fff6ec);color:var(--ink);fo
   #start .box>p{display:none}
   .panel .stars{font-size:36px}
 }
+
+/* 很窄的手機：標題列間距小一點，右邊的按鈕才不會被擠出去 */
+@media (max-width:400px){.top{gap:7px}}
 </style>
-<script src="zhuyin.js?v=20261118q"></script>
+<script src="zhuyin.js?v=20261118r"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261118q">
-<script src="park.js?v=20261118q"></script>
+<link rel="stylesheet" href="park.css?v=20261118r">
+<script src="park.js?v=20261118r"></script>
 </head>
-<body>
+<body data-park>
 <header class="top">
   <a class="ibtn" href="./" aria-label="回遊樂園地圖">🏠</a>
   <div class="target" data-zy><span class="lbl">🎢 找出等於</span><b id="target">?</b><span class="lbl">的車廂</span></div>
@@ -310,7 +318,7 @@ body{background:linear-gradient(#ffd9a8,#ffeedd 55%,#fff6ec);color:var(--ink);fo
   function hit(c){
     if(S.phase!=="play"||c.done)return;
     if(c.val===S.target){
-      c.done=true;S.score++;sfx.good();c.el.classList.add("right");floatTxt(c,"+1","plus");setTimeout(()=>c.el.remove(),360);
+      c.done=true;S.score++;sfx.good();c.el.insertAdjacentHTML("beforeend",'<span class="cheer" aria-hidden="true">🙌</span>');c.el.classList.add("right");floatTxt(c,"+1","plus");setTimeout(()=>c.el.remove(),760);
       $("score").textContent=`⭐ ${S.score}`;
       // 換下一個目標：畫面上的舊卡片淡出，馬上掉一張新的正確卡片
       cards.forEach(o=>{if(!o.done){o.done=true;o.el.classList.add("gone");setTimeout(()=>o.el.remove(),260)}});
