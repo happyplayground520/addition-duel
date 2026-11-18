@@ -22,7 +22,7 @@ html,body{margin:0;height:100%}
 body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden;
   -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 [hidden]{display:none!important}
-.board{height:100%;display:grid;grid-template-rows:minmax(0,.5fr) minmax(0,1.6fr) minmax(0,.5fr)}
+.board{height:100%;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,.5fr) minmax(0,1.6fr) minmax(0,.5fr)}
 @media (orientation:portrait){.board{grid-template-rows:minmax(0,.42fr) minmax(0,1.6fr) minmax(0,.42fr)}}
 /* 玩家區 */
 .side{position:relative;display:flex;flex-direction:column;justify-content:center;gap:8px;min-height:0;transition:opacity .25s;
@@ -57,6 +57,8 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   background:var(--c);color:#fff;cursor:pointer;box-shadow:0 5px 0 color-mix(in srgb,var(--c) 60%,#000)}
 .ready.on{background:var(--good);box-shadow:0 5px 0 color-mix(in srgb,var(--good) 60%,#000)}
 @media (max-height:600px){.overlay .opt small{display:none}.overlay h2{font-size:20px}}
+@media (orientation:portrait){.board.setup{grid-template-rows:minmax(0,1fr) minmax(0,1.2fr) minmax(0,1fr)}}
+@media (max-width:440px){.head{flex-wrap:wrap;row-gap:4px}.head .msg{order:9;flex-basis:100%;font-size:17px}.head .name{flex:1}}
 /* 牌桌 */
 .table{position:relative;min-height:0;display:grid;place-items:center;padding:clamp(8px,1.6vmin,16px) max(16px,env(safe-area-inset-right,0px)) clamp(8px,1.6vmin,16px) max(16px,env(safe-area-inset-left,0px));
   background:radial-gradient(ellipse at 50% 50%,#3fa66b,#2b7f50);box-shadow:inset 0 0 0 8px #b07a45,inset 0 0 0 12px #8a5a2e}
@@ -97,10 +99,10 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   .overlay h2{display:none} .overlay .opt small{display:none}
 }
 </style>
-<script src="zhuyin.js?v=20261118r"></script>
+<script src="zhuyin.js?v=20261118s"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261118r">
-<script src="park.js?v=20261118r"></script>
+<link rel="stylesheet" href="park.css?v=20261118s">
+<script src="park.js?v=20261118s"></script>
 <style>:root{--theme:#2b7f50}</style>
 </head>
 <body>
@@ -177,13 +179,14 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   }
 
   // ---- 牌桌 ----
-  const grid=$("grid"),table=$("table");let cards=[];
+  const grid=$("grid"),table=$("table"),boardEl=document.querySelector(".board");let cards=[];
   function fit(n){
     const cs=getComputedStyle(table),W=table.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight)-8,H=table.clientHeight-28-(innerWidth>innerHeight?0:56);
     let best={cw:0};
     for(let cols=2;cols<=n;cols++){
       const rows=Math.ceil(n/cols);if(cols*rows-n>=cols)continue;
-      const gap=10,cw=Math.min((W-gap*(cols-1))/cols,((H-gap*(rows-1))/rows)/1.3);
+      const gap=10,cwW=(W-gap*(cols-1))/cols,cw=Math.min(cwW,((H-gap*(rows-1))/rows)/1.3);
+      if(cwW<54&&best.cw)continue;   // 太窄的排法不要（牌最小 54px，會超出畫面）
       if(cw>best.cw)best={cw,cols,rows,gap};
     }
     best.cw=Math.max(54,Math.min(150,Math.floor(best.cw)));
@@ -256,7 +259,7 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
     G.phase="ready";G.ready=[false,false];G.score=[0,0];G.first=null;G.busy=false;
     ui.forEach((u,p)=>{u.ov.hidden=false;u.h2.textContent=`${NAMES[p]}的牌`;u.big.hidden=true;u.ready.textContent="READY";u.ready.classList.remove("on");
       u.lvs[0].parentElement.hidden=false;u.vbtn.parentElement.hidden=false;u.pairs.textContent="0";u.msg.textContent="";u.el.classList.remove("turn","wait")});
-    syncSetup();deal();
+    boardEl.classList.add("setup");syncSetup();deal();
   }
   function toggleReady(p){
     unlock();
@@ -266,7 +269,7 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
     if(G.ready[0]&&G.ready[1])countdown();
   }
   function countdown(){
-    G.phase="count";ui.forEach(u=>u.ov.hidden=true);
+    G.phase="count";ui.forEach(u=>u.ov.hidden=true);boardEl.classList.remove("setup");fit(cards.length);
     const c=$("count");let n=3;c.hidden=false;c.textContent=n;sfx.tick();
     const iv=setInterval(()=>{n--;if(n>0){c.textContent=n;sfx.tick();return}
       clearInterval(iv);c.hidden=true;sfx.go();G.phase="play";
@@ -275,7 +278,7 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
     },800);
   }
   function finish(){
-    G.phase="over";sfx.win();
+    G.phase="over";sfx.win();boardEl.classList.add("setup");
     const [a,b]=G.score,w=a===b?-1:a>b?0:1;
     ui.forEach((u,p)=>{u.el.classList.remove("turn","wait");u.ov.hidden=false;
       u.h2.textContent=w<0?"平手！🤝":p===w?"你贏了！🏆":"再接再厲！";

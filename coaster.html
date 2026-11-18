@@ -104,12 +104,17 @@ body{background:linear-gradient(#ffd9a8,#ffeedd 55%,#fff6ec);color:var(--ink);fo
 }
 
 /* 很窄的手機：標題列間距小一點，右邊的按鈕才不會被擠出去 */
-@media (max-width:400px){.top{gap:7px}}
+/* 手機直放：上方分兩排，第一排 🏠、分數、🔊，第二排整排給題目 */
+@media (max-width:600px){
+  .top{grid-template-columns:auto 1fr auto auto;grid-template-areas:"home . stats again" "mid mid mid mid";row-gap:6px}
+  .top>a.ibtn{grid-area:home} .top>.stats{grid-area:stats} .top>#again{grid-area:again} .top>.target{grid-area:mid;justify-self:center}
+}
+@media (max-width:420px){.target{padding:2px 14px}.target .lbl{font-size:16px}}
 </style>
-<script src="zhuyin.js?v=20261118r"></script>
+<script src="zhuyin.js?v=20261118s"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261118r">
-<script src="park.js?v=20261118r"></script>
+<link rel="stylesheet" href="park.css?v=20261118s">
+<script src="park.js?v=20261118s"></script>
 </head>
 <body data-park>
 <header class="top">

@@ -129,3 +129,21 @@ label.chk.sym:has(input:focus-visible){outline:3px solid var(--theme);outline-of
 @keyframes pkconf{to{transform:translateY(110vh) rotate(var(--r))}}
 @media (prefers-reduced-motion:reduce){.pk-float,.pk-fw i,.pk-fw::before,.pk-riders b{animation-duration:.01s}}
 @media (max-width:520px){#score[data-tix]::before{display:none}}
+
+/* ---- 手機直放：標題只留圖示（名字在開始卡片上），標題列才不會擠成好幾行 ---- */
+@media (max-width:420px){.top>.ttl .tx,.top>.title .tx{display:none}.top>.ttl,.top>.title{font-size:30px!important;line-height:1}}
+
+/* ---- 雙人遊戲：手機直放時每人那半邊很矮，準備畫面改成兩排（難度＋🔊／READY＋🏠），內容太多時可以捲 ---- */
+.side>.overlay{justify-content:safe center;align-content:safe center}
+@media (orientation:portrait) and (max-height:760px){
+  .side>.overlay{flex-flow:row wrap!important;align-content:safe center!important;justify-content:center!important;gap:6px 8px!important;padding:8px!important}
+  .side>.overlay>h2{width:100%;font-size:20px!important;line-height:1.2}
+  .side>.overlay>p{width:100%;font-size:13px!important}
+  .side>.overlay>.big,.side>.overlay>.final{width:100%}
+  .side>.overlay>.row:not([hidden]){display:contents}
+  .side>.overlay .opt small{display:none!important}
+  .side>.overlay .opt{padding:6px 12px!important}
+  .side>.overlay .ready{font-size:20px!important;min-height:44px;padding:.3em 1.2em!important}
+  .side>.overlay .homeb{min-width:52px;font-size:24px;padding:4px 10px}
+}
+@media (orientation:portrait) and (max-height:700px){.side>.overlay>p{display:none}}

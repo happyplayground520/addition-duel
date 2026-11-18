@@ -132,12 +132,18 @@ body{background:radial-gradient(circle,rgba(192,79,214,.12) 2.5px,transparent 3p
 }
 @media (orientation:portrait){.mid{flex-direction:column;gap:6px}}
 @media (prefers-reduced-motion:reduce){.bulbs{animation:none}}
+/* 手機直放：上方分兩排，第一排 🏠、分數、🔊，第二排整排給題目 */
+@media (max-width:600px){
+  .top{grid-template-columns:auto 1fr auto auto;grid-template-areas:"home . stats again" "mid mid mid mid";row-gap:6px}
+  .top>a.ibtn{grid-area:home} .top>.stats{grid-area:stats} .top>#again{grid-area:again} .top>.mid{grid-area:mid;justify-self:center}
+}
+@media (max-width:600px) and (orientation:portrait){.mid{flex-direction:row}}
 @media (max-height:500px){#modes .opt .mi,#modes .opt small{display:none}}
 </style>
-<script src="zhuyin.js?v=20261118r"></script>
+<script src="zhuyin.js?v=20261118s"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261118r">
-<script src="park.js?v=20261118r"></script>
+<link rel="stylesheet" href="park.css?v=20261118s">
+<script src="park.js?v=20261118s"></script>
 </head>
 <body data-park>
 <header class="top">
