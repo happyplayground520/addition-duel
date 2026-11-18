@@ -43,14 +43,16 @@ header,.map,.toast{position:relative;z-index:1}
 .zybtn[aria-pressed="true"] .sw{background:#1f9d61}
 .zybtn[aria-pressed="true"] .sw::after{transform:translateX(22px)}
 .zybtn .st{min-width:1.2em;color:var(--muted)}
-@media (orientation:portrait){.zybtn{top:auto;bottom:max(10px,env(safe-area-inset-bottom,0px))}}
+/* 注音開關在右上角（左上角是海盜灣的小船），直放橫放都一樣；直放時標題小一點，才不會碰到 */
+@media (orientation:portrait){html:not(.phone) header{margin-top:52px}
+  html:not(.phone) .map{width:min(100%,calc((100dvh - 186px) * .8))!important}}
 /* 左上角：開船去海盜灣（英文區），一個小圖示按鈕 */
 .covebtn{position:fixed;z-index:5;top:max(10px,env(safe-area-inset-top,0px));left:max(12px,env(safe-area-inset-left,0px));
   width:56px;height:56px;border-radius:16px;background:#fff;display:grid;place-items:center;text-decoration:none;box-shadow:0 4px 0 #b9dff5,0 8px 16px rgba(0,0,0,.12)}
 .covebtn:active{transform:translateY(3px)}
 .covebtn svg{width:44px;height:44px;display:block;animation:rock 2.4s ease-in-out infinite;transform-origin:50% 80%}
 @keyframes rock{50%{transform:rotate(-7deg)}}
-html.phone .covebtn{position:absolute;width:48px;height:48px}html.phone .covebtn svg{width:38px;height:38px}
+html.phone .covebtn{position:absolute;top:max(6px,env(safe-area-inset-top,0px));width:46px;height:46px}html.phone .covebtn svg{width:38px;height:38px}
 /* 標題招牌：紅白條紋的帳篷布，下面一條緞帶 */
 header{display:flex;flex-direction:column;align-items:center;gap:4px}
 h1{margin:0;font-size:clamp(26px,5vmin,52px);line-height:1.15;font-weight:800;letter-spacing:.08em;color:#fff;
