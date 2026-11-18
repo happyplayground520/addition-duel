@@ -7,7 +7,7 @@
 <title>港口聊天</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261118p">
+<link rel="stylesheet" href="en.css?v=20261118q">
 <style>
 /* 港口聊天：鸚鵡在港口攤子前連續問小朋友三個問題（心情、天氣、幾歲），從對話泡泡裡選出要回答的話 */
 body{background:linear-gradient(#bfeaff,#e9f8ff 55%,#7fd0ea 55.1%,#4fb8dc)}
@@ -24,6 +24,12 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
 .kid{width:calc(var(--u)*2.4);height:calc(var(--u)*2.4)}
 .kid.kbig{width:calc(var(--u)*3.2);height:calc(var(--u)*3.2)}
 .kid svg,.hintp svg{width:100%;height:100%;display:block}
+.kid{animation:blink 4s infinite;transform-origin:50% 100%}
+@keyframes blink{0%,94%,100%{transform:none}96%{transform:scaleY(.92)}}
+.kid.jump{animation:kjump .55s ease-out}
+@keyframes kjump{40%{transform:translateY(-18px)}}
+.kid.wave{animation:kwave .5s ease-in-out 4}
+@keyframes kwave{25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
 .hintp{width:calc(var(--u)*2.8);height:calc(var(--u)*2.8);animation:bpop .35s}
 .bub{position:relative;max-width:calc(var(--u)*6);background:#fff;border:4px solid var(--ink);border-radius:20px;padding:6px 14px;font-family:var(--en);font-weight:700;
   font-size:calc(var(--u)*.5);line-height:1.15;box-shadow:0 4px 0 rgba(0,0,0,.1);display:flex;align-items:center;gap:8px;min-height:calc(var(--u)*.95)}
@@ -49,13 +55,13 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
 }
 @media (prefers-reduced-motion:reduce){.rbtn.glow{animation:none}}
 </style>
-<script src="zhuyin.js?v=20261118p"></script>
-<link rel="stylesheet" href="park.css?v=20261118p">
-<script src="park.js?v=20261118p"></script>
-<script src="en.js?v=20261118p"></script>
+<script src="zhuyin.js?v=20261118q"></script>
+<link rel="stylesheet" href="park.css?v=20261118q">
+<script src="park.js?v=20261118q"></script>
+<script src="en.js?v=20261118q"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
-<body>
+<body data-game="chat">
 <header class="top">
   <a class="ibtn" href="cove.html" aria-label="回海盜灣">🏠</a>
   <div class="mid"><span class="pill" id="prog">1 / 10</span></div>
@@ -200,8 +206,11 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
     if(S.busy||!S.sel)return;const q=S.q,b=document.querySelector(`.rbtn[data-w="${CSS.escape(S.sel)}"]`);
     if(S.sel===q.ans){
       S.busy=true;if(S.tries===0)S.score++;$("score").textContent=`⭐ ${S.score}`;b.classList.add("yes");sfx.good();EN.mood($("parrot"),"happy");
-      $("mb").textContent=q.ans;$("mb").classList.add("show");
-      setTimeout(()=>say(q.ans,{onend:()=>setTimeout(next,900)}),300);
+      EN.fly(b,$("mb"),()=>{$("mb").textContent=q.ans;$("mb").classList.add("show");const k=$("kid");k.classList.remove("jump");void k.offsetWidth;k.classList.add("jump")},{dur:.55,hide:false});
+      const lastOfTalk=!S.queue.length;
+      setTimeout(()=>say(q.ans,{onend:()=>{if(!lastOfTalk){setTimeout(next,900);return}
+        // 聊完三題：大家揮手說再見
+        $("kid").classList.add("wave");EN.mood($("parrot"),"happy");$("qt").textContent="Bye-bye!";say("Bye-bye!",{onend:()=>setTimeout(()=>{$("kid").classList.remove("wave");next()},700)})}}),650);
     }else{
       S.tries++;sfx.bad();EN.mood($("parrot"),"oops");b.classList.add("no");b.setAttribute("aria-pressed","false");S.sel=null;$("ok").disabled=true;
       if(S.tries>=2&&S.lv>1)document.querySelector(`.rbtn[data-w="${CSS.escape(q.ans)}"]`).classList.add("glow");

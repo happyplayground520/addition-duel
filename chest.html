@@ -7,7 +7,7 @@
 <title>寶箱與鸚鵡</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261118p">
+<link rel="stylesheet" href="en.css?v=20261118q">
 <style>
 /* 寶箱與鸚鵡：船的甲板上，吊桿用繩子把寶箱吊在半空中；聽句子，把東西拖到寶箱的上面、裡面、下面、旁邊、左邊、右邊 */
 .say{flex:none;display:flex;justify-content:center;padding:2px 14px 6px}
@@ -29,6 +29,9 @@
 .obj.wig{animation:wig .4s}
 @keyframes wig{25%{rotate:-10deg}75%{rotate:10deg}}
 .obj.yay{animation:yay .55s 2}
+.obj.drag .wing{animation:flap .12s ease-in-out infinite alternate}
+.obj .wing{transform-box:fill-box;transform-origin:70% 10%}
+.yes2{transform:translateX(-50%);z-index:7;color:#1f9d61}
 @keyframes yay{40%{translate:0 -14%}}
 .hint{position:absolute;z-index:1;border:4px dashed #ffd23f;border-radius:18px;background:rgba(255,226,120,.28);pointer-events:none;animation:hint 1s ease-in-out infinite;
   display:grid;place-items:center;font-size:clamp(28px,6vmin,54px)}
@@ -50,13 +53,13 @@
 /* 手機橫放：句子移到最上面那一排（🏠 和 ⭐ 中間），下面的空間留給遊戲 */
 @media (max-height:500px){.say{position:absolute;z-index:6;top:max(8px,env(safe-area-inset-top,0px));left:76px;right:120px;padding:0;justify-content:center}.top .mid{visibility:hidden}.say .mascot{display:none}}
 </style>
-<script src="zhuyin.js?v=20261118p"></script>
-<link rel="stylesheet" href="park.css?v=20261118p">
-<script src="park.js?v=20261118p"></script>
-<script src="en.js?v=20261118p"></script>
+<script src="zhuyin.js?v=20261118q"></script>
+<link rel="stylesheet" href="park.css?v=20261118q">
+<script src="park.js?v=20261118q"></script>
+<script src="en.js?v=20261118q"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
-<body>
+<body data-game="chest">
 <header class="top">
   <a class="ibtn" href="cove.html" aria-label="回海盜灣">🏠</a>
   <div class="mid"><span class="pill" id="prog">1 / 10</span></div>
@@ -260,7 +263,8 @@
   }
   function good(a){
     S.busy=true;if(S.tries===0)S.score++;$("score").textContent=`⭐ ${S.score}`;
-    clearHint();sfx.good();EN.mood($("parrot"),"happy");spark(a[0],a[1]-8);
+    clearHint();sfx.good();EN.mood($("parrot"),"happy");spark(a[0],a[1]-8);EN.burstAt(stage.querySelector(".front")||stage);
+    const yb=document.createElement("span");yb.className="bubble yes2";yb.textContent=pick(["Yes!","Great!","Super!"]);yb.style.left=a[0]+"%";yb.style.top=Math.max(2,(a[1]-24)/75*100)+"%";stage.appendChild(yb);setTimeout(()=>yb.remove(),1800);
     setTimeout(()=>{el.classList.add("yay")},280);
     const q=S.q,where=q.ask?(q.prep):PHRASE[q.prep];
     setTimeout(()=>say(`${pick(EN.PRAISE)} The ${q.obj} is ${where} the box.`),450);

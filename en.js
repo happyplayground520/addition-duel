@@ -320,5 +320,44 @@
   // 鸚鵡做表情：happy（拍翅膀跳一下）、oops（歪頭）
   EN.mood=function(el,m){if(!el)return;el.classList.remove("happy","oops");void el.offsetWidth;el.classList.add(m);clearTimeout(el._mt);el._mt=setTimeout(()=>el.classList.remove(m),1100)};
   EN.PRAISE=["Great!","Good job!","Yes!","Super!","Well done!","Nice!"];
+
+  // ---------- 動作：飛過去、航海進度、藏寶島結尾 ----------
+  EN.fly=function(a,b,done,o={}){
+    const ra=a.getBoundingClientRect(),rb=b.getBoundingClientRect(),c=a.cloneNode(true);
+    c.style.cssText=`position:fixed;left:${ra.left}px;top:${ra.top}px;width:${ra.width}px;height:${ra.height}px;margin:0;z-index:60;pointer-events:none;transition:transform ${o.dur||.6}s cubic-bezier(.4,-0.3,.4,1.2)`;
+    document.body.appendChild(c);if(o.hide!==false)a.style.visibility="hidden";
+    const s=o.scale||Math.min(rb.width/ra.width,rb.height/ra.height,1);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{c.style.transform=`translate(${rb.left+rb.width/2-ra.left-ra.width/2}px,${rb.top+rb.height/2-ra.top-ra.height/2}px) scale(${s})`}));
+    setTimeout(()=>{c.remove();if(o.hide!==false&&!o.keepHidden)a.style.visibility="";done&&done()},(o.dur||.6)*1000);
+  };
+  // 星星從某個元素噴出來
+  EN.burstAt=el=>{try{const r=el.getBoundingClientRect();window.parkBurst&&parkBurst(r.left+r.width/2,r.top+r.height/2)}catch(e){}};
+  // 標題列的航海路線：看 #prog 的「第幾題 / 幾題」，小船往前開；最後一題答完，開到藏寶島再出現結束畫面
+  const SHIP=`<svg viewBox="0 0 60 50"><g stroke="#3a2a22" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M30 34V6" fill="none"/><path d="M32 8v22h16z" fill="#fff"/><path d="M28 12v18H14z" fill="#fff"/><path d="M30 6l9 3-9 3z" fill="#2b2b3a"/><path d="M6 34h48l-8 12H14z" fill="#a8683a"/></g></svg>`;
+  EN.SHIP=SHIP;
+  function voyage(){
+    if(!document.body||!document.body.dataset.game)return; // 只有海盜灣的關卡有航海路線
+    const prog=document.getElementById("prog"),mid=document.querySelector(".top .mid");if(!prog||!mid)return;
+    const v=document.createElement("span");v.className="voyage";v.innerHTML=`<i class="route"></i><span class="vship">${SHIP}</span><span class="isle">✕</span>`;mid.appendChild(v);
+    const upd=()=>{const m=prog.textContent.match(/(\d+)\s*\/\s*(\d+)/);if(!m)return;const a=+m[1],b=+m[2];
+      const first=/^(abc)$/.test(document.body.dataset.game||"")?0:1;v.style.setProperty("--p",Math.max(0,Math.min(1,(a-first)/b)))};
+    new MutationObserver(upd).observe(prog,{childList:true,characterData:true,subtree:true});upd();
+    // 結束畫面要出現時，先播藏寶島
+    const end=document.getElementById("end");if(!end)return;let busy=false;
+    new MutationObserver(()=>{if(end.hidden||busy||end.dataset.shown)return;busy=true;end.hidden=true;v.style.setProperty("--p",1);
+      EN.finale(()=>{end.dataset.shown="1";end.hidden=false;busy=false})}).observe(end,{attributes:true,attributeFilter:["hidden"]});
+    // 再玩一次時重新播
+    const start=document.getElementById("start");["replay","go"].forEach(id=>{const b=document.getElementById(id);b&&b.addEventListener("click",()=>{delete end.dataset.shown},true)});
+  }
+  EN.finale=function(done){
+    const night=document.body.dataset.finale==="night";
+    const o=document.createElement("div");o.className="efinale"+(night?" night":"");
+    o.innerHTML=night?`<div class="ecard"><div class="moon">🌙</div><div class="sleep">${EN.icon("Dad")}<span class="zz">z z z</span></div><p class="en">Good night!</p></div>`
+      :`<div class="ecard"><div class="sea2"><span class="eship">${SHIP}</span><span class="eisle"><b>✕</b></span></div><div class="echest"><span class="lid2"></span><span class="gold"></span></div><p class="en">You found the treasure!</p></div>`;
+    document.body.appendChild(o);EN.sfx.clear();setTimeout(()=>{EN.burstAt(o.querySelector(night?".moon":".echest"))},1500);
+    EN.say(night?"Good night!":"You found the treasure!");
+    setTimeout(()=>{o.classList.add("out");setTimeout(()=>{o.remove();done&&done()},300)},3200);
+  };
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",voyage);else setTimeout(voyage,0);
   window.EN=EN;
 })();

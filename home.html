@@ -7,7 +7,7 @@
 <title>船長的家</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261118p">
+<link rel="stylesheet" href="en.css?v=20261118q">
 <style>
 /* 船長的家：一棟小木屋有四扇門（kitchen、bedroom、living room、bathroom）。聽問題，打開對的門，再點出房間裡的東西 */
 body{background:linear-gradient(#bfeaff,#e9f8ff 70%,#bfe6a0 70.1%,#a6dc7f)}
@@ -35,6 +35,11 @@ main{position:relative;flex:1;min-height:0;display:grid;place-items:center;paddi
 .leaf::before{content:"";position:absolute;left:14%;right:14%;top:10%;height:32%;border:4px solid rgba(58,42,34,.45);border-radius:8px}
 .leaf::after{content:"";position:absolute;right:12%;top:55%;width:12%;aspect-ratio:1;border-radius:50%;background:#ffd23f;border:3px solid #3a2a22}
 .door.glow .leaf{animation:dglow 1s infinite}
+.leaf.swing{transform:perspective(600px) rotateY(-75deg)}
+.cbag{position:absolute;right:max(14px,env(safe-area-inset-right,0px));bottom:max(12px,env(safe-area-inset-bottom,0px));width:clamp(50px,8vmin,70px);height:clamp(58px,9.4vmin,82px);z-index:4;pointer-events:none}
+.cbag svg{width:100%;height:100%}
+.cbag.bump{animation:wig2 .4s}
+@keyframes wig2{40%{transform:scale(1.2) rotate(-8deg)}}
 @keyframes dglow{50%{box-shadow:0 0 0 6px #ffd23f}}
 .door.tried .leaf{filter:saturate(.4)}
 /* 房間裡面 */
@@ -57,20 +62,20 @@ main{position:relative;flex:1;min-height:0;display:grid;place-items:center;paddi
   .sent{font-size:19px;padding:3px 6px 3px 12px;border-width:3px}.sent .ibtn{width:40px;height:40px;font-size:20px}}
 @media (prefers-reduced-motion:reduce){.room,.door.glow .leaf{animation:none}}
 </style>
-<script src="zhuyin.js?v=20261118p"></script>
-<link rel="stylesheet" href="park.css?v=20261118p">
-<script src="park.js?v=20261118p"></script>
-<script src="en.js?v=20261118p"></script>
+<script src="zhuyin.js?v=20261118q"></script>
+<link rel="stylesheet" href="park.css?v=20261118q">
+<script src="park.js?v=20261118q"></script>
+<script src="en.js?v=20261118q"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
-<body>
+<body data-game="home" data-finale="night">
 <header class="top">
   <a class="ibtn" href="cove.html" aria-label="回海盜灣">🏠</a>
   <div class="mid"><span class="pill" id="prog">1 / 10</span></div>
   <div class="right"><span class="pill" id="score">⭐ 0</span></div>
 </header>
 <div class="say"><span class="mascot pbox" id="parrot"></span><span class="qpic" id="qpic"></span><span class="sent"><span id="stext"></span><button type="button" class="ibtn" id="again" aria-label="再聽一次">🔊</button></span></div>
-<main id="main"><div class="house" id="house"><div class="roof"><span class="chim"></span></div><div class="body" id="hbody"></div></div></main>
+<main id="main"><span class="cbag" id="cbag" aria-hidden="true"><svg viewBox="0 0 60 70"><g stroke="#3a2a22" stroke-width="4" stroke-linejoin="round"><path d="M20 22q0-14 10-14t10 14" fill="none"/><path d="M8 22h44l-4 42H12z" fill="#a8683a"/><path d="M8 32h44" stroke="#ffd23f" stroke-width="4"/></g></svg></span><div class="house" id="house"><div class="roof"><span class="chim"></span></div><div class="body" id="hbody"></div></div></main>
 
 <section class="panel" id="start">
   <div class="box">
@@ -159,7 +164,12 @@ main{position:relative;flex:1;min-height:0;display:grid;place-items:center;paddi
     document.querySelectorAll(".door").forEach(d=>d.onclick=()=>openRoom(+d.dataset.k));
   }
   function openRoom(k){
-    if(S.busy||S.open!=null)return;const r=ROOMS[k];S.open=k;sfx.pop();say(r.k);
+    if(S.busy||S.open!=null)return;const leaf=document.querySelector(`.door[data-k="${k}"] .leaf`);
+    if(leaf&&!leaf.classList.contains("swing")){S.busy=true;leaf.classList.add("swing");sfx.pop();setTimeout(()=>{leaf.classList.remove("swing");S.busy=false;openRoom2(k)},420);return}
+    openRoom2(k);
+  }
+  function openRoom2(k){
+    const r=ROOMS[k];S.open=k;say(r.k);
     const el=document.createElement("div");el.className="room";el.style.setProperty("--wall",r.wall);el.id="room";
     el.innerHTML=`<button type="button" class="close" id="close" aria-label="關門">🚪</button><div class="rt">${EN.icon(r.ic)}${r.k}</div>
       <div class="floor">${shuffle(r.items.slice()).map(it=>`<button type="button" class="item" data-it="${it}" aria-label="${it}">${EN.icon(it)}</button>`).join("")}</div>`;
@@ -181,6 +191,7 @@ main{position:relative;flex:1;min-height:0;display:grid;place-items:center;paddi
     if(S.busy)return;const it=b.dataset.it;say(it);
     if(it===S.q.item){
       S.busy=true;if(S.tries===0)S.score++;$("score").textContent=`⭐ ${S.score}`;b.classList.add("yes");sfx.good();EN.mood($("parrot"),"happy");
+      setTimeout(()=>EN.fly(b,$("cbag"),()=>{const g=$("cbag");g.classList.remove("bump");void g.offsetWidth;g.classList.add("bump");sfx.pop()},{dur:.7,scale:.4,keepHidden:true}),600);
       const r=S.q.room.k;
       setTimeout(()=>say(`${pick(EN.PRAISE)} The ${it} is in the ${r}.`,{onend:()=>setTimeout(next,600)}),500);
     }else{S.tries++;sfx.bad();b.classList.add("no")}

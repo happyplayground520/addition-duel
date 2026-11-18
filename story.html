@@ -7,7 +7,7 @@
 <title>船長說故事</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261118p">
+<link rel="stylesheet" href="en.css?v=20261118q">
 <style>
 /* 船長說故事：一本繪本，每一句旁邊有一張圖，念到哪一句那一行就亮起來；聽完回答 Who／What／When，點英文字聽、選好按 OK */
 body{background:radial-gradient(circle at 15% 20%,rgba(255,255,255,.3) 0 2px,transparent 3px) 0 0/44px 44px,linear-gradient(#d9c4f2,#f3e9ff)}
@@ -24,6 +24,11 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
 .line .pics .ic.sm{width:calc(var(--ic,64px)*.75);height:calc(var(--ic,64px)*.75)}
 .line .tx{font-family:var(--en);font-weight:700;font-size:var(--fs,30px);line-height:1.2;color:#8a7a9a;transition:color .2s}
 .line.on{background:#fff3c4;border-color:#ffd23f;transform:scale(1.02)}
+.line.on .pics .ic{animation:hop2 .6s ease-in-out 2}
+.line.on .pics .ic:nth-child(2){animation-delay:.15s}.line.on .pics .ic:nth-child(3){animation-delay:.3s}
+@keyframes hop2{40%{transform:translateY(-12px) rotate(-6deg)}}
+.sticker{position:absolute;right:-18px;top:-22px;font-size:48px;transform:rotate(14deg);animation:stick .5s cubic-bezier(.3,1.6,.5,1);z-index:3;filter:drop-shadow(0 3px 0 rgba(0,0,0,.2))}
+@keyframes stick{from{transform:scale(2.4) rotate(-30deg);opacity:0}}
 .line.on .tx,.line.done .tx{color:var(--ink)}
 .line.glow{animation:glow 1s infinite}
 @keyframes glow{50%{background:#ffe27a}}
@@ -54,13 +59,13 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
 }
 @media (prefers-reduced-motion:reduce){.book.flip,.line.glow,.wbtn.glow,.listen i{animation:none}}
 </style>
-<script src="zhuyin.js?v=20261118p"></script>
-<link rel="stylesheet" href="park.css?v=20261118p">
-<script src="park.js?v=20261118p"></script>
-<script src="en.js?v=20261118p"></script>
+<script src="zhuyin.js?v=20261118q"></script>
+<link rel="stylesheet" href="park.css?v=20261118q">
+<script src="park.js?v=20261118q"></script>
+<script src="en.js?v=20261118q"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
-<body>
+<body data-game="story">
 <header class="top">
   <a class="ibtn" href="cove.html" aria-label="回海盜灣">🏠</a>
   <div class="mid"><span class="pill" id="prog">1 / 5</span></div>
@@ -214,6 +219,7 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
     if(S.sel===st.ans){
       S.busy=true;if(S.tries===0)S.score++;$("score").textContent=`⭐ ${S.score}`;
       b.classList.add("yes");sfx.good();EN.mood($("parrot"),"happy");
+      const stk=document.createElement("span");stk.className="sticker";stk.textContent=pick(["⭐","🏅","🌟","🦜","💎"]);$("book").appendChild(stk);EN.burstAt(stk);
       const fl=$("book").querySelectorAll(".line")[st.fact];fl.classList.add("on");
       setTimeout(()=>say(`${pick(EN.PRAISE)} ${st.lines[st.fact].t}`,{onend:()=>setTimeout(nextStory,700)}),350);
     }else{
@@ -225,7 +231,7 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
   function nextStory(){if(S.phase!=="play")return;S.i++;if(S.i>=S.total)finish();else newStory()}
   function newStory(){
     S.tries=0;S.story=makeStory();$("prog").textContent=`${S.i+1} / ${S.total}`;
-    renderStory();readStory(showQuestion);
+    $("book").querySelectorAll(".sticker").forEach(x=>x.remove());renderStory();readStory(showQuestion);
   }
   $("again").onclick=()=>{if(S.phase==="play"&&S.story&&!S.busy){S.busy=true;readStory(showQuestion)}};
 

@@ -7,7 +7,7 @@
 <title>鸚鵡拼字</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261118p">
+<link rel="stylesheet" href="en.css?v=20261118q">
 <style>
 /* 鸚鵡拼字：聽單字，點字母積木排進木板上的格子。⭐ 只補第一個字母；⭐⭐ 三個字母排順序；⭐⭐⭐ 沒有圖、四五個字母，還多放用不到的字母 */
 body{background:radial-gradient(circle at 80% 15%,rgba(255,255,255,.5) 0 3px,transparent 4px) 0 0/60px 60px,linear-gradient(#ffd9ec,#fff1f7)}
@@ -38,6 +38,10 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
 .slot .tile{width:100%;height:100%;box-shadow:inset 0 -6px 0 rgba(0,0,0,.08)}
 .slot .tile.ok{background:#9ef0b9}
 .tile.bad{animation:wig .4s}
+.hop3{animation:hop3 .5s ease-out}
+@keyframes hop3{40%{transform:translateY(-22px) scale(1.12)}}
+.pic.popin{animation:popin .6s cubic-bezier(.3,1.6,.5,1)}
+@keyframes popin{40%{transform:scale(1.25) rotate(-6deg)}}
 @keyframes wig{25%{rotate:-12deg}75%{rotate:12deg}}
 .board.win{animation:win .6s}
 @keyframes win{40%{transform:scale(1.08)}}
@@ -50,13 +54,13 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
 @media (max-height:500px){.mid2{display:flex}}
 @media (prefers-reduced-motion:reduce){.slot.next,.board.win{animation:none}}
 </style>
-<script src="zhuyin.js?v=20261118p"></script>
-<link rel="stylesheet" href="park.css?v=20261118p">
-<script src="park.js?v=20261118p"></script>
-<script src="en.js?v=20261118p"></script>
+<script src="zhuyin.js?v=20261118q"></script>
+<link rel="stylesheet" href="park.css?v=20261118q">
+<script src="park.js?v=20261118q"></script>
+<script src="en.js?v=20261118q"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
-<body>
+<body data-game="spell">
 <header class="top">
   <a class="ibtn" href="cove.html" aria-label="回海盜灣">🏠</a>
   <div class="mid"><span class="pill" id="prog">1 / 10</span></div>
@@ -167,7 +171,8 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
     if(S.busy||t.classList.contains("used"))return;
     const s=slots.find(x=>!x.firstChild);if(!s)return;
     sfx.pop();sayL(t.dataset.c);
-    const c=t.cloneNode(true);c.onclick=null;c.dataset.from=tiles.indexOf(t);s.appendChild(c);t.classList.add("used");markNext();
+    const c=t.cloneNode(true);c.onclick=null;c.dataset.from=tiles.indexOf(t);c.style.visibility="hidden";s.appendChild(c);
+    EN.fly(t,s,()=>{c.style.visibility=""},{dur:.35,scale:1,keepHidden:true});t.classList.add("used");markNext();
     if(slots.every(x=>x.firstChild))setTimeout(check,350);
   }
   function unplace(s){
@@ -192,8 +197,12 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
     slots.forEach(s=>s.classList.remove("next"));
     sfx.good();EN.mood($("parrot"),"happy");$("board").classList.add("win");
     if(S.lv===3){$("pic").className="pic";$("pic").innerHTML=ic(S.word)}
-    // 一個一個字母念，再念整個字
-    setTimeout(()=>say(`${[...S.word].map(c=>c.toUpperCase()).join(", ")}. ${S.word}!`,{rate:.7,onend:()=>setTimeout(next,600)}),400);
+    // 一個一個字母念，念到哪個字母那個字母就跳起來，最後圖片彈出來
+    const L=[...S.word],tl=slots.map(s=>s.firstChild).filter(Boolean),fixedT=[...$("board").querySelectorAll(".slot.fixed")];
+    const boxes=[...$("board").children];
+    setTimeout(()=>say(`${L.map(c=>c.toUpperCase()).join(", ")}. ${S.word}!`,{rate:.7,onend:()=>setTimeout(next,600)}),400);
+    boxes.forEach((b,k)=>setTimeout(()=>{const t=b.querySelector(".tile")||b;t.classList.remove("hop3");void t.offsetWidth;t.classList.add("hop3")},700+k*620));
+    setTimeout(()=>{const p=$("pic");p.classList.remove("popin");void p.offsetWidth;p.classList.add("popin");EN.burstAt(p)},700+boxes.length*620+300);
   }
   function next(){if(S.phase!=="play")return;S.i++;if(S.i>=S.total)finish();else newWord()}
 

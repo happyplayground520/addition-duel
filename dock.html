@@ -7,7 +7,7 @@
 <title>碼頭釣魚</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261118p">
+<link rel="stylesheet" href="en.css?v=20261118q">
 <style>
 /* 碼頭釣魚：上面是木頭碼頭（鸚鵡、題目、水桶），下面是海，魚在海裡來回游；點對的魚就釣起來 */
 .scene{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
@@ -29,6 +29,12 @@
 .bucket svg{width:100%;height:100%;display:block}
 .bucket b{position:absolute;left:0;right:0;top:44%;text-align:center;font-family:var(--num);font-weight:800;font-size:clamp(18px,3.4vh,28px);color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3)}
 .bucket.bump{animation:bump .35s}
+.bfish{position:absolute;left:12%;right:12%;top:8%;display:flex;justify-content:center;pointer-events:none}
+.bfish i{width:22%;height:22px;margin:0 -2%;border-radius:60% 40% 40% 60%/50%;background:var(--c);border:3px solid #3a2a22;transform:rotate(var(--r)) translateY(-40%);animation:bpop .3s}
+.drop2{position:absolute;width:12px;height:12px;border-radius:50%;background:#dff4ff;border:2px solid #fff;pointer-events:none;z-index:5;animation:drop2 .65s ease-out forwards}
+@keyframes drop2{to{transform:translate(var(--dx),var(--dy));opacity:0}}
+.bub2{position:absolute;width:16px;height:16px;border-radius:50%;border:3px solid rgba(255,255,255,.95);pointer-events:none;z-index:5;animation:bub2 1.2s ease-out forwards}
+@keyframes bub2{to{transform:translate(10px,-70px) scale(1.4);opacity:0}}
 @keyframes bump{40%{transform:scale(1.18)}}
 /* 海 */
 .sea{position:relative;flex:1;min-height:0;overflow:hidden;background:linear-gradient(var(--sea1),var(--sea2) 65%,var(--sea3))}
@@ -69,13 +75,13 @@
 }
 @media (prefers-reduced-motion:reduce){.spk,.weed,.bub,.sea::before{animation:none}}
 </style>
-<script src="zhuyin.js?v=20261118p"></script>
-<link rel="stylesheet" href="park.css?v=20261118p">
-<script src="park.js?v=20261118p"></script>
-<script src="en.js?v=20261118p"></script>
+<script src="zhuyin.js?v=20261118q"></script>
+<link rel="stylesheet" href="park.css?v=20261118q">
+<script src="park.js?v=20261118q"></script>
+<script src="en.js?v=20261118q"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
-<body>
+<body data-game="dock">
 <header class="top">
   <a class="ibtn" href="cove.html" aria-label="回海盜灣">🏠</a>
   <div class="mid"><span class="pill" id="prog">0 / 10</span></div>
@@ -87,7 +93,7 @@
     <div class="ask" id="ask"></div>
     <div class="bucket" id="bucket"><svg viewBox="0 0 100 100" aria-hidden="true"><g stroke="#3a2a22" stroke-width="4" stroke-linejoin="round">
       <path d="M22 34q28-30 56 0" fill="none" stroke="#6b7a86" stroke-width="5"/><path d="M16 36h68l-8 52q-1 6-8 6H32q-7 0-8-6z" fill="#4da3ff"/>
-      <ellipse cx="50" cy="36" rx="34" ry="8" fill="#2b7fd6"/><path d="M20 52h60" fill="none" stroke="#2b7fd6" stroke-width="5"/></g></svg><b id="caught">0</b></div>
+      <ellipse cx="50" cy="36" rx="34" ry="8" fill="#2b7fd6"/><path d="M20 52h60" fill="none" stroke="#2b7fd6" stroke-width="5"/></g></svg><b id="caught">0</b><span class="bfish" id="bfish"></span></div>
   </div>
   <div class="sea" id="sea"></div>
 
@@ -238,6 +244,10 @@
     if(S.phase==="play")place(dt);
     raf=requestAnimationFrame(loop);
   }
+  // 釣起來濺水花；釣錯的魚吐泡泡
+  function splash(x,y){for(let k=0;k<8;k++){const d=document.createElement("i");d.className="drop2";const a=-Math.PI*(k+.5)/8;d.style.cssText=`left:${x}px;top:${y}px;--dx:${Math.cos(a)*60}px;--dy:${Math.sin(a)*70}px`;sea.appendChild(d);setTimeout(()=>d.remove(),700)}}
+  function bubbles(x,y){for(let k=0;k<3;k++){const d=document.createElement("i");d.className="bub2";d.style.cssText=`left:${x+k*8}px;top:${y}px;animation-delay:${k*.12}s`;sea.appendChild(d);setTimeout(()=>d.remove(),1300)}tone2()}
+  function tone2(){try{EN.sfx.pop()}catch(e){}}
   function hit(f){
     if(S.phase!=="play"||S.busy||f.done)return;
     if(f.it.w===S.target.w&&f.it.t===S.target.t||f.it.w===S.target.w){
@@ -252,7 +262,9 @@
         f.el.style.transform=`translate(${br.left-sr.left+br.width/2-f.fw/2}px,${br.top-sr.top-f.fh*.3}px) scale(.3)`;
         sfx.splash();
       },260);
+      splash(f.x+f.fw/2,f.cy+f.fh/2);
       setTimeout(()=>{say(S.target.w);const n=+$("caught").textContent+1;$("caught").textContent=n;
+        const bf=$("bfish");if(bf.children.length>=5)bf.firstElementChild.remove();bf.insertAdjacentHTML("beforeend",`<i style="--c:${COLORS[n%COLORS.length]};--r:${(n%5-2)*12}deg"></i>`);
         const b=$("bucket");b.classList.remove("bump");void b.offsetWidth;b.classList.add("bump")},900);
       $("score").textContent=`⭐ ${S.score}`;
       fish.forEach(o=>{if(o!==f){o.done=true;o.el.classList.add("gone")}});
@@ -260,7 +272,7 @@
     }else{
       S.tries++;sfx.bad();EN.mood($("parrot"),"oops");
       f.el.classList.remove("wrong");void f.el.offsetWidth;f.el.classList.add("wrong");
-      f.fast=true;setTimeout(()=>{f.fast=false},700);
+      f.fast=true;setTimeout(()=>{f.fast=false},700);bubbles(f.x+f.fw*.85,f.cy+f.fh*.3);
       setTimeout(()=>f.el.classList.add("no"),400);
       if(S.lv<3)setTimeout(sayTarget,700);
     }
@@ -269,10 +281,10 @@
   // ---- 開始／結束 ----
   function start(){
     EN.unlock();
-    S.phase="play";S.i=0;S.score=0;order=[];$("score").textContent="⭐ 0";$("caught").textContent="0";
+    S.phase="play";S.i=0;S.score=0;order=[];$("score").textContent="⭐ 0";$("caught").textContent="0";$("bfish").innerHTML="";
     $("start").hidden=true;$("end").hidden=true;
     decorate();
-    requestAnimationFrame(()=>newQuestion());
+    setTimeout(()=>newQuestion(),30);
   }
   function finish(){
     S.phase="end";fish.forEach(f=>f.el.remove());fish=[];
