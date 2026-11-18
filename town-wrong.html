@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>挑壞蘋果</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="en.css?v=20261118g">
+<link rel="stylesheet" href="town/town.css?v=20261118g">
+<style>
+main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(12px,2.6vh,28px);
+  padding:0 max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
+.top .mid{flex-direction:column;gap:2px}
+.top .scope{font-size:13px}
+#start .source{margin-top:4px}
+@media (max-height:500px){main.stage2{flex-direction:row;gap:24px}.qline{font-size:19px;line-height:1.4}.qcard{gap:6px}}
+@media (orientation:portrait) and (max-height:740px){.qline{font-size:20px;line-height:1.4}.qcard{gap:8px}main.stage2{gap:12px}}
+.basket{background:#fff;border:5px solid var(--choc);border-radius:24px;padding:clamp(12px,2.6vmin,22px) clamp(12px,2.6vmin,24px);box-shadow:0 8px 0 rgba(0,0,0,.12);max-width:min(940px,96vw);position:relative}
+.basket .ibtn{position:absolute;right:-14px;top:-18px;width:48px;height:48px;font-size:24px;background:#ffe9a8;box-shadow:0 3px 0 #d18e0a}
+.sent2{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 2px;font-family:var(--kai);font-size:clamp(28px,5.2vmin,48px)}
+.ap{position:relative;display:inline-flex;align-items:center;border:0;background:#fff3f3;border-radius:18px;padding:4px 4px 4px 6px;cursor:pointer;font:inherit;color:var(--ink);min-width:44px;min-height:52px;box-shadow:inset 0 0 0 3px #ffd0d0}
+.ap .tz-b{font-size:max(.34em,11px)}
+.ap.bad{animation:wig .4s}
+.ap.rot{background:#c9a27a;box-shadow:inset 0 0 0 3px #8a5a36}
+.ap.rot::after{content:"🐛";position:absolute;right:-12px;top:-16px;font-size:24px}
+.ap.fixed{background:#eafff2;box-shadow:inset 0 0 0 3px var(--good)}
+.ap.fixed::after{content:none}
+.ap.glow{animation:glow 1s infinite}
+.sent2 .tp{font-size:.9em}
+.step{font-size:clamp(18px,3vmin,24px);font-weight:800;color:var(--choc)}
+.apple{width:clamp(92px,16vmin,128px);aspect-ratio:1;border-radius:46% 46% 50% 50%;background:radial-gradient(circle at 35% 30%,#ff8a8a,#e8302a 70%);border:5px solid #8a2a20;box-shadow:0 6px 0 rgba(0,0,0,.18)}
+.apple::before{content:"";position:absolute;top:-16px;left:50%;width:6px;height:18px;background:#6b3f22;border-radius:3px}
+.apple::after{content:"";position:absolute;top:-14px;left:56%;width:22px;height:12px;background:#5cc24a;border-radius:0 12px 0 12px;border:2px solid #2e7d32}
+.apple b{font-family:var(--kai);font-weight:400;font-size:clamp(50px,9vmin,72px);color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.25)}
+@media (max-height:500px){.sent2{font-size:26px}main.stage2{flex-direction:column;gap:8px}}
+</style>
+<script src="zhuyin.js?v=20261118g"></script>
+<link rel="stylesheet" href="park.css?v=20261118g">
+<script src="park.js?v=20261118g"></script>
+<script src="en.js?v=20261118g"></script>
+<script src="town/zi-data.js?v=20261118g"></script>
+<script src="town/town.js?v=20261118g"></script>
+<style>body{font-family:var(--text)}</style>
+</head>
+<body>
+<header class="top">
+  <a class="ibtn" href="town.html" aria-label="回甜點小鎮">🏠</a>
+  <div class="mid"><span class="pill" id="prog">1 / 10</span><span class="scope" id="scopeTop"></span></div>
+  <div class="right"><span class="pill" id="score">⭐ 0</span></div>
+</header>
+<main class="stage2" id="main" data-zy-skip>
+<div class="basket" id="basket"><div class="sent2" id="sent"></div><button type="button" class="ibtn" id="say" aria-label="念句子">🔊</button></div>
+<div class="step" id="step"></div>
+<div class="choices" id="choices"></div>
+</main>
+
+<section class="panel" id="start">
+  <div class="box">
+    <h2>🍎 挑壞蘋果</h2>
+    <p class="sub" data-zy>句子裡有一個寫錯的字，把壞蘋果挑出來！</p>
+    <button type="button" class="helpbtn" id="help">🔊 中文說明</button>
+    <div id="setup"></div>
+    <div class="row" id="totals">
+      <button type="button" class="opt" data-n="5" aria-label="5 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button>
+      <button type="button" class="opt" data-n="10" aria-label="10 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>10</small></button>
+      <button type="button" class="opt" data-n="15" aria-label="15 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>15</small></button>
+    </div>
+    <span class="note" id="note" data-zy></span>
+    <button type="button" class="big" id="go">READY</button>
+    <p class="source">字型：全字庫正楷體（數位發展部「CNS11643中文標準交換碼全字庫」，依政府資料開放授權條款第1版使用）<br>生字：教育部教育百科「生字詞彙表」；部首、讀音：教育部《國語辭典簡編本》；筆畫：教育部《國字標準字體筆順學習網》</p>
+  </div>
+</section>
+<section class="panel" id="end" hidden>
+  <div class="box">
+    <h2>做完了！</h2>
+    <div id="stars">⭐⭐⭐</div>
+    <div id="result">0 / 10</div>
+    <span class="earn" id="earn"></span>
+    <div class="endrow">
+      <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+      <a class="big alt ico-btn" href="town.html" aria-label="回甜點小鎮">🏠</a>
+    </div>
+  </div>
+</section>
+<script>
+(()=>{
+  const $=id=>document.getElementById(id),Z=ZI;
+  const api=TZ.run({key:"town-wrong",
+    help:"挑壞蘋果。句子裡有一個字寫錯了，注音是對的，看注音想一想，哪一個字不對，先點那個壞蘋果。找到以後，再從下面的蘋果裡選出正確的字。",
+    build:n=>TZ.deal(TZ.pool(true).filter(c=>Z.sent[c]&&Z.wrong[c]),n),
+    show:(c)=>{
+      const [t]=Z.sent[c],w=Z.wrong[c];let step=1;
+      // 句子：空格換成錯字，注音標正確的讀音
+      const cs=[...t],items=[];
+      for(let i=0;i<cs.length;i++){const ch=cs[i];let z=null;
+        if(cs[i+1]==="["){const j=cs.indexOf("]",i);z=cs.slice(i+2,j).join("");i=j}
+        if(ch==="＿")items.push({show:w,zy:Z.ZY[c],bad:true});
+        else if(/[\u4e00-\u9fff]/.test(ch))items.push({show:ch,zy:z||Z.ZY[ch]||""});
+        else items.push({p:ch})}
+      $("sent").innerHTML=items.map((x,i)=>x.p?`<span class="tp">${x.p}</span>`:`<button type="button" class="ap" data-i="${i}">${TZ.charHTML(x.show,x.zy)}</button>`).join("");
+      $("say").onclick=()=>TZ.say(t.replace("＿",c));
+      $("step").innerHTML=TZ.zy("哪一個字寫錯了？點一下壞蘋果。");$("choices").innerHTML="";
+      const badIdx=items.findIndex(x=>x.bad),badBtn=document.querySelector(`.ap[data-i="${badIdx}"]`);
+      document.querySelectorAll(".ap").forEach(b=>b.onclick=()=>{
+        if(api.S.busy||step!==1)return;
+        if(+b.dataset.i===badIdx){EN.sfx.pop();b.classList.add("rot");step=2;showFix()}
+        else{api.bad();b.classList.remove("bad");void b.offsetWidth;b.classList.add("bad");if(api.S.tries>=2)badBtn.classList.add("glow")}
+      });
+      function showFix(){
+        badBtn.classList.remove("glow");
+        $("step").innerHTML=TZ.zy("換成哪一個字才對？");
+        const others=Object.values(Z.wrong).concat(TZ.pool(true)).filter(x=>x!==c&&x!==w&&Z.ZY[x]);
+        const opts=TZ.shuffle([c,w,TZ.shuffle(others)[0]]);
+        $("choices").innerHTML=opts.map(x=>`<button type="button" class="choice apple" data-c="${x}" aria-label="${x}"><b>${x}</b></button>`).join("");
+        document.querySelectorAll(".choice").forEach(el=>el.onclick=()=>{
+          if(api.S.busy)return;
+          if(el.dataset.c===c){api.ok();el.classList.add("yes");badBtn.classList.remove("rot");badBtn.classList.add("fixed");badBtn.innerHTML=TZ.charHTML(c,Z.ZY[c]);
+            TZ.say(`答對了！要寫${c}。`+TZ.plain(t.replace("＿",c)),{onend:()=>api.next(400)})}
+          else{api.bad();el.classList.add("no");if(api.S.tries>=2)document.querySelector(`.choice[data-c="${c}"]`).classList.add("glow")}
+        });
+      }
+    }});
+})();
+</script>
+</body>
+</html>

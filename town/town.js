@@ -79,7 +79,7 @@
     const syncT=()=>document.querySelectorAll("#totals .opt").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===S.total));
     document.querySelectorAll("#totals .opt").forEach(b=>b.onclick=()=>{S.total=+b.dataset.n;pref(cfg.key+"-total",S.total);syncT()});syncT();
     const note=$("note");
-    TZ.setupPanel($("setup"),()=>{if(note)note.textContent=""});
+    if(cfg.noRange)$("setup").innerHTML="";else TZ.setupPanel($("setup"),()=>{if(note)note.textContent=""});
     EN.helpBtn($("help"),()=>cfg.help);
     const api={
       S,
@@ -93,7 +93,7 @@
       const qs=cfg.build(S.total);
       if(!qs.length){if(note)note.textContent=cfg.empty||"這個範圍的題目不夠，請多選幾課。";EN.sfx.bad();return}
       S.qs=qs;S.i=0;S.score=0;S.phase="play";$("score").textContent="⭐ 0";$("start").hidden=true;$("end").hidden=true;
-      const sc=$("scopeTop");if(sc)sc.textContent=TZ.rangeLabel();
+      const sc=$("scopeTop");if(sc)sc.textContent=cfg.noRange?"":TZ.rangeLabel();
       show();
     }
     function finish(){

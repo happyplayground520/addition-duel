@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>市場秤一秤</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="en.css?v=20261118g">
+<link rel="stylesheet" href="town/town.css?v=20261118g">
+<style>
+main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(12px,2.6vh,28px);
+  padding:0 max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
+.top .mid{flex-direction:column;gap:2px}
+.top .scope{font-size:13px}
+#start .source{margin-top:4px}
+@media (max-height:500px){main.stage2{flex-direction:row;gap:24px}.qline{font-size:19px;line-height:1.4}.qcard{gap:6px}}
+@media (orientation:portrait) and (max-height:740px){.qline{font-size:20px;line-height:1.4}.qcard{gap:8px}main.stage2{gap:12px}}
+.scale{position:relative;width:clamp(200px,36vmin,300px);display:flex;flex-direction:column;align-items:center}
+.plate{width:100%;height:clamp(110px,20vmin,170px);border-radius:0 0 50% 50%/0 0 40% 40%;background:linear-gradient(#e6f3ff,#b9d7ff);border:5px solid var(--choc);display:grid;place-items:center;position:relative;z-index:1}
+.plate .ic{width:clamp(90px,16vmin,140px);height:clamp(90px,16vmin,140px);margin-top:-40px}
+.pole{width:18px;height:clamp(30px,6vmin,50px);background:#c98a4b;border:4px solid var(--choc);border-top:0}
+.base{width:70%;height:22px;border-radius:12px;background:#c98a4b;border:4px solid var(--choc)}
+.phrase{font-size:clamp(34px,6.4vmin,58px);font-weight:800}
+.phrase .blank{width:1.2em;height:1.2em}
+.tagp{min-width:clamp(96px,16vmin,128px);height:clamp(78px,13vmin,100px);border-radius:14px 34px 34px 14px;background:var(--c);border:5px solid var(--choc);box-shadow:0 6px 0 rgba(0,0,0,.16)}
+.tagp::before{content:"";position:absolute;left:12px;top:50%;width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid var(--choc);transform:translateY(-50%)}
+.tagp b{font-family:var(--kai);font-weight:400;font-size:clamp(44px,8vmin,64px);padding-left:20px}
+.tagp .tz-b{font-size:16px}
+@media (max-height:500px){.plate{height:100px}.plate .ic{width:84px;height:84px}.pole{height:24px}.phrase{font-size:30px}}
+</style>
+<script src="zhuyin.js?v=20261118g"></script>
+<link rel="stylesheet" href="park.css?v=20261118g">
+<script src="park.js?v=20261118g"></script>
+<script src="en.js?v=20261118g"></script>
+<script src="town/zi-data.js?v=20261118g"></script>
+<script src="town/town.js?v=20261118g"></script>
+<style>body{font-family:var(--text)}</style>
+</head>
+<body>
+<header class="top">
+  <a class="ibtn" href="town.html" aria-label="回甜點小鎮">🏠</a>
+  <div class="mid"><span class="pill" id="prog">1 / 10</span><span class="scope" id="scopeTop"></span></div>
+  <div class="right"><span class="pill" id="score">⭐ 0</span></div>
+</header>
+<main class="stage2" id="main" data-zy-skip>
+<div class="qcard"><div class="scale"><div class="plate" id="plate"></div><div class="pole"></div><div class="base"></div></div><div class="phrase" id="phrase"></div></div>
+<div class="choices" id="choices"></div>
+</main>
+
+<section class="panel" id="start">
+  <div class="box">
+    <h2>⚖️ 市場秤一秤</h2>
+    <p class="sub" data-zy>一隻小狗、一條魚，選出對的量詞！</p>
+    <button type="button" class="helpbtn" id="help">🔊 中文說明</button>
+    <div id="setup"></div>
+    <div class="row" id="totals">
+      <button type="button" class="opt" data-n="5" aria-label="5 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button>
+      <button type="button" class="opt" data-n="10" aria-label="10 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>10</small></button>
+      <button type="button" class="opt" data-n="15" aria-label="15 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>15</small></button>
+    </div>
+    <span class="note" id="note" data-zy></span>
+    <button type="button" class="big" id="go">READY</button>
+    <p class="source">字型：全字庫正楷體（數位發展部「CNS11643中文標準交換碼全字庫」，依政府資料開放授權條款第1版使用）<br>生字：教育部教育百科「生字詞彙表」；部首、讀音：教育部《國語辭典簡編本》；筆畫：教育部《國字標準字體筆順學習網》</p>
+  </div>
+</section>
+<section class="panel" id="end" hidden>
+  <div class="box">
+    <h2>做完了！</h2>
+    <div id="stars">⭐⭐⭐</div>
+    <div id="result">0 / 10</div>
+    <span class="earn" id="earn"></span>
+    <div class="endrow">
+      <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+      <a class="big alt ico-btn" href="town.html" aria-label="回甜點小鎮">🏠</a>
+    </div>
+  </div>
+</section>
+<script>
+(()=>{
+  const $=id=>document.getElementById(id),Z=ZI,COL=["#ffe08a","#ffb3c7","#a8e6cf","#b9d7ff"];
+  const api=TZ.run({key:"town-mw",noRange:true,
+    help:"市場秤一秤。看秤子上的東西，想一想要用哪一個量詞，例如一隻小狗、一條魚、一輛汽車。點對的價格牌。",
+    build:n=>TZ.deal(Z.mw,n),
+    show:([noun,m,ic])=>{
+      $("plate").innerHTML=EN.icon(ic);
+      $("phrase").innerHTML=TZ.zy("一＿"+noun);
+      const others=TZ.shuffle([...Z.mwPool].filter(x=>x!==m));
+      const opts=TZ.shuffle([m,others[0],others[1]]);
+      $("choices").innerHTML=opts.map((x,i)=>`<button type="button" class="choice tagp" style="--c:${COL[i]}" data-c="${x}" aria-label="${x}"><b>${TZ.charHTML(x,Z.ZY[x])}</b></button>`).join("");
+      document.querySelectorAll(".choice").forEach(el=>el.onclick=()=>{
+        if(api.S.busy)return;
+        if(el.dataset.c===m){api.ok();el.classList.add("yes");const b=$("blank");b.classList.add("fill");b.innerHTML=TZ.charHTML(m,Z.ZY[m]);
+          TZ.say(`答對了！一${m}${TZ.plain(noun)}。`,{onend:()=>api.next(400)})}
+        else{api.bad();el.classList.add("no");if(api.S.tries>=2)document.querySelector(`.choice[data-c="${m}"]`).classList.add("glow")}
+      });
+      setTimeout(()=>TZ.say("一什麼"+TZ.plain(noun)+"？"),300);
+    }});
+})();
+</script>
+</body>
+</html>

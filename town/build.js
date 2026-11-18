@@ -32,7 +32,13 @@ Object.values(chars.chars).forEach(v=>{if(!buzy[v.bu])miss.noZy.add("部首"+v.b
 [...L.A,...L.B].forEach(l=>[...l.n].forEach(ch=>{if(/[一-鿿]/.test(ch)&&!ZY[ch])miss.noZy.add("課名"+ch)}));
 [..."從到訂單畫和「」的部首是哪一個？有幾意思相反字答對了相反"].forEach(ch=>{if(/[一-鿿]/.test(ch)&&!ZY[ch])miss.noZy.add("畫面"+ch)});
 const anti=extra.anti;anti.flat().forEach(c=>{if(!ZY[c])miss.noZy.add(c)});
-const out={L,chars:chars.chars,buzy,ZY,sent,anti,trick:extra.trick};
+// 第二批：錯字、量詞、句子重組
+Object.entries(extra.wrong).forEach(([c,w])=>{if(c===w)miss.optBad.push("錯字對到自己"+c)});
+extra.mw.forEach(([n,m])=>[...strip(n)+m].forEach(ch=>{if(/[一-鿿]/.test(ch)&&!ZY[ch])miss.noZy.add("量詞"+ch)}));
+[...extra.mwPool].forEach(ch=>{if(!ZY[ch])miss.noZy.add("量詞"+ch)});
+["A","B"].forEach(v=>{if(extra.order[v].length!==L[v].length)miss.optBad.push(v+"版重組句子課數不對");
+  extra.order[v].flat().forEach(t=>[...strip(t)].forEach(ch=>{if(/[一-鿿]/.test(ch)&&!ZY[ch])miss.noZy.add("重組"+ch)}))});
+const out={L,chars:chars.chars,buzy,ZY,sent,anti,trick:extra.trick,wrong:extra.wrong,mw:extra.mw,mwPool:extra.mwPool,order:extra.order};
 fs.writeFileSync(here("zi-data.js"),"/* 甜點小鎮資料（自動產生，請改 build.js 的來源） */\nwindow.ZI="+JSON.stringify(out)+";\n");
 console.log("字數",all.size,"例句",Object.keys(sent).length,"注音",Object.keys(ZY).length);
 console.log("缺部首筆畫:",miss.noInfo.join(""),"| 缺例句:",miss.noSent.join(""),"| 缺注音:",[...miss.noZy].join(" "),"| 選項有問題:",miss.optBad.join(""));
