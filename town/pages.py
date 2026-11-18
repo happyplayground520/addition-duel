@@ -197,6 +197,7 @@ style='''.order{background:#fff;border:5px solid var(--choc);border-radius:24px;
 .order .sent{font-family:var(--kai);font-size:clamp(30px,5.6vmin,52px);line-height:1.9;text-align:center}
 .order .sent .tz-b{font-size:max(.34em,11px)}
 .order .ibtn{position:absolute;right:-14px;top:-18px;width:48px;height:48px;font-size:24px;background:#ffe9a8;box-shadow:0 3px 0 #d18e0a}
+.order{padding-top:max(34px,clamp(14px,3vmin,26px))}   /* 上緣留位子給右上角的 🔊，句子才不會被蓋到 */
 .bread{width:clamp(110px,19vmin,150px);height:clamp(90px,15vmin,120px);border-radius:46% 46% 22px 22px;background:linear-gradient(#e8a24a,#d9893a);border:5px solid var(--choc);
   box-shadow:0 6px 0 rgba(0,0,0,.18),inset 0 8px 0 rgba(255,255,255,.25)}
 .bread b{font-family:var(--kai);font-weight:400;font-size:clamp(56px,10vmin,80px);color:#fff;text-shadow:0 3px 0 rgba(107,63,34,.6);line-height:1}
@@ -322,6 +323,7 @@ style=""".basket{background:#fff;border:5px solid var(--choc);border-radius:24px
 .rotap{display:grid;place-items:center;border-radius:18px;background:#c9a27a;font-family:var(--kai);font-size:40px;color:#5a3a20;z-index:70;pointer-events:none}
 .bask{padding:14px 18px 22px;border-radius:12px 12px 40px 40px;background:repeating-linear-gradient(45deg,#e8b06a 0 10px,#d39a5c 10px 20px);border:6px solid var(--choc);min-width:220px}
 .basket .ibtn{position:absolute;right:-14px;top:-18px;width:48px;height:48px;font-size:24px;background:#ffe9a8;box-shadow:0 3px 0 #d18e0a}
+.basket{padding-top:max(36px,clamp(12px,2.6vmin,22px))}
 .sent2{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px 6px;font-family:var(--kai);font-size:clamp(28px,5.2vmin,48px)}
 .ap{position:relative;display:inline-flex;align-items:center;border:0;background:#fff3f3;border-radius:18px;padding:6px 16px 6px 8px;cursor:pointer;font:inherit;color:var(--ink);min-width:44px;min-height:56px;box-shadow:inset 0 0 0 2px #ffd6d6}
 .ap .tz-b{font-size:max(.38em,14px);margin-left:.12em}
