@@ -7,7 +7,7 @@
 <title>碼頭釣魚</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261118j">
+<link rel="stylesheet" href="en.css?v=20261118k">
 <style>
 /* 碼頭釣魚：上面是木頭碼頭（鸚鵡、題目、水桶），下面是海，魚在海裡來回游；點對的魚就釣起來 */
 .scene{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
@@ -69,10 +69,10 @@
 }
 @media (prefers-reduced-motion:reduce){.spk,.weed,.bub,.sea::before{animation:none}}
 </style>
-<script src="zhuyin.js?v=20261118j"></script>
-<link rel="stylesheet" href="park.css?v=20261118j">
-<script src="park.js?v=20261118j"></script>
-<script src="en.js?v=20261118j"></script>
+<script src="zhuyin.js?v=20261118k"></script>
+<link rel="stylesheet" href="park.css?v=20261118k">
+<script src="park.js?v=20261118k"></script>
+<script src="en.js?v=20261118k"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
 <body>
@@ -119,8 +119,7 @@
       <h2 class="en">Great job!</h2>
       <div id="stars">⭐⭐⭐</div>
       <div id="result">0 / 10</div>
-      <span class="earn" id="earn"></span>
-      <div class="endrow">
+        <div class="endrow">
         <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
         <a class="big alt ico-btn" href="cove.html" aria-label="回海盜灣">🏠</a>
       </div>
@@ -280,8 +279,6 @@
     const r=S.score/S.total,st=r>=.9?3:r>=.6?2:1;
     $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);
     $("result").textContent=`${S.score} / ${S.total}`;
-    const earn=S.score+(st===3?3:0);EN.addCoins(earn);
-    $("earn").innerHTML=`+${earn} ${EN.coinSvg}`;
     sfx.end();say(st===3?"Excellent!":st===2?"Great job!":"Good try!");
     $("end").hidden=false;
   }

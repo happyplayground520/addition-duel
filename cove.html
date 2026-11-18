@@ -7,7 +7,7 @@
 <title>海盜灣</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261118j">
+<link rel="stylesheet" href="en.css?v=20261118k">
 <style>
 /* 海盜灣地圖：海上一座沙灘小島，一條小路彎彎曲曲連起七個地點（先開放三個） */
 body{background:linear-gradient(#8fdcf2,#4fbfe0 40%,#2b9cc4);align-items:center;justify-content:center;gap:clamp(6px,1.2vmin,12px);
@@ -86,10 +86,10 @@ html.phone .spot .name{font-size:16px}
 @keyframes wig{25%{translate:-6px 0}75%{translate:6px 0}}
 @media (max-width:420px){.hats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
-<script src="zhuyin.js?v=20261118j"></script>
-<link rel="stylesheet" href="park.css?v=20261118j">
-<script src="park.js?v=20261118j"></script>
-<script src="en.js?v=20261118j"></script>
+<script src="zhuyin.js?v=20261118k"></script>
+<link rel="stylesheet" href="park.css?v=20261118k">
+<script src="park.js?v=20261118k"></script>
+<script src="en.js?v=20261118k"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
 <body>
@@ -98,7 +98,6 @@ html.phone .spot .name{font-size:16px}
   <a class="ibtn home" href="./" aria-label="回數學遊樂園">🎡</a>
   <a class="ibtn home2" href="town.html" aria-label="去甜點小鎮"><svg viewBox="0 0 100 100" width="40" height="40" aria-hidden="true"><g stroke="#3a2a22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><ellipse cx="50" cy="86" rx="42" ry="7" fill="#d7f0ff"/><rect x="16" y="48" width="68" height="34" rx="6" fill="#ffe0b0"/><path d="M16 57q0-9 9-9h50q9 0 9 9q-5 7-10 0q-6 7-12 0q-6 7-12 0q-6 7-12 0q-6 7-12 0q-4 6-10 0z" fill="#ffb3c7"/><rect x="47" y="25" width="6" height="22" rx="2" fill="#7ec8ff"/><path d="M50 12q7 7 0 12q-7-5 0-12z" fill="#ffc53d" stroke-width="2.5"/></g></svg></a>
   <div class="ttl"><h1><span class="flag">⭐</span>海盜灣<span class="flag">⭐</span></h1><p class="sub">Pirate Cove · English</p></div>
-  <div class="right"><span class="pill" id="coins">0</span><button type="button" class="shopbtn" id="shopBtn" aria-label="鸚鵡的帽子"></button></div>
 </header>
 <div class="map" id="map" role="navigation" aria-label="海盜灣地圖">
   <svg id="art" aria-hidden="true"></svg>
@@ -106,14 +105,6 @@ html.phone .spot .name{font-size:16px}
 </div>
 <div class="toast" id="toast" role="status" data-zy hidden></div>
 
-<section class="panel" id="shop" hidden>
-  <div class="box">
-    <h2 class="en">🎩 Hats</h2>
-    <span class="pill" id="coins2"></span>
-    <div class="hats" id="hats"></div>
-    <button type="button" class="big ok" id="shopClose" aria-label="關閉">OK</button>
-  </div>
-</section>
 
 <script>
 (()=>{
@@ -191,26 +182,6 @@ html.phone .spot .name{font-size:16px}
 
   // ---- 提示 ----
   let tt=0;function toast(t){const e=$("toast");e.textContent=t;e.hidden=false;clearTimeout(tt);tt=setTimeout(()=>e.hidden=true,1800)}
-  // ---- 金幣和帽子 ----
-  function syncCoins(){const c=EN.coins();$("coins").innerHTML=`${EN.coinSvg}${c}`;$("coins2").innerHTML=`${EN.coinSvg}${c}`;$("shopBtn").innerHTML=EN.parrot()}
-  function renderHats(){
-    const own=EN.owned(),cur=EN.hat(),c=EN.coins();
-    $("hats").innerHTML=Object.entries(EN.HATS).map(([k,h])=>{
-      const has=k==="none"||own.includes(k);
-      return `<button type="button" class="hatc ${k===cur?"worn":""} ${!has&&c<h.price?"poor":""}" data-h="${k}">${EN.parrot(k)}
-        <span class="price">${has?"✔":`${EN.coinSvg}${h.price}`}</span></button>`}).join("");
-    $("hats").querySelectorAll(".hatc").forEach(b=>b.onclick=()=>{
-      const k=b.dataset.h,h=EN.HATS[k],own=EN.owned();
-      if(k!=="none"&&!own.includes(k)){
-        if(EN.coins()<h.price){EN.sfx.bad();b.classList.remove("shake");void b.offsetWidth;b.classList.add("shake");return}
-        EN.addCoins(-h.price);own.push(k);EN.pref("cove-hats",JSON.stringify(own));EN.sfx.coin();
-      }
-      EN.pref("cove-hat",k);EN.sfx.good();renderHats();syncCoins();
-    });
-  }
-  $("shopBtn").onclick=()=>{renderHats();syncCoins();$("shop").hidden=false;EN.say("Pick a hat!")};
-  $("shopClose").onclick=()=>{$("shop").hidden=true};
-  syncCoins();addEventListener("pageshow",syncCoins);
 })();
 </script>
 </body>

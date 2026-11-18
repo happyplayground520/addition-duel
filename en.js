@@ -292,7 +292,7 @@
     party:{price:25,svg:`<path d="M38 24l13-26 13 26z" fill="#9b51e0"/><path d="M42 16l12 4M46 8l8 3" fill="none" stroke="#ffd23f" stroke-width="3.5"/><circle cx="51" cy="-3" r="4" fill="#ffd23f"/>`},
     crown:{price:40,svg:`<path d="M32 24l-3-18 11 9 11-13 11 13 11-9-3 18z" fill="#ffd23f"/><circle cx="51" cy="16" r="3" fill="#ff4136" stroke="none"/><circle cx="39" cy="18" r="2.5" fill="#2f7bff" stroke="none"/><circle cx="63" cy="18" r="2.5" fill="#2ecc40" stroke="none"/>`}
   };
-  EN.hat=()=>{const h=EN.pref("cove-hat");return EN.HATS[h]?h:"none"};
+  EN.hat=()=>"none";
   EN.parrot=function(hat=EN.hat(),cls=""){
     const H=EN.HATS[hat]||EN.HATS.none;
     return `<svg class="parrot ${cls}" viewBox="0 -10 100 122" aria-hidden="true"><g stroke="${K}" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">

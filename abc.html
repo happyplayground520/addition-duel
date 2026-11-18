@@ -7,7 +7,7 @@
 <title>藏寶圖字母</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261118j">
+<link rel="stylesheet" href="en.css?v=20261118k">
 <style>
 /* 藏寶圖字母：⭐／⭐⭐ 把寶石拖進寶箱上對的鎖孔（大寫配小寫）；⭐⭐⭐ 在四線格上寫出另一種大小寫 */
 body{background:radial-gradient(circle at 20% 30%,rgba(255,255,255,.35) 0 2px,transparent 3px) 0 0/40px 40px,linear-gradient(#f9e7bf,#f1d398)}
@@ -62,11 +62,11 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
 /* 手機橫放：句子移到最上面那一排（🏠 和 ⭐ 中間），下面的空間留給遊戲 */
 @media (max-height:500px){.say{position:absolute;z-index:6;top:max(8px,env(safe-area-inset-top,0px));left:76px;right:120px;padding:0;justify-content:center}.top .mid{visibility:hidden}.say .mascot{display:none}}
 </style>
-<script src="zhuyin.js?v=20261118j"></script>
-<link rel="stylesheet" href="park.css?v=20261118j">
-<script src="park.js?v=20261118j"></script>
-<script src="en.js?v=20261118j"></script>
-<script src="abc-ink.js?v=20261118j"></script>
+<script src="zhuyin.js?v=20261118k"></script>
+<link rel="stylesheet" href="park.css?v=20261118k">
+<script src="park.js?v=20261118k"></script>
+<script src="en.js?v=20261118k"></script>
+<script src="abc-ink.js?v=20261118k"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
 <body>
@@ -103,7 +103,6 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
     <h2 class="en">Great job!</h2>
     <div id="stars">⭐⭐⭐</div>
     <div id="result">0 / 10</div>
-    <span class="earn" id="earn"></span>
     <div class="endrow">
       <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
       <a class="big alt ico-btn" href="cove.html" aria-label="回海盜灣">🏠</a>
@@ -295,7 +294,6 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
     S.phase="end";
     const r=S.score/S.total,st=r>=.9?3:r>=.6?2:1;
     $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);$("result").textContent=`${S.score} / ${S.total}`;
-    const earn=S.score+(st===3?3:0);EN.addCoins(earn);$("earn").innerHTML=`+${earn} ${EN.coinSvg}`;
     sfx.end();say(st===3?"Excellent!":st===2?"Great job!":"Good try!");$("end").hidden=false;
   }
   $("go").onclick=start;$("replay").onclick=start;

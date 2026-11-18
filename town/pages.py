@@ -1,7 +1,7 @@
 # 產生甜點小鎮的四關頁面：python pages.py（每一關共用標題列、開始畫面、結束畫面，只有題目區和玩法不同）
 import os
 HERE=os.path.dirname(os.path.abspath(__file__));ROOT=os.path.dirname(HERE)
-V="20261118j"
+V="20261118k"
 HEAD='''<!doctype html>
 <html lang="zh-Hant">
 <head>
@@ -55,7 +55,6 @@ HEAD='''<!doctype html>
     <h2>做完了！</h2>
     <div id="stars">⭐⭐⭐</div>
     <div id="result">0 / 10</div>
-    <span class="earn" id="earn"></span>
     <div class="endrow">
       <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
       <a class="big alt ico-btn" href="town.html" aria-label="回甜點小鎮">🏠</a>
@@ -258,9 +257,10 @@ script='''(()=>{
 page("town-wrong.html",title="挑壞蘋果",icon="🍎",sub="句子裡有一個寫錯的字，把壞蘋果挑出來！",
 style=""".basket{background:#fff;border:5px solid var(--choc);border-radius:24px;padding:clamp(12px,2.6vmin,22px) clamp(12px,2.6vmin,24px);box-shadow:0 8px 0 rgba(0,0,0,.12);max-width:min(940px,96vw);position:relative}
 .basket .ibtn{position:absolute;right:-14px;top:-18px;width:48px;height:48px;font-size:24px;background:#ffe9a8;box-shadow:0 3px 0 #d18e0a}
-.sent2{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 2px;font-family:var(--kai);font-size:clamp(28px,5.2vmin,48px)}
-.ap{position:relative;display:inline-flex;align-items:center;border:0;background:#fff3f3;border-radius:18px;padding:4px 4px 4px 6px;cursor:pointer;font:inherit;color:var(--ink);min-width:44px;min-height:52px;box-shadow:inset 0 0 0 3px #ffd0d0}
-.ap .tz-b{font-size:max(.34em,11px)}
+.sent2{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px 6px;font-family:var(--kai);font-size:clamp(28px,5.2vmin,48px)}
+.ap{position:relative;display:inline-flex;align-items:center;border:0;background:#fff3f3;border-radius:18px;padding:6px 16px 6px 8px;cursor:pointer;font:inherit;color:var(--ink);min-width:44px;min-height:56px;box-shadow:inset 0 0 0 2px #ffd6d6}
+.ap .tz-b{font-size:max(.38em,14px);margin-left:.12em}
+.ap .tz-b .zy-t{font-size:1.15em;left:100%;top:-.55em}
 .ap.bad{animation:wig .4s}
 .ap.rot{background:#c9a27a;box-shadow:inset 0 0 0 3px #8a5a36}
 .ap.rot::after{content:"🐛";position:absolute;right:-12px;top:-16px;font-size:24px}

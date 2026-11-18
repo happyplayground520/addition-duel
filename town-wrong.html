@@ -7,8 +7,8 @@
 <title>挑壞蘋果</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261118j">
-<link rel="stylesheet" href="town/town.css?v=20261118j">
+<link rel="stylesheet" href="en.css?v=20261118k">
+<link rel="stylesheet" href="town/town.css?v=20261118k">
 <style>
 main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(12px,2.6vh,28px);
   padding:0 max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
@@ -19,9 +19,10 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
 @media (orientation:portrait) and (max-height:740px){.qline{font-size:20px;line-height:1.4}.qcard{gap:8px}main.stage2{gap:12px}}
 .basket{background:#fff;border:5px solid var(--choc);border-radius:24px;padding:clamp(12px,2.6vmin,22px) clamp(12px,2.6vmin,24px);box-shadow:0 8px 0 rgba(0,0,0,.12);max-width:min(940px,96vw);position:relative}
 .basket .ibtn{position:absolute;right:-14px;top:-18px;width:48px;height:48px;font-size:24px;background:#ffe9a8;box-shadow:0 3px 0 #d18e0a}
-.sent2{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 2px;font-family:var(--kai);font-size:clamp(28px,5.2vmin,48px)}
-.ap{position:relative;display:inline-flex;align-items:center;border:0;background:#fff3f3;border-radius:18px;padding:4px 4px 4px 6px;cursor:pointer;font:inherit;color:var(--ink);min-width:44px;min-height:52px;box-shadow:inset 0 0 0 3px #ffd0d0}
-.ap .tz-b{font-size:max(.34em,11px)}
+.sent2{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px 6px;font-family:var(--kai);font-size:clamp(28px,5.2vmin,48px)}
+.ap{position:relative;display:inline-flex;align-items:center;border:0;background:#fff3f3;border-radius:18px;padding:6px 16px 6px 8px;cursor:pointer;font:inherit;color:var(--ink);min-width:44px;min-height:56px;box-shadow:inset 0 0 0 2px #ffd6d6}
+.ap .tz-b{font-size:max(.38em,14px);margin-left:.12em}
+.ap .tz-b .zy-t{font-size:1.15em;left:100%;top:-.55em}
 .ap.bad{animation:wig .4s}
 .ap.rot{background:#c9a27a;box-shadow:inset 0 0 0 3px #8a5a36}
 .ap.rot::after{content:"🐛";position:absolute;right:-12px;top:-16px;font-size:24px}
@@ -36,12 +37,12 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
 .apple b{font-family:var(--kai);font-weight:400;font-size:clamp(50px,9vmin,72px);color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.25)}
 @media (max-height:500px){.sent2{font-size:26px}main.stage2{flex-direction:column;gap:8px}}
 </style>
-<script src="zhuyin.js?v=20261118j"></script>
-<link rel="stylesheet" href="park.css?v=20261118j">
-<script src="park.js?v=20261118j"></script>
-<script src="en.js?v=20261118j"></script>
-<script src="town/zi-data.js?v=20261118j"></script>
-<script src="town/town.js?v=20261118j"></script>
+<script src="zhuyin.js?v=20261118k"></script>
+<link rel="stylesheet" href="park.css?v=20261118k">
+<script src="park.js?v=20261118k"></script>
+<script src="en.js?v=20261118k"></script>
+<script src="town/zi-data.js?v=20261118k"></script>
+<script src="town/town.js?v=20261118k"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
 <body>
@@ -77,7 +78,6 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
     <h2>做完了！</h2>
     <div id="stars">⭐⭐⭐</div>
     <div id="result">0 / 10</div>
-    <span class="earn" id="earn"></span>
     <div class="endrow">
       <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
       <a class="big alt ico-btn" href="town.html" aria-label="回甜點小鎮">🏠</a>

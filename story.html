@@ -7,7 +7,7 @@
 <title>船長說故事</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261118j">
+<link rel="stylesheet" href="en.css?v=20261118k">
 <style>
 /* 船長說故事：一本繪本，每一句旁邊有一張圖，念到哪一句那一行就亮起來；聽完回答 Who／What／When，點英文字聽、選好按 OK */
 body{background:radial-gradient(circle at 15% 20%,rgba(255,255,255,.3) 0 2px,transparent 3px) 0 0/44px 44px,linear-gradient(#d9c4f2,#f3e9ff)}
@@ -54,10 +54,10 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
 }
 @media (prefers-reduced-motion:reduce){.book.flip,.line.glow,.wbtn.glow,.listen i{animation:none}}
 </style>
-<script src="zhuyin.js?v=20261118j"></script>
-<link rel="stylesheet" href="park.css?v=20261118j">
-<script src="park.js?v=20261118j"></script>
-<script src="en.js?v=20261118j"></script>
+<script src="zhuyin.js?v=20261118k"></script>
+<link rel="stylesheet" href="park.css?v=20261118k">
+<script src="park.js?v=20261118k"></script>
+<script src="en.js?v=20261118k"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
 <body>
@@ -97,7 +97,6 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
     <h2 class="en">Great job!</h2>
     <div id="stars">⭐⭐⭐</div>
     <div id="result">0 / 5</div>
-    <span class="earn" id="earn"></span>
     <div class="endrow">
       <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
       <a class="big alt ico-btn" href="cove.html" aria-label="回海盜灣">🏠</a>
@@ -238,7 +237,6 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
     S.phase="end";S.run++;
     const r=S.score/S.total,st=r>=.9?3:r>=.6?2:1;
     $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);$("result").textContent=`${S.score} / ${S.total}`;
-    const earn=S.score*2+(st===3?3:0);EN.addCoins(earn);$("earn").innerHTML=`+${earn} ${EN.coinSvg}`;
     sfx.end();say(st===3?"Excellent!":st===2?"Great job!":"Good try!");$("end").hidden=false;
   }
   $("go").onclick=start;$("replay").onclick=start;

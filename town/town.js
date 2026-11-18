@@ -100,7 +100,6 @@
     function finish(){
       S.phase="end";const r=S.score/S.total,st=r>=.9?3:r>=.6?2:1;
       $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);$("result").textContent=`${S.score} / ${S.total}`;
-      const earn=S.score+(st===3?3:0);EN.addCoins(earn);$("earn").innerHTML=`+${earn} ${EN.coinSvg}`;
       EN.sfx.end();TZ.say(st===3?"太厲害了！":st===2?"做得很好！":"很努力喔，再練習一次！");$("end").hidden=false;
     }
     $("go").onclick=start;$("replay").onclick=start;
