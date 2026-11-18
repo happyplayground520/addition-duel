@@ -137,7 +137,23 @@ h1 .star{font-size:.7em;text-shadow:none}
 </style>
 <script src="zhuyin.js"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<style>:root{--text:"Chiron GoRound TC","PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif}</style>
+<style>:root{--text:"Chiron GoRound TC","PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif}
+/* ---- 手機：地圖變成長長的步道，往下捲著逛（一排 2 個，手機橫放一排 4 個） ---- */
+html.phone,html.phone body{height:auto;min-height:100%}
+html.phone body{overflow-x:hidden;overflow-y:auto;justify-content:flex-start;-webkit-overflow-scrolling:touch}
+html.phone header{order:0} html.phone .zybtn{order:1;position:static;margin:2px auto 4px} html.phone .map{order:2}
+html.phone h1{font-size:26px;border-width:3px} html.phone .sub{display:block;font-size:15px}
+html.phone .map{width:100%;max-width:900px;aspect-ratio:auto;flex:none;margin-bottom:max(16px,env(safe-area-inset-bottom,0px))}
+html.phone .spot .icon{width:84px;font-size:50px;border-width:5px}
+html.phone .spot.big .icon{width:108px;font-size:66px}
+html.phone .spot .name{font-size:17px;padding:0 10px}
+html.phone .spot .tag{font-size:13px;padding:0 8px}
+html.phone .deco{font-size:26px}
+html.phone .road-edge{stroke-width:34px} html.phone .road{stroke-width:27px}
+html.phone .zsign{font-size:17px}
+html.phone .gate{width:130px;height:46px} html.phone .gate b{font-size:16px}
+html.phone .bunting{height:36px}
+</style>
 </head>
 <body>
 <div class="sky" aria-hidden="true"><div class="sun"></div><span class="cloud" style="top:3%">☁️</span><span class="cloud c2">☁️</span></div>
@@ -247,8 +263,38 @@ h1 .star{font-size:.7em;text-shadow:none}
     }
     return d+(closed?" Z":"");
   }
+  // 手機版的位置：依地圖寬度決定一排幾個，算出每一排的高度，地圖拉長到放得下全部
+  const SOLO=["balloon","coaster","fish","ferris","donut","ring","carousel","claw","booth"],DUO=["train","bumper","memory","shape"];
+  function phoneLayout(){
+    const W=map.clientWidth,cols=W>=640?4:2,rowH=W>=640?158:168,signH=54;
+    const pos={},lines=[],yPx={};let y=12;
+    const rowXs=n=>Array.from({length:n},(_,j)=>50+(j-(n-1)/2)*(100/cols));
+    const place=(keys,zone)=>{const rows=[];for(let i=0;i<keys.length;i+=cols)rows.push(keys.slice(i,i+cols));
+      rows.forEach(r=>{const xs=rowXs(r.length);r.forEach((k,j)=>{pos[k]=[xs[j],y+58]});zone.push({xs,y:y+58});y+=rowH})};
+    const signs=[[50,0],[50,0]];
+    signs[0][1]=y;y+=signH;const soloRows=[];place(SOLO,soloRows);
+    const plazaTop=y-6;y+=6;signs[1][1]=y;y+=signH;
+    const duoRows=[];pos.duel=[50,y+64];duoRows.push({xs:[50],y:y+64});y+=rowH+26;place(DUO,duoRows);
+    const H=y+64;map.style.height=H+"px";
+    const P=v=>v/H*100;
+    Object.keys(pos).forEach(k=>pos[k]=[pos[k][0],P(pos[k][1])]);
+    // 路：每一排一條橫的、每一欄一條直的，中間一條大街通到最下面的入口
+    [soloRows,duoRows].forEach(rows=>{
+      rows.forEach(r=>{if(r.xs.length>1)lines.push([[r.xs[0],P(r.y)],[r.xs[r.xs.length-1],P(r.y)]])});
+      const xs=[...new Set(rows.flatMap(r=>r.xs))];
+      xs.forEach(x=>{const ys=rows.filter(r=>r.xs.includes(x)).map(r=>r.y);if(ys.length>1)lines.push([[x,P(Math.min(...ys))],[x,P(Math.max(...ys))]])});
+    });
+    lines.push([[50,104],[50,P(soloRows[0].y)]]);
+    const decos=[];soloRows.concat(duoRows).forEach((r,i)=>{if(i%2===0)decos.push([i%4?96:4,P(r.y+rowH/2),["🌳","🌷","🌲","🌼"][i%4]])});
+    return{pos,lines,plaza:{left:"2%",right:"2%",top:P(plazaTop)+"%",bottom:"1.2%"},gate:50,
+      signs:signs.map(([x,yy])=>[x,P(yy+6)]),decos:decos.map(([x,yy,e])=>[e,x,yy])};
+  }
+  // 手機：畫面寬度 600 以下（直放）或高度 500 以下（橫放）
+  const phoneMQ=matchMedia("(max-width:600px),(max-height:500px)");
   function layout(){
-    const L=matchMedia("(orientation:portrait)").matches?LAYOUT.port:LAYOUT.land;
+    const phone=phoneMQ.matches;document.documentElement.classList.toggle("phone",phone);
+    if(!phone)map.style.height="";
+    const L=phone?phoneLayout():matchMedia("(orientation:portrait)").matches?LAYOUT.port:LAYOUT.land;
     Object.entries(L.pos).forEach(([k,[x,y]])=>set(spots[k],x,y));
     const S=p=>[p[0]*1.6,p[1]];let d="";
     L.lines.forEach(([a,b])=>{const A=S(a),B=S(b);d+=` M${A[0].toFixed(1)} ${A[1]} L${B[0].toFixed(1)} ${B[1]}`});
@@ -260,6 +306,8 @@ h1 .star{font-size:.7em;text-shadow:none}
   }
   layout();
   matchMedia("(orientation:portrait)").addEventListener?.("change",layout);
+  phoneMQ.addEventListener?.("change",layout);
+  let rz=0;addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(()=>{if(phoneMQ.matches)layout()},150)});
   // 注音開關：存起來，所有小遊戲一起套用
   const zb=document.getElementById("zyBtn"),zs=document.getElementById("zySt");
   const syncZy=()=>{const on=window.parkZhuyin?parkZhuyin.isOn():true;zb.setAttribute("aria-pressed",on);zs.textContent=on?"開":"關";
