@@ -105,11 +105,17 @@ body{background:linear-gradient(#ffe3ef,#fff3f8 58%,#ffd9a8 58%);color:var(--ink
 .newrec{font-weight:800;color:#fff;background:var(--good);border-radius:999px;padding:4px 16px;font-size:18px}
 .note{font-size:13px;color:var(--muted)}
 @media (max-height:560px){.box{gap:8px;padding:14px 18px}.box h2{font-size:24px}#start .box>p{display:none}}
+
+/* 手機直放：上方分兩排，第一排 🏠、分數、🔊，第二排整排給題目 */
+@media (max-width:600px){
+  .top{grid-template-columns:auto 1fr auto auto;grid-template-areas:"home . stats again" "mid mid mid mid";row-gap:6px}
+  .top>a.ibtn{grid-area:home} .top>.stats{grid-area:stats} .top>#again{grid-area:again} .top>.q{grid-area:mid;justify-self:center}
+}
 </style>
-<script src="zhuyin.js"></script>
+<script src="zhuyin.js?v=20261118c"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css">
-<script src="park.js"></script>
+<link rel="stylesheet" href="park.css?v=20261118c">
+<script src="park.js?v=20261118c"></script>
 </head>
 <body>
 <header class="top">

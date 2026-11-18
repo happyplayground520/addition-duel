@@ -88,11 +88,17 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
 .count{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:6;font-family:var(--num);font-weight:800;
   font-size:clamp(80px,20vmin,180px);color:#fff;text-shadow:0 6px 0 rgba(0,0,0,.3)}
 @media (prefers-reduced-motion:reduce){.car{transition:none}}
+
+/* 手機橫放：題目在左、四個答案在右，排成一行 */
+@media (max-height:500px) and (orientation:landscape){
+  .side{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);align-items:center;column-gap:14px;row-gap:4px}
+  .head{grid-column:1/3} .q{font-size:34px} .ch{font-size:28px;padding:.12em 0}
+}
 </style>
-<script src="zhuyin.js"></script>
+<script src="zhuyin.js?v=20261118c"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css">
-<script src="park.js"></script>
+<link rel="stylesheet" href="park.css?v=20261118c">
+<script src="park.js?v=20261118c"></script>
 <style>:root{--theme:#2f6fdb}</style>
 </head>
 <body>

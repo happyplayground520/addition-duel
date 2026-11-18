@@ -122,11 +122,17 @@ body{background:radial-gradient(circle,rgba(255,255,255,.35) 2px,transparent 2.5
 /* 直放時上方擠：目標和水桶各一行 */
 @media (orientation:portrait){.top{grid-template-columns:auto 1fr auto auto}.mid{flex-direction:column;gap:6px}}
 @media (prefers-reduced-motion:reduce){.pond::before,.bub,.fish .tl{animation:none}}
+
+/* 手機直放：上方分兩排，第一排 🏠、分數、🔊，第二排整排給題目 */
+@media (max-width:600px){
+  .top{grid-template-columns:auto 1fr auto auto;grid-template-areas:"home . stats again" "mid mid mid mid";row-gap:6px}
+  .top>a.ibtn{grid-area:home} .top>.stats{grid-area:stats} .top>#again{grid-area:again} .top>.mid{grid-area:mid;justify-self:center}
+}
 </style>
-<script src="zhuyin.js"></script>
+<script src="zhuyin.js?v=20261118c"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css">
-<script src="park.js"></script>
+<link rel="stylesheet" href="park.css?v=20261118c">
+<script src="park.js?v=20261118c"></script>
 </head>
 <body>
 <header class="top">

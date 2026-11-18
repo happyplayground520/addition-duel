@@ -90,11 +90,19 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
   #start .box>p{display:none}
   .cover .stars{font-size:36px}
 }
+
+/* 手機橫放：左邊門票和付款盤，右邊錢包 */
+@media (max-height:500px) and (orientation:landscape){
+  main{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:8px 12px}
+  .booth{grid-column:1;grid-row:1;margin-top:12px;padding:24px 12px 8px;width:100%}
+  .tray{grid-column:1;grid-row:2;min-height:0;width:100%}
+  .wallet{grid-column:2;grid-row:1/3;align-content:center;overflow:auto}
+}
 </style>
-<script src="zhuyin.js"></script>
+<script src="zhuyin.js?v=20261118c"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css">
-<script src="park.js"></script>
+<link rel="stylesheet" href="park.css?v=20261118c">
+<script src="park.js?v=20261118c"></script>
 <style>body{background:radial-gradient(circle,rgba(224,119,43,.13) 2.5px,transparent 3px) 0 0/30px 30px,linear-gradient(#ffe7c4,#fff4e2)}</style>
 </head>
 <body>

@@ -88,11 +88,17 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
 .count{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:6;font-family:var(--num);font-weight:800;
   font-size:clamp(80px,20vmin,180px);color:#fff;text-shadow:0 6px 0 rgba(0,0,0,.3)}
 @media (prefers-reduced-motion:reduce){.card .in{transition:none}}
+
+/* 手機橫放：玩家區加高，準備畫面拿掉標題，排成一行 */
+@media (max-height:500px) and (orientation:landscape){
+  .board{grid-template-rows:minmax(0,.8fr) minmax(0,1.6fr) minmax(0,.8fr)}
+  .overlay h2{display:none} .overlay .opt small{display:none}
+}
 </style>
-<script src="zhuyin.js"></script>
+<script src="zhuyin.js?v=20261118c"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css">
-<script src="park.js"></script>
+<link rel="stylesheet" href="park.css?v=20261118c">
+<script src="park.js?v=20261118c"></script>
 <style>:root{--theme:#2b7f50}</style>
 </head>
 <body>

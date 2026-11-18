@@ -64,3 +64,22 @@ label.chk.sym:has(input:focus-visible){outline:3px solid var(--theme);outline-of
 
 /* 雙人遊戲的準備畫面：底色不透明，後面的按鈕不會透出來 */
 .board .side>.overlay{background:linear-gradient(to top,var(--soft,#eef3f1),#eef3f1)}
+
+/* ---- 手機與小螢幕 ---- */
+.big{min-height:48px}
+.head .name{flex:none}
+.head .msg{min-width:0}
+.ready{min-height:48px}
+/* 開始／結束卡片：用 clip 不用 hidden，READY 才能黏在畫面下方 */
+#start>.box,#start>.card,#end>.box,#end>.card{overflow:clip}
+/* 手機橫放（畫面很矮）：開始畫面改成左右兩欄——左邊「難度」「時間」這些小標題，右邊選項，一個畫面放得下 */
+@media (max-height:500px){
+  #start>.box,#start>.card{display:grid!important;grid-template-columns:auto minmax(0,1fr);align-items:center;justify-items:start;
+    width:min(780px,100%)!important;column-gap:14px;row-gap:6px!important;padding:40px 18px 14px!important}
+  #start h2,#start p,#start .note,#start #go{grid-column:1/-1;justify-self:center}
+  #start p{display:none}
+  #start h2{font-size:22px!important}
+  #start .lbl,#start .lbl2{justify-self:end;margin:0!important;font-size:13px!important}
+  #start .row{justify-content:flex-start}
+  #start .opt{padding:5px 12px!important}
+}
