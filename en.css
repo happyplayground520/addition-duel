@@ -1,0 +1,90 @@
+/* 海盜灣（英文區）共用外觀：英文用 Andika（小朋友學寫字用的字型，a 和 g 是單層的） */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --ink:#2b2320; --muted:#6b5a4e; --good:#1f9d61; --bad:#d23c3c;
+  --sea1:#6fd6ea; --sea2:#2b9cc4; --sea3:#167aa3; --sand:#f7e2ae; --wood:#c98a4b; --wood2:#8a5328; --gold:#ffd23f;
+  --accent:#e0533d; --accent-dark:#a8321f;
+  --en:"Andika","Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
+  --num:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{margin:0;height:100%}
+body{color:var(--ink);overflow:hidden;display:flex;flex-direction:column;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  background:linear-gradient(#aee6ff,#e3f7ff 60%,#fff5d6)}
+[hidden]{display:none!important}
+.en{font-family:var(--en)}
+
+/* ---- 上方：🏠、題目進度、⭐ 分數、金幣、🔊 ---- */
+.top{position:relative;z-index:5;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;
+  padding:max(10px,env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) 6px max(14px,env(safe-area-inset-left,0px))}
+.ibtn{width:52px;height:52px;border-radius:16px;border:0;background:#fff;font-size:26px;cursor:pointer;display:grid;place-items:center;
+  text-decoration:none;color:inherit;box-shadow:0 4px 0 rgba(0,0,0,.12);padding:0}
+.ibtn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.12)}
+.top .mid{justify-self:center;display:flex;align-items:center;gap:10px;min-width:0}
+.top .right{display:flex;align-items:center;gap:8px}
+.pill{display:inline-flex;align-items:center;gap:6px;background:#fff;border-radius:999px;padding:4px 14px;white-space:nowrap;
+  font-family:var(--num);font-weight:800;font-size:clamp(17px,2.8vmin,24px);box-shadow:0 3px 0 rgba(0,0,0,.1)}
+.pill .coin{width:1.25em;height:1.25em;display:block}
+.pill .ic{width:1.4em;height:1.4em;display:block}
+
+/* ---- 鸚鵡：平常輕輕晃，答對拍翅膀跳，答錯歪頭 ---- */
+.pbox{position:relative;display:block}
+.pbox .parrot{display:block;width:100%;height:100%;overflow:visible;transform-origin:50% 90%;animation:pbob 2.6s ease-in-out infinite}
+.pbox.happy .parrot{animation:phop .5s ease-out 2}
+.pbox.happy .wing{animation:flap .12s ease-in-out 8 alternate}
+.pbox.oops .parrot{animation:ptilt .9s ease-in-out}
+.parrot .wing{transform-box:fill-box;transform-origin:70% 10%}
+@keyframes pbob{50%{transform:translateY(-3px) rotate(-2deg)}}
+@keyframes phop{40%{transform:translateY(-16%) rotate(-6deg)}}
+@keyframes flap{to{transform:rotate(-28deg)}}
+@keyframes ptilt{30%,70%{transform:rotate(14deg)}}
+.bubble{position:absolute;z-index:3;background:#fff;border:3px solid var(--ink);border-radius:18px;padding:4px 12px;white-space:nowrap;
+  font-family:var(--en);font-weight:700;font-size:clamp(16px,2.6vmin,22px);box-shadow:0 4px 0 rgba(0,0,0,.12);animation:bpop .3s}
+@keyframes bpop{from{transform:scale(.4);opacity:0}}
+
+/* ---- 開始／結束畫面 ---- */
+.panel{position:fixed;inset:0;z-index:20;display:grid;place-items:start center;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  background:rgba(190,234,250,.88);
+  padding:max(12px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.panel>.box{margin:auto 0}
+.box{background:#fffdf6;border-radius:24px;padding:clamp(18px,4vmin,30px);width:min(640px,100%);box-shadow:0 12px 40px rgba(0,0,0,.18);
+  display:flex;flex-direction:column;gap:10px;align-items:center;text-align:center}
+.box h2{margin:0;font-size:clamp(26px,4.8vmin,40px);line-height:1.2}
+.box .sub{margin:-4px 0 0;font-family:var(--en);font-weight:700;color:var(--muted);font-size:clamp(17px,2.8vmin,22px)}
+.row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.lbl2{font-family:var(--en);font-size:15px;font-weight:700;color:var(--muted);margin-top:4px}
+.opt{font:inherit;font-size:17px;font-weight:700;border:3px solid #e3d3b8;background:#fff;border-radius:16px;padding:8px 14px;cursor:pointer;color:inherit;
+  display:inline-flex;flex-direction:column;align-items:center;gap:2px;min-height:48px;justify-content:center}
+.opt small{display:flex;align-items:center;gap:3px;font-family:var(--en);font-size:15px;font-weight:700;opacity:.85;white-space:nowrap}
+.opt small .ic{width:24px;height:24px}
+.opt .ic{width:40px;height:40px;display:block}
+.opt .tn{font-family:var(--en);font-size:15px}
+.opt[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:#fff}
+.opt[aria-pressed="true"] .ic g{stroke:#fff}
+.big{font-family:var(--en);font-weight:700;font-size:clamp(22px,4vmin,30px);border:0;border-radius:999px;padding:.45em 1.6em;
+  background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 5px 0 var(--accent-dark);text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:.3em}
+.big:active{transform:translateY(4px);box-shadow:0 1px 0 var(--accent-dark)}
+.big.alt{background:#fff;color:var(--ink);box-shadow:0 5px 0 #d8c9ae;border:3px solid #e3d3b8}
+.big.ok{background:var(--good);box-shadow:0 5px 0 #136b41}
+.big:disabled{opacity:.45;pointer-events:none}
+#go{position:sticky;bottom:0;margin-top:6px}
+/* 🔊 中文說明 */
+.helpbtn{font:inherit;font-weight:800;font-size:17px;display:inline-flex;align-items:center;gap:6px;border:3px solid #ffd27a;background:#fff4d1;color:#7a4b12;
+  border-radius:999px;padding:5px 16px;cursor:pointer;min-height:44px}
+.endrow{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.earn{display:inline-flex;align-items:center;gap:6px;font-family:var(--num);font-weight:800;font-size:clamp(22px,4vmin,30px);color:#a86a00;
+  background:#fff4c2;border-radius:999px;padding:2px 16px}
+.earn .coin{width:1.3em;height:1.3em}
+#result{font-family:var(--num);font-weight:800;font-size:clamp(34px,7vmin,56px);line-height:1}
+.ic{display:block}
+.ic-miss{font-family:var(--en);font-weight:700}
+
+/* 手機橫放：開始畫面的選項排緊一點 */
+@media (max-height:500px){
+  .opt .ic{width:30px;height:30px}
+  .opt{padding:4px 10px!important;min-height:44px}
+  .helpbtn{min-height:40px;padding:3px 12px}
+  .ibtn{width:46px;height:46px;font-size:23px}
+}
+@media (prefers-reduced-motion:reduce){.pbox .parrot,.pbox.happy .parrot,.pbox.happy .wing{animation:none}}

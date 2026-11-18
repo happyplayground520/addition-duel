@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>碼頭釣魚</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="en.css?v=20261118d">
+<style>
+/* 碼頭釣魚：上面是木頭碼頭（鸚鵡、題目、水桶），下面是海，魚在海裡來回游；點對的魚就釣起來 */
+.scene{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
+.dock{position:relative;z-index:3;flex:none;height:clamp(104px,21vh,170px);display:flex;align-items:flex-end;justify-content:space-between;gap:10px;
+  padding:0 max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px))}
+/* 木頭棧板 */
+.dock::before{content:"";position:absolute;left:0;right:0;bottom:0;height:34%;z-index:-1;
+  background:repeating-linear-gradient(90deg,#d39a5c 0 62px,#b97a40 62px 66px);border-top:4px solid #e8b878;border-bottom:8px solid #8a5328;box-shadow:0 6px 0 rgba(0,0,0,.12)}
+.dock .pbox{width:clamp(64px,12vh,112px);height:calc(clamp(64px,12vh,112px)*1.22);margin-bottom:calc(min(170px,max(104px,21vh))*.2)}
+/* 題目：🔊 大喇叭（聽）或圖卡（看） */
+.ask{align-self:center;display:flex;align-items:center;justify-content:center;margin-top:-4px}
+.spk{width:clamp(78px,14vh,118px);aspect-ratio:1;border-radius:50%;border:5px solid #fff;background:radial-gradient(circle at 35% 30%,#ffe9a8,#ffc53d);
+  font-size:clamp(38px,7vh,60px);cursor:pointer;box-shadow:0 6px 0 #d18e0a,0 10px 20px rgba(0,0,0,.15);display:grid;place-items:center;padding:0;animation:spk 2s ease-in-out infinite}
+.spk:active{transform:translateY(4px);box-shadow:0 2px 0 #d18e0a}
+@keyframes spk{50%{transform:scale(1.05)}}
+.pic{width:clamp(88px,16vh,132px);aspect-ratio:1;border-radius:22px;background:#fff;border:5px solid #fff;box-shadow:0 0 0 4px #e3a64a,0 8px 16px rgba(0,0,0,.15);padding:6px}
+.pic .ic{width:100%;height:100%}
+.bucket{position:relative;width:clamp(64px,11vh,96px);aspect-ratio:1;margin-bottom:calc(min(170px,max(104px,21vh))*.22)}
+.bucket svg{width:100%;height:100%;display:block}
+.bucket b{position:absolute;left:0;right:0;top:44%;text-align:center;font-family:var(--num);font-weight:800;font-size:clamp(18px,3.4vh,28px);color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+.bucket.bump{animation:bump .35s}
+@keyframes bump{40%{transform:scale(1.18)}}
+/* 海 */
+.sea{position:relative;flex:1;min-height:0;overflow:hidden;background:linear-gradient(var(--sea1),var(--sea2) 65%,var(--sea3))}
+.sea::before{content:"";position:absolute;left:0;right:0;top:0;height:16px;opacity:.75;
+  background:radial-gradient(circle at 20px -6px,transparent 18px,rgba(255,255,255,.8) 19px 22px,transparent 23px) 0 0/40px 16px repeat-x;animation:wave 4s linear infinite}
+@keyframes wave{to{background-position:40px 0}}
+.weed{position:absolute;bottom:-4px;width:clamp(30px,5vw,54px);pointer-events:none;transform-origin:50% 100%;animation:sway 3.4s ease-in-out infinite alternate}
+@keyframes sway{to{transform:rotate(6deg)}}
+.bub{position:absolute;bottom:-12px;width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,255,255,.75);pointer-events:none;animation:bub 6s linear infinite}
+@keyframes bub{to{transform:translateY(-110vh) translateX(14px);opacity:0}}
+/* 魚：身體往左游時翻過來，牌子上的字不翻 */
+.fish{position:absolute;left:0;top:0;width:var(--w);height:calc(var(--w)*.56);border:0;background:none;padding:0;cursor:pointer;will-change:transform;touch-action:manipulation}
+.fish .body{position:absolute;inset:0;width:100%;height:100%;display:block;overflow:visible}
+.fish.l .body{transform:scaleX(-1)}
+.fish .tag{position:absolute;left:21%;right:15%;top:17%;bottom:17%;background:#fff;border:3px solid #3a2a22;border-radius:16px;display:grid;place-items:center;
+  font-family:var(--en);font-weight:700;color:var(--ink);line-height:1;text-align:center;padding:0 4px;overflow:hidden;box-shadow:inset 0 -4px 0 rgba(0,0,0,.06)}
+.fish.l .tag{left:15%;right:21%}
+.fish .tag .ic{height:100%;width:auto;max-width:100%;padding:2px 0}
+.fish .tag span{display:block}
+.fish.no{opacity:.45;pointer-events:none;filter:grayscale(.6)}
+.fish.wrong{animation:shake .4s}
+@keyframes shake{25%{translate:-10px 0}75%{translate:10px 0}}
+.fish.caught{transition:transform .75s cubic-bezier(.5,-0.2,.6,1),opacity .75s;pointer-events:none;z-index:4}
+.fish.gone{transition:opacity .35s;opacity:0;pointer-events:none}
+.fish:focus-visible .tag{outline:4px solid #fff;outline-offset:2px}
+/* 釣魚線 */
+.line{position:absolute;top:0;width:3px;margin-left:-1.5px;background:#3a2a22;transform-origin:top;z-index:3;pointer-events:none;animation:drop .25s ease-out forwards}
+.line::after{content:"";position:absolute;left:-7px;bottom:-12px;width:12px;height:14px;border:3px solid #6b7a86;border-top:0;border-radius:0 0 10px 10px}
+@keyframes drop{from{transform:scaleY(0)}}
+.cheer{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);z-index:6;pointer-events:none;background:#fff;border-radius:24px;border:4px solid var(--ink);
+  padding:.2em .8em;font-family:var(--en);font-size:clamp(30px,6vmin,52px);font-weight:700;color:var(--good);box-shadow:0 8px 24px rgba(0,0,0,.18);animation:cheer .45s}
+@keyframes cheer{from{transform:translate(-50%,-50%) scale(.4);opacity:0}}
+@media (max-height:500px){
+  .dock{height:clamp(84px,24vh,110px)}
+  .dock .pbox{width:58px;height:71px;margin-bottom:16px}
+  .spk{width:70px;font-size:34px}.pic{width:78px}
+  .bucket{width:54px;margin-bottom:18px}
+}
+@media (prefers-reduced-motion:reduce){.spk,.weed,.bub,.sea::before{animation:none}}
+</style>
+<script src="zhuyin.js?v=20261118d"></script>
+<link rel="stylesheet" href="park.css?v=20261118d">
+<script src="park.js?v=20261118d"></script>
+<script src="en.js?v=20261118d"></script>
+<style>body{font-family:var(--text)}</style>
+</head>
+<body>
+<header class="top">
+  <a class="ibtn" href="cove.html" aria-label="回海盜灣">🏠</a>
+  <div class="mid"><span class="pill" id="prog">0 / 10</span></div>
+  <div class="right"><span class="pill" id="score">⭐ 0</span><button type="button" class="ibtn" id="again" aria-label="再聽一次">🔊</button></div>
+</header>
+<main class="scene">
+  <div class="dock">
+    <span class="pbox" id="parrot"></span>
+    <div class="ask" id="ask"></div>
+    <div class="bucket" id="bucket"><svg viewBox="0 0 100 100" aria-hidden="true"><g stroke="#3a2a22" stroke-width="4" stroke-linejoin="round">
+      <path d="M22 34q28-30 56 0" fill="none" stroke="#6b7a86" stroke-width="5"/><path d="M16 36h68l-8 52q-1 6-8 6H32q-7 0-8-6z" fill="#4da3ff"/>
+      <ellipse cx="50" cy="36" rx="34" ry="8" fill="#2b7fd6"/><path d="M20 52h60" fill="none" stroke="#2b7fd6" stroke-width="5"/></g></svg><b id="caught">0</b></div>
+  </div>
+  <div class="sea" id="sea"></div>
+
+  <section class="panel" id="start">
+    <div class="box">
+      <h2>🎣 碼頭釣魚</h2>
+      <p class="sub">Fishing</p>
+      <button type="button" class="helpbtn" id="help">🔊 中文說明</button>
+      <span class="lbl2">Level</span>
+      <div class="row" id="levels">
+        <button type="button" class="opt" data-lv="1" aria-label="一顆星"><span class="lvst">⭐</span><small>🔊 → abc</small></button>
+        <button type="button" class="opt" data-lv="2" aria-label="兩顆星"><span class="lvst">⭐⭐</span><small>🔊 → <i id="mini2"></i></small></button>
+        <button type="button" class="opt" data-lv="3" aria-label="三顆星"><span class="lvst">⭐⭐⭐</span><small><i id="mini3"></i> → abc</small></button>
+      </div>
+      <span class="lbl2">Topic</span>
+      <div class="row" id="themes"></div>
+      <span class="lbl2">Questions</span>
+      <div class="row" id="totals">
+        <button type="button" class="opt" data-n="5" aria-label="5 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button>
+        <button type="button" class="opt" data-n="10" aria-label="10 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>10</small></button>
+        <button type="button" class="opt" data-n="15" aria-label="15 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>15</small></button>
+      </div>
+      <button type="button" class="big" id="go">READY</button>
+    </div>
+  </section>
+
+  <section class="panel" id="end" hidden>
+    <div class="box">
+      <h2 class="en">Great job!</h2>
+      <div id="stars">⭐⭐⭐</div>
+      <div id="result">0 / 10</div>
+      <span class="earn" id="earn"></span>
+      <div class="endrow">
+        <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+        <a class="big alt ico-btn" href="cove.html" aria-label="回海盜灣">🏠</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+  const $=id=>document.getElementById(id),{pref,rnd,shuffle,pick,say,sfx}=EN;
+  const S={lv:+pref("dock-lv")||1,theme:pref("dock-theme")||"animals",total:+pref("dock-total")||10,phase:"start",
+    i:0,score:0,tries:0,target:null,busy:false};
+  if(![1,2,3].includes(S.lv))S.lv=1;if(![5,10,15].includes(S.total))S.total=10;
+  const THEMES=EN.THEMES;if(S.theme!=="mix"&&!THEMES.find(t=>t.id===S.theme))S.theme="animals";
+  $("parrot").innerHTML=EN.parrot();
+  $("mini2").outerHTML=EN.icon("cat");$("mini3").outerHTML=EN.icon("cat");
+
+  // ---- 開始畫面 ----
+  $("themes").innerHTML=THEMES.map(t=>`<button type="button" class="opt" data-t="${t.id}" aria-label="${t.name}">${EN.iconIn(t.rep,t.id)}<span class="tn">${t.name}</span></button>`).join("")+
+    `<button type="button" class="opt" data-t="mix" aria-label="Mix"><span style="font-size:32px;line-height:40px">🎲</span><span class="tn">Mix</span></button>`;
+  function sync(){
+    document.querySelectorAll("#levels .opt").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
+    document.querySelectorAll("#themes .opt").forEach(b=>b.setAttribute("aria-pressed",b.dataset.t===S.theme));
+    document.querySelectorAll("#totals .opt").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===S.total));
+  }
+  document.querySelectorAll("#levels .opt").forEach(b=>b.onclick=()=>{S.lv=+b.dataset.lv;pref("dock-lv",S.lv);sync()});
+  document.querySelectorAll("#themes .opt").forEach(b=>b.onclick=()=>{S.theme=b.dataset.t;pref("dock-theme",S.theme);sync();
+    const t=THEMES.find(x=>x.id===S.theme);say(t?t.name:"Mix")});
+  document.querySelectorAll("#totals .opt").forEach(b=>b.onclick=()=>{S.total=+b.dataset.n;pref("dock-total",S.total);sync()});
+  sync();
+  const HELP={
+    1:"碼頭釣魚，一顆星。仔細聽英文單字，把身上寫著這個英文字的魚釣起來。點黃色的喇叭，可以再聽一次。",
+    2:"碼頭釣魚，兩顆星。仔細聽英文單字，把身上有這個圖案的魚釣起來。點黃色的喇叭，可以再聽一次。",
+    3:"碼頭釣魚，三顆星。這一關不會念出來。看上面的圖片，找出寫著這個英文字的魚，把牠釣起來。"
+  };
+  EN.helpBtn($("help"),()=>HELP[S.lv]);
+
+  // ---- 出題 ----
+  const pool=()=>S.theme==="mix"?THEMES.flatMap(t=>t.words.map(w=>({w,t:t.id}))):THEMES.find(t=>t.id===S.theme).words.map(w=>({w,t:S.theme}));
+  let order=[];
+  function nextTarget(){
+    if(!order.length)order=shuffle(pool());
+    return order.pop();
+  }
+  const nFish=()=>S.lv===1?3:4;
+  function choices(tg){
+    // 干擾的魚：同一個主題的其他字（Mix 時從全部挑，避免兩個 orange 一起出現）
+    const all=pool().filter(x=>x.w!==tg.w);
+    const same=all.filter(x=>x.t===tg.t),src=same.length>=nFish()-1?same:all;
+    return shuffle([tg,...shuffle(src).slice(0,nFish()-1)]);
+  }
+  const sayTarget=()=>{if(S.lv<3&&S.target)say(S.target.w)};
+  function renderAsk(){
+    const a=$("ask");
+    if(S.lv<3){a.innerHTML=`<button type="button" class="spk" id="spk" aria-label="再聽一次">🔊</button>`;$("spk").onclick=sayTarget;$("again").hidden=false}
+    else{a.innerHTML=`<div class="pic">${EN.iconIn(S.target.w,S.target.t)}</div>`;$("again").hidden=true}
+  }
+  $("again").onclick=sayTarget;
+
+  // ---- 海和魚 ----
+  const sea=$("sea"),COLORS=["#ff9f5a","#ff7aa8","#ffd23f","#7fd67a","#7cc7ff","#c79bff","#ff8a7a"];
+  let fish=[],raf=0,lastT=0,clock=0;
+  function decorate(){
+    sea.innerHTML=[8,30,58,84].map((x,i)=>`<span class="bub" style="left:${x}%;animation-delay:-${i*1.5}s"></span>`).join("")+
+      [[3,"#2fae5a"],[93,"#3bbf6a"],[47,"#2fae5a"]].map(([x,c],i)=>`<svg class="weed" style="left:${x}%;animation-delay:-${i}s" viewBox="0 0 40 90" aria-hidden="true"><path d="M20 90q-14-20 0-40t0-46q16 24 4 46t2 40z" fill="${c}" stroke="#1d7a3e" stroke-width="3"/></svg>`).join("");
+  }
+  const fishSvg=c=>`<svg class="body" viewBox="0 0 200 112" aria-hidden="true"><g stroke="#3a2a22" stroke-width="5" stroke-linejoin="round">
+    <path d="M96 12q30-22 56 4" fill="${c}"/><path d="M44 56 4 16q14 40 0 80z" fill="${c}"/><ellipse cx="114" cy="56" rx="82" ry="50" fill="${c}"/>
+    <path d="M110 92q10 14 26 10" fill="${c}"/></g><circle cx="181" cy="40" r="7" fill="#3a2a22"/><circle cx="183" cy="37.5" r="2.4" fill="#fff"/>
+    <path d="M196 62q-4 5-10 3" fill="none" stroke="#3a2a22" stroke-width="4" stroke-linecap="round"/></svg>`;
+  function fitText(tag){
+    const sp=tag.querySelector("span");if(!sp)return;
+    let fs=Math.min(tag.clientHeight*.62,44);sp.style.fontSize=fs+"px";
+    for(let k=0;k<30&&(sp.scrollWidth>tag.clientWidth-8||sp.scrollHeight>tag.clientHeight-4)&&fs>11;k++){fs-=1.5;sp.style.fontSize=fs+"px"}
+  }
+  function newQuestion(){
+    S.busy=false;S.tries=0;
+    fish.forEach(f=>f.el.remove());fish=[];sea.querySelectorAll(".line,.cheer").forEach(x=>x.remove());
+    S.target=nextTarget();renderAsk();
+    const list=choices(S.target),W=sea.clientWidth,H=sea.clientHeight;
+    // 海很矮（手機橫放）：一排放兩條魚，各游各的半邊
+    const twoPer=H<330&&W>520,lanes=twoPer?Math.ceil(list.length/2):list.length,laneH=H/lanes;
+    const fw=Math.max(110,Math.min(twoPer?W/2.6:W*.42,laneH*.86/.56,300)),fh=fw*.56;
+    const colors=shuffle(COLORS.slice());
+    list.forEach((it,k)=>{
+      const lane=twoPer?Math.floor(k/2):k,half=twoPer?k%2:-1;
+      const minX=half===1?W/2:6,maxX=(half===0?W/2:W)-fw-6;
+      const el=document.createElement("button");el.type="button";el.className="fish";el.style.setProperty("--w",fw+"px");
+      const content=S.lv===2?EN.iconIn(it.w,it.t):`<span>${it.w}</span>`;
+      el.innerHTML=fishSvg(colors[k%colors.length])+`<span class="tag">${content}</span>`;
+      el.setAttribute("aria-label",S.lv===2?"fish":it.w);
+      const f={el,it,lane,minX,maxX:Math.max(minX,maxX),x:minX+Math.random()*Math.max(0,maxX-minX),y:lane*laneH+(laneH-fh)/2,
+        v:(S.lv===1?32:S.lv===2?40:46)*(.8+Math.random()*.4)*(Math.random()<.5?-1:1),bob:Math.random()*6,fw,fh,done:false};
+      el.addEventListener("pointerdown",ev=>{ev.preventDefault();hit(f)});
+      el.addEventListener("keydown",ev=>{if(ev.key==="Enter"||ev.key===" ")hit(f)});
+      sea.appendChild(el);fish.push(f);
+      if(S.lv!==2)fitText(el.querySelector(".tag"));
+    });
+    $("prog").textContent=`${S.i+1} / ${S.total}`;
+    place(0);
+    setTimeout(sayTarget,350);
+  }
+  function place(dt){
+    fish.forEach(f=>{
+      if(f.done)return;
+      f.x+=f.v*dt*(f.fast?3.2:1);
+      if(f.x<f.minX){f.x=f.minX;f.v=Math.abs(f.v)}
+      if(f.x>f.maxX){f.x=f.maxX;f.v=-Math.abs(f.v)}
+      f.el.classList.toggle("l",f.v<0);
+      const y=f.y+Math.sin(clock*1.5+f.bob)*5;f.cy=y;
+      f.el.style.transform=`translate(${f.x}px,${y}px)`;
+    });
+  }
+  function loop(now){
+    const dt=Math.min(.05,(now-lastT)/1000||0);lastT=now;clock+=dt;
+    if(S.phase==="play")place(dt);
+    raf=requestAnimationFrame(loop);
+  }
+  function hit(f){
+    if(S.phase!=="play"||S.busy||f.done)return;
+    if(f.it.w===S.target.w&&f.it.t===S.target.t||f.it.w===S.target.w){
+      S.busy=true;f.done=true;if(S.tries===0)S.score++;
+      sfx.good();EN.mood($("parrot"),"happy");
+      // 釣魚線放下去，魚被拉上來丟進水桶
+      const line=document.createElement("div");line.className="line";line.style.left=(f.x+f.fw/2)+"px";line.style.height=(f.cy+f.fh*.25)+"px";sea.appendChild(line);
+      setTimeout(()=>{
+        const sr=sea.getBoundingClientRect(),br=$("bucket").getBoundingClientRect();
+        line.style.transition="height .7s cubic-bezier(.5,-0.2,.6,1)";line.style.height="0px";
+        f.el.classList.add("caught");
+        f.el.style.transform=`translate(${br.left-sr.left+br.width/2-f.fw/2}px,${br.top-sr.top-f.fh*.3}px) scale(.3)`;
+        sfx.splash();
+      },260);
+      setTimeout(()=>{say(S.target.w);const n=+$("caught").textContent+1;$("caught").textContent=n;
+        const b=$("bucket");b.classList.remove("bump");void b.offsetWidth;b.classList.add("bump")},900);
+      $("score").textContent=`⭐ ${S.score}`;
+      fish.forEach(o=>{if(o!==f){o.done=true;o.el.classList.add("gone")}});
+      setTimeout(()=>{S.i++;if(S.i>=S.total)finish();else if(S.phase==="play")newQuestion()},2100);
+    }else{
+      S.tries++;sfx.bad();EN.mood($("parrot"),"oops");
+      f.el.classList.remove("wrong");void f.el.offsetWidth;f.el.classList.add("wrong");
+      f.fast=true;setTimeout(()=>{f.fast=false},700);
+      setTimeout(()=>f.el.classList.add("no"),400);
+      if(S.lv<3)setTimeout(sayTarget,700);
+    }
+  }
+
+  // ---- 開始／結束 ----
+  function start(){
+    EN.unlock();
+    S.phase="play";S.i=0;S.score=0;order=[];$("score").textContent="⭐ 0";$("caught").textContent="0";
+    $("start").hidden=true;$("end").hidden=true;
+    decorate();
+    requestAnimationFrame(()=>newQuestion());
+  }
+  function finish(){
+    S.phase="end";fish.forEach(f=>f.el.remove());fish=[];
+    const r=S.score/S.total,st=r>=.9?3:r>=.6?2:1;
+    $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);
+    $("result").textContent=`${S.score} / ${S.total}`;
+    const earn=S.score+(st===3?3:0);EN.addCoins(earn);
+    $("earn").innerHTML=`+${earn} ${EN.coinSvg}`;
+    sfx.end();say(st===3?"Excellent!":st===2?"Great job!":"Good try!");
+    $("end").hidden=false;
+  }
+  $("go").onclick=start;$("replay").onclick=start;
+  addEventListener("resize",()=>{if(S.phase==="play"&&!S.busy){const H=sea.clientHeight,W=sea.clientWidth;fish.forEach(f=>{f.maxX=Math.max(f.minX,Math.min(f.maxX,W-f.fw-6));f.y=Math.min(f.y,H-f.fh)})}});
+  raf=requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

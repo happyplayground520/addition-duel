@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>寶箱與鸚鵡</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="en.css?v=20261118d">
+<style>
+/* 寶箱與鸚鵡：船的甲板上有一個放在兩個木桶上的寶箱；聽句子，把東西拖到寶箱的上面、裡面、下面、旁邊、左邊、右邊 */
+.say{flex:none;display:flex;justify-content:center;padding:2px 14px 6px}
+.sent{display:inline-flex;align-items:center;gap:10px;background:#fff;border:4px solid var(--ink);border-radius:22px;padding:6px 8px 6px 18px;
+  font-family:var(--en);font-weight:700;font-size:clamp(20px,3.6vmin,34px);line-height:1.15;box-shadow:0 5px 0 rgba(0,0,0,.12);max-width:100%}
+.sent b{color:#e0533d;background:#ffecc2;border-radius:10px;padding:0 6px}
+.sent .ibtn{flex:none;width:48px;height:48px;font-size:24px;background:#ffe9a8;box-shadow:0 3px 0 #d18e0a}
+.wrap{position:relative;flex:1;min-height:0;display:grid;place-items:center;padding:0 10px 6px}
+.stage{position:relative;border-radius:22px;overflow:hidden;box-shadow:0 0 0 5px #fff,0 0 0 9px #8a5328,0 14px 28px rgba(0,0,0,.2);touch-action:none}
+.stage>svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.front{z-index:3;pointer-events:none}
+.lidOpen{display:none}.stage.open .lidOpen{display:inline}.stage.open .lidClosed{display:none}
+.obj{position:absolute;z-index:4;cursor:grab;touch-action:none;transition:left .28s ease,top .28s ease}
+.obj::before{content:"";position:absolute;inset:-30%}
+.obj.drag{transition:none;cursor:grabbing;z-index:6;filter:drop-shadow(0 10px 8px rgba(0,0,0,.25))}
+.obj.inside{z-index:2}
+.obj>svg{width:100%;height:100%;display:block;overflow:visible}
+.obj.fixed{cursor:default}
+.obj.wig{animation:wig .4s}
+@keyframes wig{25%{rotate:-10deg}75%{rotate:10deg}}
+.obj.yay{animation:yay .55s 2}
+@keyframes yay{40%{translate:0 -14%}}
+.hint{position:absolute;z-index:1;border:4px dashed #ffd23f;border-radius:18px;background:rgba(255,226,120,.28);pointer-events:none;animation:hint 1s ease-in-out infinite;
+  display:grid;place-items:center;font-size:clamp(28px,6vmin,54px)}
+@keyframes hint{50%{background:rgba(255,226,120,.55)}}
+.spark{position:absolute;z-index:5;pointer-events:none;font-size:clamp(24px,5vmin,44px);animation:spark .9s ease-out forwards}
+@keyframes spark{from{transform:translate(-50%,-50%) scale(.3);opacity:1}to{transform:translate(-50%,-140%) scale(1.2);opacity:0}}
+/* 三顆星「Where is…?」：點英文字聽，選好按 OK */
+.answers{flex:none;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center;padding:4px 12px max(10px,env(safe-area-inset-bottom,0px))}
+.wbtn{font-family:var(--en);font-weight:700;font-size:clamp(22px,3.8vmin,32px);min-width:96px;min-height:56px;padding:4px 18px;border-radius:18px;border:4px solid #e3d3b8;
+  background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 4px 0 #d8c9ae}
+.wbtn[aria-pressed="true"]{border-color:#2f7bff;background:#e3efff;box-shadow:0 4px 0 #2f7bff}
+.wbtn.glow{animation:hint 1s infinite;border-color:#ffd23f}
+.wbtn.no{opacity:.4;pointer-events:none}
+.answers .big{min-height:56px}
+.say{align-items:flex-end;gap:8px}.mascot{flex:none;width:clamp(46px,7.5vmin,70px);height:calc(clamp(46px,7.5vmin,70px)*1.22);pointer-events:none}
+@media (max-height:500px){.sent{font-size:19px;padding:3px 6px 3px 12px;border-width:3px}.sent .ibtn{width:40px;height:40px;font-size:20px}.wbtn{min-height:46px;font-size:20px;min-width:80px}.answers .big{min-height:46px}}
+@media (prefers-reduced-motion:reduce){.hint,.obj.yay,.obj.wig{animation:none}}
+
+/* 手機橫放：句子移到最上面那一排（🏠 和 ⭐ 中間），下面的空間留給遊戲 */
+@media (max-height:500px){.say{position:absolute;z-index:6;top:max(8px,env(safe-area-inset-top,0px));left:76px;right:120px;padding:0;justify-content:center}.top .mid{visibility:hidden}.say .mascot{display:none}}
+</style>
+<script src="zhuyin.js?v=20261118d"></script>
+<link rel="stylesheet" href="park.css?v=20261118d">
+<script src="park.js?v=20261118d"></script>
+<script src="en.js?v=20261118d"></script>
+<style>body{font-family:var(--text)}</style>
+</head>
+<body>
+<header class="top">
+  <a class="ibtn" href="cove.html" aria-label="回海盜灣">🏠</a>
+  <div class="mid"><span class="pill" id="prog">1 / 10</span></div>
+  <div class="right"><span class="pill" id="score">⭐ 0</span></div>
+</header>
+<div class="say"><span class="mascot pbox" id="parrot"></span><span class="sent" id="sent"><span id="stext"></span><button type="button" class="ibtn" id="again" aria-label="再聽一次">🔊</button></span></div>
+<main class="wrap" id="wrap">
+  <div class="stage" id="stage">
+    <svg viewBox="0 0 100 75" aria-hidden="true"><g stroke="#3a2a22" stroke-width=".6" stroke-linejoin="round">
+      <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fe0ff"/><stop offset="1" stop-color="#e6f8ff"/></linearGradient></defs>
+      <rect width="100" height="75" fill="url(#sky)" stroke="none"/>
+      <circle cx="86" cy="9" r="5" fill="#ffe27a" stroke="none"/>
+      <path d="M14 10q3-3 6 0q3-2 5 1h-11z M58 7q3-3 6 0q3-2 5 1H58z" fill="#fff" stroke="none" opacity=".9"/>
+      <rect y="27" width="100" height="14" fill="#3fb6dc" stroke="none"/><path d="M0 29q4-1.5 8 0t8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0" fill="none" stroke="#fff" stroke-width=".7" opacity=".7"/>
+      <!-- 船邊的欄杆 -->
+      <rect y="33" width="100" height="2.4" fill="#b9773e"/>
+      <path d="M4 35v14M14 35v14M24 35v14M34 35v14M44 35v14M54 35v14M64 35v14M74 35v14M84 35v14M94 35v14" stroke="#8a5328" stroke-width="1.6"/>
+      <!-- 甲板 -->
+      <path d="M0 48h100v27H0z" fill="#d9a066"/><path d="M0 48h100" stroke-width=".8"/>
+      <path d="M0 54h100M0 61h100M0 68h100" stroke="#b9773e" stroke-width=".5" fill="none"/>
+      <path d="M20 48l-6 27M50 48v27M80 48l6 27M35 48l-3 27M65 48l3 27" stroke="#b9773e" stroke-width=".4" fill="none"/>
+      <!-- 起點：左上角的鸚鵡站架 -->
+      <path d="M10 22v44" stroke="#8a5328" stroke-width="1.8"/><path d="M3 22h14" stroke="#6e4122" stroke-width="2.2" stroke-linecap="round"/><ellipse cx="10" cy="66" rx="5" ry="1.4" fill="#8a5328"/>
+      <!-- 兩個木桶 -->
+      <g fill="#b06a35"><path d="M32 40h9.5q1.5 12 0 24H32q-1.5-12 0-24z"/><path d="M58.5 40H68q1.5 12 0 24h-9.5q-1.5-12 0-24z"/></g>
+      <path d="M31.4 45h10.6M31.4 59h10.6M58 45h10.6M58 59h10.6" stroke="#6b7a86" stroke-width="1.2"/>
+      <!-- 寶箱打開時：蓋子往後倒、看得到裡面（東西放進去才打開） -->
+      <g class="lidOpen"><path d="M33 21l3-13h28l3 13z" fill="#a0562b"/><path d="M36 8h28" stroke="#ffd23f" stroke-width="1"/><path d="M41 9l-1.6 11.4M59 9l1.6 11.4" stroke="#ffd23f" stroke-width="1.1"/>
+      <path d="M32 21h36l-1 3H33z" fill="#4a2a14"/>
+      <circle cx="40" cy="22" r="1.6" fill="#ffd23f"/><circle cx="56" cy="22.4" r="1.4" fill="#ffd23f"/><circle cx="48" cy="22" r="1.2" fill="#fff6b0" stroke="none"/></g>
+    </g></svg>
+    <!-- 寶箱前面的木板（「在裡面」的東西會被它擋住一半） -->
+    <svg class="front" viewBox="0 0 100 75" aria-hidden="true"><g stroke="#3a2a22" stroke-width=".6" stroke-linejoin="round">
+      <rect x="31.5" y="22" width="37" height="18.5" rx="1.6" fill="#c46f36"/>
+      <path d="M31.5 28.5h37M31.5 34.5h37" stroke="#8a4a22" stroke-width=".5"/>
+      <path d="M31.5 22h37" stroke="#ffd23f" stroke-width="1.4"/>
+      <rect x="31.5" y="22" width="3.2" height="18.5" fill="#ffd23f"/><rect x="65.3" y="22" width="3.2" height="18.5" fill="#ffd23f"/>
+      <!-- 蓋著的蓋子（東西「在上面」就坐在這裡） -->
+      <g class="lidClosed"><path d="M31.5 22.6v-5q18.5-9.5 37 0v5z" fill="#a0562b"/><path d="M31.5 17.6q18.5-9.5 37 0" fill="none" stroke="#ffd23f" stroke-width="1.2"/>
+      <path d="M40.5 13.6v9M59.5 13.6v9" stroke="#ffd23f" stroke-width="1.6"/></g>
+      <rect x="46" y="26" width="8" height="8.5" rx="1.4" fill="#ffd23f"/><path d="M50 29v2.6" stroke-width="1.1"/><circle cx="50" cy="28.8" r="1" fill="#3a2a22"/>
+    </g></svg>
+  </div>
+</main>
+<div class="answers" id="answers" hidden></div>
+
+<section class="panel" id="start">
+  <div class="box">
+    <h2>📦 寶箱與鸚鵡</h2>
+    <p class="sub">On, In, Under</p>
+    <button type="button" class="helpbtn" id="help">🔊 中文說明</button>
+    <span class="lbl2">Level</span>
+    <div class="row" id="levels">
+      <button type="button" class="opt" data-lv="1" aria-label="一顆星"><span class="lvst">⭐</span><small>on · in · under</small></button>
+      <button type="button" class="opt" data-lv="2" aria-label="兩顆星"><span class="lvst">⭐⭐</span><small>+ next to</small></button>
+      <button type="button" class="opt" data-lv="3" aria-label="三顆星"><span class="lvst">⭐⭐⭐</span><small>+ left · right</small></button>
+    </div>
+    <span class="lbl2">Questions</span>
+    <div class="row" id="totals">
+      <button type="button" class="opt" data-n="5" aria-label="5 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button>
+      <button type="button" class="opt" data-n="10" aria-label="10 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>10</small></button>
+      <button type="button" class="opt" data-n="15" aria-label="15 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>15</small></button>
+    </div>
+    <button type="button" class="big" id="go">READY</button>
+  </div>
+</section>
+<section class="panel" id="end" hidden>
+  <div class="box">
+    <h2 class="en">Great job!</h2>
+    <div id="stars">⭐⭐⭐</div>
+    <div id="result">0 / 10</div>
+    <span class="earn" id="earn"></span>
+    <div class="endrow">
+      <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+      <a class="big alt ico-btn" href="cove.html" aria-label="回海盜灣">🏠</a>
+    </div>
+  </div>
+</section>
+
+<script>
+(()=>{
+  const $=id=>document.getElementById(id),{pref,rnd,shuffle,pick,say,sfx}=EN;
+  const S={lv:+pref("chest-lv")||1,total:+pref("chest-total")||10,phase:"start",i:0,score:0,tries:0,q:null,busy:false,sel:null};
+  if(![1,2,3].includes(S.lv))S.lv=1;if(![5,10,15].includes(S.total))S.total=10;
+  $("parrot").innerHTML=EN.parrot();
+  function sync(){
+    document.querySelectorAll("#levels .opt").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
+    document.querySelectorAll("#totals .opt").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===S.total));
+  }
+  document.querySelectorAll("#levels .opt").forEach(b=>b.onclick=()=>{S.lv=+b.dataset.lv;pref("chest-lv",S.lv);sync()});
+  document.querySelectorAll("#totals .opt").forEach(b=>b.onclick=()=>{S.total=+b.dataset.n;pref("chest-total",S.total);sync()});
+  sync();
+  const HELP={
+    1:"寶箱與鸚鵡，一顆星。仔細聽英文句子，用手指把東西拖到寶箱的上面、裡面或下面。上面是 on，裡面是 in，下面是 under。點喇叭可以再聽一次。",
+    2:"寶箱與鸚鵡，兩顆星。除了上面 on、裡面 in、下面 under，還有旁邊 next to。仔細聽，把東西拖到對的地方。",
+    3:"寶箱與鸚鵡，三顆星。多了左邊 left 和右邊 right，就是你看著螢幕的左邊和右邊。有些題目會問東西在哪裡，點英文字可以聽聽看，選好了再按 OK。"
+  };
+  EN.helpBtn($("help"),()=>HELP[S.lv]);
+
+  // ---- 場景座標（寬 100、高 75）：每個區域和放上去的位置（東西的底部中間） ----
+  const Z={
+    on:{r:[29,0,71,19],a:[50,13.4]},
+    in:{r:[32,19,68,40],a:[50,29]},
+    under:{r:[41.5,40,58.5,68],a:[50,64]},
+    left:{r:[5,34,31,75],a:[20,66]},
+    right:{r:[69,34,96,75],a:[80,66]}
+  };
+  const HOME=[10,22];
+  const OBJ={parrot:{w:13,h:15.9,svg:()=>EN.parrot()},cat:{w:13,h:13,svg:()=>EN.icon("cat")},ball:{w:11,h:11,svg:()=>EN.icon("ball")}};
+  const PHRASE={on:"on",in:"in",under:"under","next to":"next to",left:"to the left of",right:"to the right of"};
+  const stage=$("stage"),wrap=$("wrap");
+  function fit(){
+    const r=wrap.getBoundingClientRect(),w=Math.min(r.width-24,(r.height-16)*4/3,1100);
+    stage.style.width=w+"px";stage.style.height=w*.75+"px";
+  }
+  addEventListener("resize",fit);
+  let el=null;
+  function putAt(x,y,anim=true){
+    const o=OBJ[S.q.obj];
+    if(!anim)el.style.transition="none";
+    el.style.left=(x-o.w/2)+"%";el.style.top=((y-o.h)/75*100)+"%";
+    if(!anim){void el.offsetWidth;el.style.transition=""}
+  }
+  function zoneAt(x,y){
+    for(const k of ["on","in","under","left","right"]){const [a,b,c,d]=Z[k].r;if(x>=a&&x<=c&&y>=b&&y<=d)return k}
+    return null;
+  }
+  const okFor=(prep,zone)=>prep===zone||(prep==="next to"&&(zone==="left"||zone==="right"));
+  function showHint(prep){
+    clearHint();
+    const ks=prep==="next to"?["left","right"]:[prep];
+    ks.forEach(k=>{const [a,b,c,d]=Z[k].r,h=document.createElement("div");h.className="hint";
+      Object.assign(h.style,{left:a+"%",top:b/75*100+"%",width:(c-a)+"%",height:(d-b)/75*100+"%"});
+      if(prep==="left")h.textContent="⬅️";if(prep==="right")h.textContent="➡️";stage.appendChild(h)});
+  }
+  const clearHint=()=>stage.querySelectorAll(".hint").forEach(h=>h.remove());
+  function spark(x,y){const s=document.createElement("span");s.className="spark";s.textContent="✨";s.style.left=x+"%";s.style.top=y/75*100+"%";stage.appendChild(s);setTimeout(()=>s.remove(),900)}
+
+  // ---- 出題 ----
+  let last=null;
+  function makeQ(){
+    const preps=S.lv===1?["on","in","under"]:S.lv===2?["on","in","under","next to"]:["on","in","under","next to","left","right"];
+    let p;do{p=pick(preps)}while(p===last&&preps.length>1);last=p;
+    const obj=pick(Object.keys(OBJ));
+    // 三顆星：一半的題目反過來問「Where is…?」
+    const ask=S.lv===3&&Math.random()<.5&&p!=="left"&&p!=="right";
+    return{prep:p,obj,ask,zone:ask?(p==="next to"?pick(["left","right"]):p):null};
+  }
+  const sentence=q=>q.ask?`Where is the ${q.obj}?`:`Put the ${q.obj} ${PHRASE[q.prep]} the box.`;
+  function showSentence(q){
+    const t=sentence(q);
+    $("stext").innerHTML=q.ask?t.replace(q.obj,`<b>${q.obj}</b>`):t.replace(PHRASE[q.prep]+" the",`<b>${PHRASE[q.prep]}</b> the`);
+  }
+  const sayQ=()=>{if(S.q)say(sentence(S.q))};
+  $("again").onclick=sayQ;
+  function newQuestion(){
+    S.busy=false;S.tries=0;S.sel=null;clearHint();stage.classList.remove("open");
+    S.q=makeQ();showSentence(S.q);
+    if(el)el.remove();
+    el=document.createElement("div");el.className="obj";const o=OBJ[S.q.obj];
+    el.style.width=o.w+"%";el.style.height=(o.h/75*100)+"%";el.innerHTML=o.svg();
+    stage.appendChild(el);
+    if(S.q.ask){
+      const a=Z[S.q.zone].a;putAt(a[0],a[1],false);el.classList.add("fixed");el.classList.toggle("inside",S.q.zone==="in");stage.classList.toggle("open",S.q.zone==="in");
+      renderAnswers();
+    }else{
+      putAt(HOME[0],HOME[1],false);$("answers").hidden=true;bindDrag();
+    }
+    $("prog").textContent=`${S.i+1} / ${S.total}`;fit();
+    setTimeout(sayQ,350);
+  }
+  // ---- 拖曳 ----
+  function bindDrag(){
+    let down=false,off=[0,0];
+    const pt=e=>{const r=stage.getBoundingClientRect();return[(e.clientX-r.left)/r.width*100,(e.clientY-r.top)/r.height*75]};
+    el.addEventListener("pointerdown",e=>{
+      if(S.busy||S.phase!=="play")return;e.preventDefault();down=true;try{el.setPointerCapture(e.pointerId)}catch(err){}
+      const o=OBJ[S.q.obj],[x,y]=pt(e),cx=parseFloat(el.style.left)+o.w/2,by=parseFloat(el.style.top)*.75+o.h;
+      off=[cx-x,by-y];el.classList.add("drag");el.classList.remove("inside");sfx.pop();
+    });
+    el.addEventListener("pointermove",e=>{if(!down)return;const [x,y]=pt(e);putAt(x+off[0],y+off[1]);
+      const o=OBJ[S.q.obj];stage.classList.toggle("open",zoneAt(x+off[0],y+off[1]-o.h/2)==="in")});
+    const up=e=>{
+      if(!down)return;down=false;el.classList.remove("drag");
+      const o=OBJ[S.q.obj],[x,y]=pt(e),cx=x+off[0],cy=y+off[1]-o.h/2;
+      drop(zoneAt(cx,cy));
+    };
+    el.addEventListener("pointerup",up);el.addEventListener("pointercancel",()=>{down=false;el.classList.remove("drag");stage.classList.remove("open");putAt(HOME[0],HOME[1])});
+  }
+  function drop(zone){
+    if(!zone){putAt(HOME[0],HOME[1]);stage.classList.remove("open");return}
+    const a=Z[zone].a;putAt(a[0],a[1]);el.classList.toggle("inside",zone==="in");stage.classList.toggle("open",zone==="in");
+    if(okFor(S.q.prep,zone))good(a);
+    else{
+      S.busy=true;S.tries++;sfx.bad();EN.mood($("parrot"),"oops");
+      setTimeout(()=>{el.classList.remove("inside");stage.classList.remove("open");el.classList.add("wig");putAt(HOME[0],HOME[1]);
+        setTimeout(()=>{el.classList.remove("wig");S.busy=false;if(S.tries>=2)showHint(S.q.prep);sayQ()},420)},450);
+    }
+  }
+  function good(a){
+    S.busy=true;if(S.tries===0)S.score++;$("score").textContent=`⭐ ${S.score}`;
+    clearHint();sfx.good();EN.mood($("parrot"),"happy");spark(a[0],a[1]-8);
+    setTimeout(()=>{el.classList.add("yay")},280);
+    const q=S.q,where=q.ask?(q.prep):PHRASE[q.prep];
+    setTimeout(()=>say(`${pick(EN.PRAISE)} The ${q.obj} is ${where} the box.`),450);
+    setTimeout(()=>{S.i++;if(S.i>=S.total)finish();else if(S.phase==="play")newQuestion()},3300);
+  }
+  // ---- 三顆星：Where is…? ----
+  function renderAnswers(){
+    const box=$("answers");box.hidden=false;
+    box.innerHTML=["on","in","under","next to"].map(w=>`<button type="button" class="wbtn" data-w="${w}" aria-pressed="false">${w}</button>`).join("")+
+      `<button type="button" class="big ok" id="ok" disabled>OK</button>`;
+    box.querySelectorAll(".wbtn").forEach(b=>b.onclick=()=>{
+      if(S.busy)return;S.sel=b.dataset.w;say(S.sel);
+      box.querySelectorAll(".wbtn").forEach(x=>x.setAttribute("aria-pressed",x===b));$("ok").disabled=false;
+    });
+    $("ok").onclick=()=>{
+      if(S.busy||!S.sel)return;
+      if(S.sel===S.q.prep){box.querySelectorAll(".wbtn").forEach(x=>x.classList.remove("glow"));good(Z[S.q.zone].a)}
+      else{
+        S.tries++;sfx.bad();EN.mood($("parrot"),"oops");el.classList.add("wig");setTimeout(()=>el.classList.remove("wig"),420);
+        const b=box.querySelector(`[data-w="${S.sel}"]`);b.classList.add("no");b.setAttribute("aria-pressed","false");S.sel=null;$("ok").disabled=true;
+        if(S.tries>=2)box.querySelector(`[data-w="${S.q.prep}"]`).classList.add("glow");
+        setTimeout(sayQ,500);
+      }
+    };
+  }
+
+  // ---- 開始／結束 ----
+  function start(){
+    EN.unlock();S.phase="play";S.i=0;S.score=0;last=null;$("score").textContent="⭐ 0";
+    $("start").hidden=true;$("end").hidden=true;fit();newQuestion();
+  }
+  function finish(){
+    S.phase="end";$("answers").hidden=true;
+    const r=S.score/S.total,st=r>=.9?3:r>=.6?2:1;
+    $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);$("result").textContent=`${S.score} / ${S.total}`;
+    const earn=S.score+(st===3?3:0);EN.addCoins(earn);$("earn").innerHTML=`+${earn} ${EN.coinSvg}`;
+    sfx.end();say(st===3?"Excellent!":st===2?"Great job!":"Good try!");$("end").hidden=false;
+  }
+  $("go").onclick=start;$("replay").onclick=start;
+  fit();
+})();
+</script>
+</body>
+</html>
