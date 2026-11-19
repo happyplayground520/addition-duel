@@ -32,7 +32,7 @@ body{color:var(--ink);font-family:var(--text);overflow:hidden;-webkit-user-selec
 .title .tz-b,.title .zy .b{color:#e6e0ff}
 .right{display:flex;gap:10px;align-items:center}
 .score{font-family:var(--num);font-weight:800;font-size:clamp(18px,3.2vmin,28px);background:rgba(255,255,255,.92);border-radius:999px;padding:4px 14px;white-space:nowrap}
-main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(10px,2.4vh,26px);
+main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:safe center;overflow-y:auto;gap:clamp(10px,2.4vh,26px);
   padding:0 max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
 .ask{background:#fff;border-radius:999px;padding:.3em 1.1em;font-weight:800;font-size:clamp(19px,3.4vmin,30px);box-shadow:0 5px 0 rgba(0,0,0,.2)}
 /* 列車和軌道 */
@@ -85,6 +85,17 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
 @keyframes glow{50%{box-shadow:0 0 0 6px #ffe27a,0 6px 0 #9c8cff}}
 .msg{min-height:1.4em;font-weight:800;font-size:clamp(17px,2.8vmin,24px);color:#fff;text-align:center}
 .msg.good{color:#8ff0b5}.msg.bad{color:#ffd0d0}
+/* 兩人：分數條、出題的按鈕 */
+.turnbar{display:flex;gap:14px;justify-content:center}
+.turnbar .p{display:flex;align-items:center;gap:6px;background:#fff;border-radius:999px;padding:4px 16px;font-weight:800;font-size:clamp(17px,2.8vmin,24px);opacity:.5;transition:opacity .2s,box-shadow .2s}
+.turnbar .p b{font-family:var(--num);font-size:1.25em}
+.turnbar .p.on{opacity:1;box-shadow:0 0 0 4px var(--pc),0 0 18px var(--pc)}
+.p0{--pc:#4d8dff}.p1{--pc:#ff9a4d}
+.maker{display:flex;flex-direction:column;align-items:center;gap:14px}
+.mkrow{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.mkb{font:inherit;font-weight:800;font-size:clamp(18px,3vmin,24px);border:0;border-radius:999px;padding:.4em 1.2em;cursor:pointer;background:#fff;color:var(--ink);box-shadow:0 5px 0 #9c8cff;min-height:50px}
+.mkb.go{background:#1f9d61;color:#fff;box-shadow:0 5px 0 #136b41}.mkb.go .zy .b,.mkb.go .tz-b{color:#fff}
+.train.making .car{cursor:pointer}
 /* 開始／結束畫面 */
 .cover{position:fixed;inset:0;z-index:20;display:grid;place-items:start center;overflow-y:auto;-webkit-overflow-scrolling:touch;background:rgba(38,37,106,.6);
   padding:max(12px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
@@ -109,12 +120,18 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
 @media (max-height:500px){main{gap:6px}.ask{font-size:17px;padding:.2em .9em}.rule,.msg{font-size:15px;min-height:1.2em}.ch{width:62px;border-radius:16px;font-size:34px}.ch.num{font-size:28px}.station{padding-bottom:12px}}
 @media (max-width:400px) and (orientation:portrait){.choices{gap:9px}.ch{width:68px;border-radius:18px;font-size:36px}.ch.num{font-size:30px}.ask{font-size:18px}}
 @media (max-width:340px){.ch{width:60px;font-size:32px}.ch.num{font-size:26px}main{gap:8px}}
+/* 手機橫放的兩人模式：圖案和按鈕排成一排，分數條小一點 */
+/* 手機直放比較矮：出題的按鈕小一點、兩個按鈕並排 */
+@media (orientation:portrait) and (max-width:600px){.turnbar .p{font-size:15px;padding:2px 12px}#mkpal{gap:8px}#mkpal .ch{width:54px;font-size:30px;border-radius:14px}
+  .maker{gap:8px}.mkrow{flex-wrap:nowrap;gap:8px}.mkb{font-size:16px;min-height:44px;padding:.25em .8em}}
+@media (max-height:500px){.turnbar .p{font-size:14px;padding:1px 10px}.maker{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:8px}
+  #mkpal{gap:6px}#mkpal .ch{width:48px;font-size:26px;border-radius:14px}.mkrow{gap:8px}.mkb{font-size:15px;min-height:42px;padding:.25em .8em}}
 @media (prefers-reduced-motion:reduce){.train{transition:none}.car.blank{animation:none}}
 </style>
-<script src="zhuyin.js?v=20261119h"></script>
+<script src="zhuyin.js?v=20261119j"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261119h">
-<script src="park.js?v=20261119h"></script>
+<link rel="stylesheet" href="park.css?v=20261119j">
+<script src="park.js?v=20261119j"></script>
 </head>
 <body data-park>
 <header class="top">
@@ -123,17 +140,29 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
   <div class="right"><span class="score" id="score">⭐ 0</span><button type="button" class="ibtn" id="again" aria-label="再念一次題目">🔊</button></div>
 </header>
 <main>
+  <div class="turnbar" id="turnbar" hidden><span class="p p0" id="tb0">🔵 <span data-zy>藍色</span> <b id="pt0">0</b></span><span class="p p1" id="tb1">🟠 <span data-zy>橘色</span> <b id="pt1">0</b></span></div>
   <div class="ask" id="ask" data-zy>空的車廂要放什麼？</div>
   <div class="station"><div class="train away" id="train"></div></div>
   <div class="rule" id="rule" data-zy aria-live="polite"></div>
   <div class="choices" id="choices"></div>
+  <!-- 出題給對方：出題的人用這些圖案排列車 -->
+  <div class="maker" id="maker" hidden><div class="choices" id="mkpal"></div>
+    <div class="mkrow"><button type="button" class="mkb" id="mkUndo" data-zy>↩️ 退一個</button><button type="button" class="mkb go" id="mkDone" data-zy>✅ 出題好了</button></div></div>
   <div class="msg" id="msg" data-zy aria-live="polite"></div>
+  <section class="cover" id="hand" hidden>
+    <div class="box"><h2 id="handT"></h2><p data-zy>把平板交給對方。<br>出題的人不要偷偷說答案喔！</p><button type="button" class="big" id="handGo" data-zy>我準備好了</button></div>
+  </section>
 
   <section class="cover" id="start">
     <div class="box">
       <h2>🚃 太空列車排排看</h2>
       <p data-zy>太空列車的車廂有一個是空的，<br>找出排列的規律，選出空車廂要放什麼！</p>
-      <span class="lbl">難度</span>
+      <span class="lbl">玩法</span>
+      <div class="row" id="modes">
+        <button type="button" class="opt" data-m="1" aria-label="一個人"><span class="lvst">👤</span><small>一個人</small></button>
+        <button type="button" class="opt" data-m="2" aria-label="出題給對方"><span class="lvst">👥</span><small>出題給對方</small></button>
+      </div>
+      <span class="lbl" id="lvLbl">難度</span>
       <div class="row" id="levels">
         <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small>🌙⭐🌙⭐</small></button>
         <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small>🌙⭐🪐🌙</small></button>
@@ -163,10 +192,17 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
   const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
   const pick=a=>a[rnd(0,a.length-1)];
   const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
-  const S={lv:[1,2,3].includes(+pref("sky-pattern-lv"))?+pref("sky-pattern-lv"):1,total:10,round:0,score:0,tries:0,phase:"start",q:null,last:""};
+  const S={lv:[1,2,3].includes(+pref("sky-pattern-lv"))?+pref("sky-pattern-lv"):1,total:10,round:0,score:0,tries:0,phase:"start",q:null,two:pref("sky-pattern-mode")==="2",turn:0,pts:[0,0],build:[],blank:-1,last:""};
   const syncLv=()=>document.querySelectorAll("#levels button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
   document.querySelectorAll("#levels button").forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("sky-pattern-lv",S.lv);syncLv()}));
   syncLv();
+  // 玩法：一個人／出題給對方（出題時只用圖案，所以不用選難度）
+  const PN=["藍色","橘色"];
+  const syncMode=()=>{document.querySelectorAll("#modes button").forEach(b=>b.setAttribute("aria-pressed",(b.dataset.m==="2")===S.two));$("levels").hidden=$("lvLbl").hidden=S.two};
+  document.querySelectorAll("#modes button").forEach(b=>b.addEventListener("click",()=>{S.two=b.dataset.m==="2";pref("sky-pattern-mode",S.two?"2":"1");syncMode()}));
+  syncMode();
+  // on：分數條上亮起來的人（出題時是出題的人，猜的時候是猜的人）
+  function updTurn(on){$("turnbar").hidden=!S.two;[0,1].forEach(k=>{$("pt"+k).textContent=S.pts[k];$("tb"+k).classList.toggle("on",S.two&&on===k)})}
   {const n0=+pref("sky-pattern-total");if([5,10,15].includes(n0))S.total=n0;
    const cs=[...document.querySelectorAll("#counts button")],sync=()=>cs.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===S.total));
    sync();cs.forEach(b=>b.addEventListener("click",()=>{S.total=+b.dataset.n;pref("sky-pattern-total",S.total);sync()}))}
@@ -242,8 +278,10 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
     // 一節車廂多寬：車頭（1.25 節）加上所有車廂要放得下；手機橫放時也不能太高
     let cw=Math.floor((W-(n+1)*5)/(n+1.25));
     // 手機直放太窄：車廂排成兩排（一排 4 節），車廂才夠大
+    if(S.two&&S.phase==="make")cw=Math.floor(cw*.85);
     const wrap=!land&&innerWidth<560&&cw<64;
-    if(wrap)cw=Math.min(84,Math.floor((W-3*8)/4),Math.floor((innerHeight-400)/2.4));
+    if(wrap)cw=Math.min(84,Math.floor((W-3*8)/4),Math.floor((innerHeight-(S.two?520:400))/2.4));
+    if(wrap&&S.two&&S.phase==="make")cw=Math.min(cw,72);
     cw=Math.min(cw,land?Math.floor((innerHeight-60)/3.3):Math.floor(innerHeight/6.2),130);
     document.documentElement.style.setProperty("--cw",Math.max(38,cw)+"px");
     $("train").classList.toggle("wrap",wrap);
@@ -253,7 +291,7 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
     t.innerHTML=q.seq.map((v,i)=>{
       const c=CARC[i%CARC.length],isBlank=i===q.blank;
       const inner=q.kind==="num"?`<b>${v}</b>`:`<span>${v}</span>`;
-      const grp=q.kind==="pic"?`<i class="grp" style="--gc:${GRP[Math.floor(i/q.unit)%GRP.length]}"></i>`:"";
+      const grp=q.kind==="pic"&&q.unit?`<i class="grp" style="--gc:${GRP[Math.floor(i/q.unit)%GRP.length]}"></i>`:"";
       const step=q.kind==="num"&&i<q.seq.length-1?`<i class="step">${q.d>0?"+":"−"}${Math.abs(q.d)}</i>`:"";
       return `<div class="car${isBlank?" blank":""}" style="--c:${c}" data-i="${i}"><span class="win">${isBlank?"":inner}</span>${grp}${step}</div>`;
     }).join("")+`<div class="loco">${LOCO}</div>`;
@@ -262,6 +300,7 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
   const sayQ=()=>say(S.q.kind==="num"?"找出數字的規律，空的車廂要放哪個數字？":"找出圖案的規律，空的車廂要放什麼？");
   function next(){
     if(S.round>=S.total)return finish();
+    if(S.two)return makeRound();
     S.round++;S.tries=0;S.phase="arrive";const q=S.q=newQ();upd();
     const t=$("train");t.classList.remove("hint","leave");t.classList.add("away");t.style.transition="none";drawTrain(q);
     $("rule").innerHTML="";$("msg").textContent="";$("msg").className="msg";
@@ -272,9 +311,63 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
     void t.offsetWidth;setTimeout(()=>{t.style.transition="";t.classList.remove("away");sfx.toot()},40);
     setTimeout(()=>{if(S.q===q){S.phase="play";sayQ()}},700);
   }
+  // ---- 出題給對方 ----
+  const MK=["🌙","⭐","🪐","👽","🚀","🌍"];
+  $("mkpal").innerHTML=MK.map(e=>`<button type="button" class="ch" data-e="${e}" aria-label="${NAME[e]}">${e}</button>`).join("");
+  function makeRound(){
+    S.round++;S.tries=0;S.phase="make";S.build=[];S.blank=-1;upd();updTurn(S.turn);
+    $("choices").hidden=true;$("maker").hidden=false;$("rule").innerHTML="";
+    $("ask").textContent=`${S.turn?"🟠":"🔵"} ${PN[S.turn]}出題：排一列車，點一節變成空的`;
+    $("msg").textContent="點下面的圖案，一節一節排上去";$("msg").className="msg";
+    const t=$("train");t.classList.remove("hint","leave","away");t.style.transition="none";drawMake();
+    say(`${PN[S.turn]}出題。點圖案排一列太空列車，再點一節車廂，讓它變成空的。`);
+  }
+  function drawMake(){
+    const t=$("train"),q=S.q={kind:"pic",seq:S.build.slice(),blank:S.blank,unit:0,make:true};
+    drawTrain(q);size(Math.max(S.build.length,6));t.classList.add("making");
+    t.querySelectorAll(".car").forEach(c=>c.addEventListener("click",()=>{if(S.phase!=="make")return;const i=+c.dataset.i;S.blank=S.blank===i?-1:i;sfx.pip(2);drawMake()}));
+  }
+  $("mkpal").querySelectorAll(".ch").forEach(b=>b.addEventListener("click",()=>{
+    if(S.phase!=="make")return;if(S.build.length>=8){$("msg").textContent="最多 8 節車廂";return}
+    S.build.push(b.dataset.e);sfx.pip(S.build.length);drawMake();
+    $("msg").textContent=S.build.length>=4?"排好了就點一節車廂變成空的，再按「出題好了」":"再多排幾節（至少 4 節）";$("msg").className="msg"}));
+  $("mkUndo").addEventListener("click",()=>{if(S.phase!=="make"||!S.build.length)return;S.build.pop();if(S.blank>=S.build.length)S.blank=-1;drawMake()});
+  $("mkDone").addEventListener("click",()=>{
+    if(S.phase!=="make")return;const seq=S.build.slice();
+    if(seq.length<4){$("msg").textContent="至少要排 4 節車廂喔";$("msg").className="msg bad";sfx.bad();return}
+    if(new Set(seq).size<2){$("msg").textContent="要用兩種以上的圖案";$("msg").className="msg bad";sfx.bad();return}
+    const blank=S.blank>=0?S.blank:seq.length-1,ans=seq[blank];
+    // 選項：列車上用到的圖案，再補一個沒用到的（3～4 個）
+    const opts=new Set(seq);for(const e of shuffle(MK.slice())){if(opts.size>=3)break;opts.add(e)}
+    const list=[ans,...[...opts].filter(e=>e!==ans)].slice(0,4);
+    S.q={kind:"pic",seq,blank,ans,opts:shuffle(list),unit:0,two:true,ruleTx:"",ruleShow:""};
+    S.phase="hand";const g=1-S.turn;$("handT").textContent=`換 ${g?"🟠":"🔵"} ${PN[g]} 來猜！`;$("hand").hidden=false;
+    say(`換${PN[g]}來猜！`);
+  });
+  $("handGo").addEventListener("click",()=>{
+    if(S.phase!=="hand")return;$("hand").hidden=true;const q=S.q,g=1-S.turn;
+    $("maker").hidden=true;$("choices").hidden=false;updTurn(g);
+    $("ask").textContent=`${g?"🟠":"🔵"} ${PN[g]}猜：空的車廂要放什麼？`;$("msg").textContent="";$("msg").className="msg";
+    const t=$("train");t.classList.remove("making","hint","leave");t.classList.add("away");t.style.transition="none";drawTrain(q);
+    $("choices").innerHTML=q.opts.map(v=>`<button type="button" class="ch" data-v="${v}" aria-label="${NAME[v]||v}">${v}</button>`).join("");
+    $("choices").querySelectorAll(".ch").forEach(b=>b.addEventListener("click",()=>choose(b)));
+    S.phase="arrive";void t.offsetWidth;setTimeout(()=>{t.style.transition="";t.classList.remove("away");sfx.toot()},40);
+    setTimeout(()=>{if(S.q===q){S.phase="play";say("空的車廂要放什麼？")}},700);
+  });
   function choose(b){
     if(S.phase!=="play"&&S.phase!=="arrive")return;
     const q=S.q,v=q.kind==="num"?+b.dataset.v:b.dataset.v,t=$("train");
+    if(q.two&&v===q.ans){
+      // 兩人：猜的人第一次就猜對得 1 分，然後換人出題
+      const g=1-S.turn;S.phase="reveal";if(S.tries===0)S.pts[g]++;updTurn(g);b.classList.add("right");sfx.good();
+      const car=t.querySelector(".car.blank");car.classList.add("filled");car.querySelector(".win").innerHTML=`<span>${q.ans}</span>`;
+      const tx=S.tries===0?`${PN[g]}猜對了！得 1 分`:`${PN[g]}猜對了！`;$("msg").textContent=tx;$("msg").className="msg good";say(tx);
+      setTimeout(()=>{if(S.q!==q)return;sfx.toot();t.classList.add("leave")},2200);
+      setTimeout(()=>{if(S.q===q){S.turn=1-S.turn;next()}},3300);
+      return;
+    }
+    if(q.two){S.tries++;sfx.bad();b.classList.add("wrong");const tip="不是喔，再看看前面的車廂怎麼排";$("msg").textContent=tip;$("msg").className="msg bad";say(tip);
+      if(S.tries>=2)$("choices").querySelector(`.ch[data-v="${q.ans}"]`)?.classList.add("glow");return}
     if(v===q.ans){
       S.phase="reveal";if(S.tries===0)S.score++;upd();b.classList.add("right");sfx.good();
       const car=t.querySelector(".car.blank");car.classList.add("filled");car.querySelector(".win").innerHTML=q.kind==="num"?`<b>${q.ans}</b>`:`<span>${q.ans}</span>`;
@@ -296,11 +389,16 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
       if(S.tries>=2)$("choices").querySelector(`.ch[data-v="${q.ans}"]`)?.classList.add("glow");
     }
   }
-  const upd=()=>{$("score").textContent=`⭐ ${S.score} / ${S.total}`};
-  function start(){unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.score=0;S.last="";upd();next();
+  const upd=()=>{$("score").textContent=S.two?`🧩 ${S.round} / ${S.total}`:`⭐ ${S.score} / ${S.total}`};
+  function start(){unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.score=0;S.last="";S.turn=0;S.pts=[0,0];
+    $("maker").hidden=true;$("choices").hidden=false;updTurn(-1);upd();next();
     try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}}
   function finish(){
     S.phase="end";sfx.win();
+    if(S.two){const [a,b]=S.pts,w=a===b?-1:a>b?0:1;$("maker").hidden=true;
+      $("stars").textContent=w<0?"🤝":"🏆";$("endTitle").textContent=w<0?"平手！":`${PN[w]}贏了！`;
+      $("endText").textContent=`藍色猜對 ${a} 題，橘色猜對 ${b} 題。`;$("end").hidden=false;
+      say(w<0?`平手！兩個人都猜對${a}題`:`${PN[w]}贏了！`);return}
     const r=S.score/S.total,st=r>=.9?3:r>=.6?2:1;
     $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);
     $("endTitle").textContent=st===3?"太厲害了！":st===2?"做得很好！":"再練習一下！";
@@ -308,7 +406,7 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
     $("end").hidden=false;say(`${$("endTitle").textContent}${S.total}題裡面，有${S.score}題第一次就答對`);
   }
   $("go").addEventListener("click",start);$("replay").addEventListener("click",start);
-  $("again").addEventListener("click",()=>{if(S.q&&S.phase!=="end")sayQ()});
+  $("again").addEventListener("click",()=>{if(!S.q||S.phase==="end")return;if(S.phase==="make")say("點圖案排一列太空列車，再點一節車廂，讓它變成空的。");else if(S.q.two)say("空的車廂要放什麼？");else sayQ()});
   addEventListener("resize",()=>{if(S.q)size(S.q.seq.length)});
   upd();
 })();

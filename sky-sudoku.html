@@ -72,6 +72,14 @@ main{justify-content:center}
 .msg{min-height:1.4em;font-weight:800;font-size:clamp(17px,2.8vmin,24px);color:#fff;text-align:center}
 .msg.good{color:#8ff0b5}.msg.bad{color:#ffd0d0}
 .msg .tz-b,.msg .zy .b{color:#e6e0ff}
+/* 兩人輪流：上面的分數條，輪到的人會亮起來；放對的格子框上那個人的顏色 */
+.turnbar{display:flex;gap:14px;justify-content:center}
+.turnbar .p{display:flex;align-items:center;gap:6px;background:#fff;border-radius:999px;padding:4px 16px;font-weight:800;font-size:clamp(17px,2.8vmin,24px);opacity:.5;transition:opacity .2s,box-shadow .2s}
+.turnbar .p b{font-family:var(--num);font-size:1.25em}
+.turnbar .p.on{opacity:1;box-shadow:0 0 0 4px var(--pc),0 0 18px var(--pc)}
+.p0{--pc:#4d8dff}.p1{--pc:#ff9a4d}
+.cell.o0{box-shadow:inset 0 0 0 5px #4d8dff}.cell.o1{box-shadow:inset 0 0 0 5px #ff9a4d}
+body.two .ask{display:none}
 .legend{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;font-size:14px;color:#e6e0ff;font-weight:700}
 /* 開始／結束畫面 */
 .cover{position:fixed;inset:0;z-index:20;display:grid;place-items:start center;overflow-y:auto;-webkit-overflow-scrolling:touch;background:rgba(38,37,106,.6);
@@ -96,16 +104,16 @@ main{justify-content:center}
 
 /* 手機橫放：格子在左邊，說明和按鈕在右邊 */
 @media (max-height:500px) and (orientation:landscape){
-  main{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto 1fr auto;grid-template-areas:"board ask" "board pal" "board msg";column-gap:20px;align-items:center;justify-items:center}
-  .board{grid-area:board;--g:min(calc(100dvh - 90px),48vw)}.ask{grid-area:ask;font-size:15px}.pal{grid-area:pal;display:grid;grid-template-columns:repeat(2,auto);gap:12px}.msg{grid-area:msg;font-size:15px}
+  main{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto 1fr auto;grid-template-areas:"board turnbar" "board ask" "board pal" "board msg";column-gap:20px;align-items:center;justify-items:center}
+  .board{grid-area:board;--g:min(calc(100dvh - 90px),48vw)}.ask{grid-area:ask;font-size:15px}.turnbar{grid-area:turnbar}.turnbar .p{font-size:15px;padding:2px 10px}.pal{grid-area:pal;display:grid;grid-template-columns:repeat(2,auto);gap:12px}.msg{grid-area:msg;font-size:15px}
   .pb{width:62px;font-size:34px;border-radius:16px}}
 @media (max-width:400px) and (orientation:portrait){.pal{gap:10px}.pb{width:66px;font-size:36px}.board{gap:5px;padding:8px}}
 @media (prefers-reduced-motion:reduce){.cell,.pb{animation:none!important}}
 </style>
-<script src="zhuyin.js?v=20261119h"></script>
+<script src="zhuyin.js?v=20261119j"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261119h">
-<script src="park.js?v=20261119h"></script>
+<link rel="stylesheet" href="park.css?v=20261119j">
+<script src="park.js?v=20261119j"></script>
 </head>
 <body data-park>
 <header class="top">
@@ -114,6 +122,7 @@ main{justify-content:center}
   <div class="right"><span class="score" id="score">🧩 0</span><button type="button" class="ibtn" id="again" aria-label="再聽一次說明">🔊</button></div>
 </header>
 <main>
+  <div class="turnbar" id="turnbar" hidden><span class="p p0" id="tb0">🔵 <span data-zy>藍色</span> <b id="pt0">0</b></span><span class="p p1" id="tb1">🟠 <span data-zy>橘色</span> <b id="pt1">0</b></span></div>
   <div class="ask" id="ask" data-zy>每一排、每一直排、每一個小方塊，<br>四種圖案都只能出現一次！</div>
   <div class="board" id="board" role="grid" aria-label="數獨"></div>
   <div class="pal" id="pal"></div>
@@ -123,6 +132,11 @@ main{justify-content:center}
     <div class="box">
       <h2>👽 星際數獨</h2>
       <p data-zy>每一橫排、每一直排、每一個小方塊裡，<br>四種外星人和星球都只能出現一次。<br>點空格，再點下面的圖案！</p>
+      <span class="lbl">玩法</span>
+      <div class="row" id="modes">
+        <button type="button" class="opt" data-m="1" aria-label="一個人"><span class="lvst">👤</span><small>一個人</small></button>
+        <button type="button" class="opt" data-m="2" aria-label="兩人輪流"><span class="lvst">👥</span><small>兩人輪流</small></button>
+      </div>
       <span class="lbl">難度</span>
       <div class="row" id="levels">
         <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small>空 4 格</small></button>
@@ -157,10 +171,18 @@ main{justify-content:center}
   const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
   const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
   const BLANKS={1:4,2:7,3:10};
-  const S={lv:[1,2,3].includes(+pref("sky-sudoku-lv"))?+pref("sky-sudoku-lv"):1,total:3,round:0,first:0,cells:0,phase:"start",sel:-1,sym:-1,miss:{}};
+  const S={lv:[1,2,3].includes(+pref("sky-sudoku-lv"))?+pref("sky-sudoku-lv"):1,total:3,round:0,first:0,cells:0,phase:"start",sel:-1,sym:-1,miss:{},two:pref("sky-sudoku-mode")==="2",turn:0,pts:[0,0]};
   const syncLv=()=>document.querySelectorAll("#levels button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
   document.querySelectorAll("#levels button").forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("sky-sudoku-lv",S.lv);syncLv()}));
   syncLv();
+  const syncMode=()=>document.querySelectorAll("#modes button").forEach(b=>b.setAttribute("aria-pressed",(b.dataset.m==="2")===S.two));
+  document.querySelectorAll("#modes button").forEach(b=>b.addEventListener("click",()=>{S.two=b.dataset.m==="2";pref("sky-sudoku-mode",S.two?"2":"1");syncMode()}));
+  syncMode();
+  const PN=["藍色","橘色"];
+  function updTurn(){$("turnbar").hidden=!S.two;document.body.classList.toggle("two",S.two);
+    [0,1].forEach(k=>{$("pt"+k).textContent=S.pts[k];$("tb"+k).classList.toggle("on",S.two&&S.turn===k)})}
+  // 兩人輪流：不管放對放錯，每放一次就換人
+  function passTurn(){if(!S.two)return;S.turn=1-S.turn;updTurn()}
   {const n0=+pref("sky-sudoku-total");if([3,5,8].includes(n0))S.total=n0;
    const cs=[...document.querySelectorAll("#counts button")],sync=()=>cs.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===S.total));
    sync();cs.forEach(b=>b.addEventListener("click",()=>{S.total=+b.dataset.n;pref("sky-sudoku-total",S.total);sync()}))}
@@ -244,7 +266,10 @@ main{justify-content:center}
       c.className=c.className.replace("empty","kid");c.textContent=SYM[k][0];c.classList.remove("kid");void c.offsetWidth;c.classList.add("kid");
       tone([660,880],.08,"sine",.15);S.sel=-1;markZone(-1);setSym(-1);pbs.forEach(b=>b.classList.remove("glow"));
       $("msg").textContent="";$("msg").className="msg";
+      if(S.two){const me=S.turn;S.pts[me]++;c.classList.add("o"+me);passTurn();
+        $("msg").textContent=`${PN[me]}得 1 分！換${PN[S.turn]}`;$("msg").className="msg good";}
       if(G.cur.every((v,j)=>v===G.sol[j]))win();
+      else if(S.two)say(`換${PN[S.turn]}`);
       return;
     }
     // 放錯：找出是哪裡已經有這個圖案（同一橫排、直排或小方塊）
@@ -254,6 +279,7 @@ main{justify-content:center}
       const e=cellEl(cl);e.classList.remove("clash");void e.offsetWidth;e.classList.add("clash");setTimeout(()=>e.classList.remove("clash"),1100)}
     else tip=`這裡不是${SYM[k][1]}，看看別的格子再想想`;
     c.classList.remove("bad");void c.offsetWidth;c.classList.add("bad");setTimeout(()=>c.classList.remove("bad"),500);
+    if(S.two){passTurn();tip+=`，換${PN[S.turn]}`}
     $("msg").textContent=tip;$("msg").className="msg bad";say(tip);setSym(-1);
     if(S.miss[i]>=2)pal.querySelector(`.pb[data-v="${G.sol[i]}"]`).classList.add("glow");
   }
@@ -267,14 +293,18 @@ main{justify-content:center}
     if(S.round>=S.total)return finish();
     S.round++;S.phase="play";S.sel=-1;S.miss={};setSym(-1);
     const p=makePuzzle();G={sol:p.sol,puz:p.puz,cur:p.puz.slice()};drawBoard();upd();
-    $("msg").textContent="點一個空格，再點下面的圖案";$("msg").className="msg";pbs.forEach(b=>b.classList.remove("glow"));
+    $("msg").textContent=S.two?`輪到${PN[S.turn]}：點一個空格，再點圖案`:"點一個空格，再點下面的圖案";$("msg").className="msg";pbs.forEach(b=>b.classList.remove("glow"));updTurn();
     if(S.round===1)say("每一橫排、每一直排、每一個小方塊裡，四種圖案都只能出現一次。點空格，再點下面的圖案。");
   }
   const upd=()=>{$("score").textContent=`🧩 ${S.round} / ${S.total}`};
-  function start(){unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.first=0;S.cells=0;next();
+  function start(){unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.first=0;S.cells=0;S.turn=0;S.pts=[0,0];next();
     try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}}
   function finish(){
     S.phase="end";sfx.win();
+    if(S.two){const [a,b]=S.pts,w=a===b?-1:a>b?0:1;
+      $("stars").textContent=w<0?"🤝":"🏆";$("endTitle").textContent=w<0?"平手！":`${PN[w]}贏了！`;
+      $("endText").textContent=`藍色 ${a} 分，橘色 ${b} 分。`;$("end").hidden=false;
+      say(w<0?`平手！兩個人都是${a}分`:`${PN[w]}贏了！藍色${a}分，橘色${b}分`);return}
     const r=S.cells?S.first/S.cells:0,st=r>=.9?3:r>=.6?2:1;
     $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);
     $("endTitle").textContent=st===3?"太厲害了！":st===2?"做得很好！":"再練習一下！";
