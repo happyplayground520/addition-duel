@@ -25,11 +25,26 @@ const sph=(r,c,x,y,z,p,seg=20)=>mesh(new THREE.SphereGeometry(r,seg,Math.max(8,s
 const cone=(r,h,c,x,y,z,p,seg=20)=>mesh(new THREE.ConeGeometry(r,h,seg),c,x,y,z,p);
 const torus=(r,t,c,x,y,z,p,seg=40)=>mesh(new THREE.TorusGeometry(r,t,10,seg),c,x,y,z,p);
 // 漂浮的小島：上面一層草地（或沙地、粉紅色），下面倒過來的岩石
+// 漂浮的小島（像空中城堡）：上面一層草地（或沙地、粉紅色），下面是一塊一塊歪歪疊起來的岩石方塊
+const shade=(c,k)=>new THREE.Color(c).multiplyScalar(k).getHex();
 function base(top,side,g){
-  cyl(1.6,1.5,.34,top,0,0,0,g,40);
-  cyl(1.5,1.35,.3,side,0,-.3,0,g,40);
-  const rock=cone(1.32,1.7,side,0,-1.3,0,g,9);rock.rotation.x=Math.PI;
-  [[.9,-.75,.5,.22],[-.8,-.8,-.4,.18],[.2,-1.9,.3,.14]].forEach(([x,y,z,r])=>sph(r,side,x,y,z,g,8));
+  cyl(1.6,1.52,.34,top,0,0,0,g,40);
+  cyl(1.52,1.45,.24,side,0,-.28,0,g,40);
+  const dark=shade(side,.78),deep=shade(side,.62);
+  // [寬,高,深,x,y,z,轉y,歪z,顏色]
+  [[2.05,.55,1.95,0,-.62,0,.18,0,side],
+   [1.7,.5,1.6,.08,-1.08,-.04,-.32,.04,dark],
+   [1.2,.45,1.15,-.1,-1.5,.08,.52,-.05,side],
+   [.78,.4,.75,.08,-1.86,0,.1,.07,dark],
+   [.42,.3,.42,-.04,-2.14,.04,.7,0,deep],
+   [.72,.6,.7,1.02,-.78,.48,.42,.08,dark],
+   [.62,.52,.62,-1.04,-.86,-.44,.22,-.08,deep],
+   [.55,.45,.55,-.62,-1.28,.72,.6,0,dark],
+   [.5,.42,.5,.74,-1.42,-.58,.3,.1,side],
+   [.36,.3,.36,.55,-1.9,.42,.8,0,deep]
+  ].forEach(([w,h,d,x,y,z,ry,rz,c])=>{const b=box(w,h,d,c,x,y,z,g);b.rotation.set(0,ry,rz)});
+  // 底下兩顆飄著的小石頭
+  [[-.7,-2.25,-.3,.22],[.55,-2.4,.25,.16]].forEach(([x,y,z,r])=>{const b=box(r,r,r,deep,x,y,z,g);b.rotation.set(.5,.7,.2)});
 }
 function tree(x,z,g,s=1){cyl(.05*s,.06*s,.3*s,0x8a5a36,x,.32*s,z,g,8);cone(.24*s,.5*s,0x46b45c,x,.7*s,z,g,10);cone(.18*s,.38*s,0x5cc96e,x,.92*s,z,g,10)}
 
@@ -48,22 +63,39 @@ const ISLES=[];
   cyl(.42,.42,.35,0xffffff,.85,.35,.55,g,16);cone(.5,.45,0xe8434f,.85,.75,.55,g,16);sph(.06,0xffd23f,.85,1.0,.55,g,8);
   tree(-1.05,.75,g,.9);tree(1.05,-.7,g,.8);tree(-.95,-.85,g,.7);
   ISLES.push({g,href:"park.html",key:"park",tick:t=>{wheel.rotation.z=t*.5;cabs.forEach((c,i)=>{const a=i/8*Math.PI*2-t*.5;c.position.set(Math.sin(a)*.85,Math.cos(a)*.85-.14,0)})}})}
-// ---- 🍓 甜點小鎮：粉紅色的島、兩層草莓蛋糕屋、棒棒糖 ----
+// ---- 🍬 甜點小鎮：粉紅色的島、餅乾做的糖果屋（巧克力屋頂、白色糖霜、彩色糖果）、棒棒糖、軟糖 ----
 {const g=new THREE.Group();base(0xffb3c7,0xc98a4b,g);
-  const cake=new THREE.Group();cake.position.set(0,.17,0);g.add(cake);
-  cyl(.78,.8,.5,0xfff3e0,0,.27,0,cake,32);torus(.78,.06,0xff8fb0,0,.52,0,cake).rotation.x=Math.PI/2;
-  cyl(.55,.56,.42,0xfff3e0,0,.73,0,cake,32);torus(.55,.055,0xff8fb0,0,.94,0,cake).rotation.x=Math.PI/2;
-  cyl(.56,.56,.06,0xffffff,0,.97,0,cake,32);
-  // 門和窗
-  box(.22,.3,.04,0xc98a4b,0,.2,.79,cake);sph(.07,0x7cc7ff,-.42,.32,.66,cake,10);sph(.07,0x7cc7ff,.42,.32,.66,cake,10);
-  // 草莓（上面一圈＋最上面一顆）
-  const berries=[];
-  for(let i=0;i<6;i++){const a=i/6*Math.PI*2,s=new THREE.Group();s.position.set(Math.sin(a)*.36,1.08,Math.cos(a)*.36);cake.add(s);
-    const b=sph(.11,0xff4b55,0,0,0,s,12);b.scale.y=1.2;cone(.09,.07,0x46c46a,0,.13,0,s,8);berries.push(s)}
-  {const s=new THREE.Group();s.position.set(0,1.18,0);cake.add(s);const b=sph(.15,0xff4b55,0,0,0,s,14);b.scale.y=1.25;cone(.12,.09,0x46c46a,0,.18,0,s,8);berries.push(s)}
-  // 棒棒糖
-  [[1.05,.55,0xff6fb5],[-1.05,.4,0x7cc7ff],[.9,-.85,0xffd23f]].forEach(([x,z,c])=>{cyl(.03,.03,.7,0xffffff,x,.5,z,g,8);const l=cyl(.2,.2,.06,c,x,.95,z,g,20);l.rotation.x=Math.PI/2;torus(.13,.03,0xffffff,x,.95,z+.035,g,24)});
-  ISLES.push({g,href:"town.html",key:"town",tick:t=>{berries.forEach((b,i)=>{b.position.y=(i<6?1.08:1.18)+Math.max(0,Math.sin(t*3-i*.6))*.05})}})}
+  const house=new THREE.Group();house.position.set(0,.17,0);house.rotation.y=-.6;house.scale.setScalar(1.12);g.add(house);
+  const W=1.15,H=.72,D=.95;
+  box(W,H,D,0xd99a5b,0,H/2,0,house);
+  // 山形牆（三角形）＋兩片巧克力屋頂
+  const tri=new THREE.Shape();tri.moveTo(-D/2,0);tri.lineTo(D/2,0);tri.lineTo(0,.5);tri.closePath();
+  const tg=new THREE.ExtrudeGeometry(tri,{depth:W,bevelEnabled:false});tg.translate(0,0,-W/2);
+  const gable=new THREE.Mesh(tg,M(0xd99a5b));gable.rotation.y=Math.PI/2;gable.position.y=H;house.add(gable);
+  const slope=Math.hypot(D/2,.5),ang=Math.atan2(.5,D/2);
+  [1,-1].forEach(sd=>{const r=box(W+.24,.1,slope+.2,0x6b3f22,0,H+.25+.03,sd*D/4,house);r.rotation.x=sd*ang;
+    // 屋簷的白色糖霜（一顆一顆）
+    for(let k=0;k<7;k++)sph(.055,0xffffff,-W/2-.06+k*(W+.12)/6,H-.02,sd*(D/2+.08),house,8)});
+  const ridge=cyl(.06,.06,W+.28,0xffffff,0,H+.53,0,house,10);ridge.rotation.z=Math.PI/2;
+  // 屋頂上的彩色糖果
+  const drops=[];[[-.35,.2,0xff4b55],[0,.25,0x4dc3ff],[.35,.2,0xffd23f],[-.2,-.22,0x7bd389],[.22,-.24,0xc58cff]].forEach(([x,z,c])=>{
+    const y=H+.25+.5*(1-Math.abs(z)/(D/2))*.9;drops.push(sph(.07,c,x,y,z,house,10))});
+  // 門（粉紅色、圓頂）、窗戶（白框藍玻璃）、前面的薄荷糖
+  box(.26,.34,.04,0xff7aa8,0,.17,D/2+.01,house);const dt=cyl(.13,.13,.04,0xff7aa8,0,.34,D/2+.01,house,16);dt.rotation.x=Math.PI/2;
+  sph(.025,0xffd23f,.08,.17,D/2+.04,house,6);
+  [-.36,.36].forEach(x=>{box(.24,.22,.03,0xffffff,x,.42,D/2+.005,house);box(.17,.15,.03,0x7cc7ff,x,.42,D/2+.02,house)});
+  const mint=cyl(.09,.09,.03,0xffffff,0,.62,D/2+.02,house,20);mint.rotation.x=Math.PI/2;
+  [0,1,2].forEach(k=>{const s=box(.16,.03,.03,0xff4b55,0,.62,D/2+.04,house);s.rotation.z=k*Math.PI/3});
+  // 煙囪是一支紅白條紋的拐杖糖
+  [0,1,2,3].forEach(k=>cyl(.07,.07,.1,k%2?0xffffff:0xff4b55,.32,H+.42+k*.1,-.18,house,12));
+  // 棒棒糖（會轉）和小軟糖（會跳）
+  const pops=[];
+  [[1.08,.5,0xff6fb5],[-1.08,.38,0x7cc7ff],[.95,-.82,0xffd23f]].forEach(([x,z,c])=>{cyl(.03,.03,.7,0xffffff,x,.5,z,g,8);
+    const head=new THREE.Group();head.position.set(x,.95,z);g.add(head);const l=cyl(.2,.2,.06,c,0,0,0,head,20);l.rotation.x=Math.PI/2;torus(.13,.03,0xffffff,0,0,.035,head,24);pops.push(head)});
+  const gums=[];[[-.6,.95,0xff4b55],[-.25,1.15,0x7bd389],[.45,1.05,0xffd23f],[-1.05,-.6,0xc58cff],[.15,-1.05,0xff9f43]].forEach(([x,z,c])=>{const m=cone(.1,.16,c,x,.25,z,g,12);gums.push(m)});
+  ISLES.push({g,href:"town.html",key:"town",tick:t=>{pops.forEach((p,i)=>p.rotation.z=t*(i%2?-1.2:1.2));
+    gums.forEach((m,i)=>m.position.y=.25+Math.max(0,Math.sin(t*3-i*1.1))*.1);
+    drops.forEach((d,i)=>d.scale.setScalar(1+Math.max(0,Math.sin(t*2.5-i*.8))*.25))}})}
 // ---- ⛵ 海盜灣：沙灘島、小水池、椰子樹、會搖晃的海盜船、寶箱 ----
 {const g=new THREE.Group();base(0xf4dc9c,0x8a6a4a,g);
   cyl(1.2,1.2,.05,0x4dc3ff,0,.17,0,g,40);cyl(1.62,1.62,.04,0xf4dc9c,0,.16,0,g,40);
@@ -160,7 +192,7 @@ function frame(now){
     camera.position.lerpVectors(flying.from,p.clone().add(new THREE.Vector3(0,.6,3.2)),e);camera.lookAt(p)}
   renderer.render(scene,camera);
   // 名稱標籤跟著小島（放在小島下面）
-  ISLES.forEach((it,i)=>{const p=it.g.getWorldPosition(v.set(0,0,0));p.y-=it.planet?1.75:2.05;p.project(camera);
+  ISLES.forEach((it,i)=>{const p=it.g.getWorldPosition(v.set(0,0,0));p.y-=it.planet?1.75:2.2;p.project(camera);
     const L=LAB[i];L.style.transform=`translate(-50%,0) translate(${(p.x*.5+.5)*wrap.clientWidth}px,${(-p.y*.5+.5)*wrap.clientHeight}px)`;L.classList.toggle("on",it===hover)});
   requestAnimationFrame(frame);
 }
