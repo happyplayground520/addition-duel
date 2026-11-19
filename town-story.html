@@ -122,7 +122,7 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
   $("skip").onclick=()=>{EN.stop();go(150)};
   const api=TZ.run({key:"town-story",noRange:true,gotIcon:GOT,
     finale:done=>{const n=Math.max(1,Math.min(+TZ.got().dataset.n,8));TZ.finale(`<div class="frow"><span style="font-size:clamp(50px,9vmin,72px);line-height:1">🫖</span>${Array(n).fill(GOT).join("")}</div>`,"故事都聽完了，一起喝下午茶吧！",done,3000)},
-    help:"午茶說故事有兩種玩法。聽故事：故事會自己一頁一頁念下去，想再聽一次就按喇叭，聽完選出這是哪一個成語，答對了會告訴你成語的意思。成語填空：成語少了一個字，看空格裡的注音和成語的意思，選出少的那個字。",
+    help:"午茶說故事有兩種玩法。聽故事：故事會自己一頁一頁念下去，想再聽一次就按喇叭，聽完按「聽完了」，再選出這是哪一個成語，答對了會告訴你成語的意思。成語填空：成語少了一個字，看空格裡的注音和成語的意思，選出少的那個字。",
     // 每一題都是不同的成語（成語比題數多，不會重複）
     build:n=>TZ.shuffle(ST.map((_,i)=>i)).slice(0,n).map(i=>({t:mode==="blank"?"B":"A",i})),
     show:(q)=>{cur=q;moved=false;$("skip").hidden=true;const s=ST[q.i];$("mean").hidden=true;$("show4").hidden=true;
@@ -147,12 +147,13 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
     const last=k===s.p.length-1,nx=$("next");
     nx.classList.toggle("go",last);nx.innerHTML=last?TZ.zy("聽完了")+" ✓":"▶";nx.classList.remove("ready");
     EN.sfx.pop();
-    // 一頁念完自動翻到下一頁；最後一頁念完自動出題目（也可以自己按箭頭）
+    // 一頁念完自動翻到下一頁；最後一頁念完，按「聽完了」才出題目（也可以自己按箭頭）
     setTimeout(()=>{if(my===tok)TZ.say(spk||txt,{onend:()=>autoNext(my)})},350);
   }
   function autoNext(my){if(my!==tok)return;const s=ST[cur.i];
     $("next").classList.add("ready");
-    setTimeout(()=>{if(my!==tok||$("book").hidden)return;if(page<s.p.length-1)turn(page+1);else{tok++;listened=true;pickQ(s)}},page<s.p.length-1?700:1100)}
+    // 最後一頁念完不自動出題，等小朋友按「聽完了」
+    if(page<s.p.length-1)setTimeout(()=>{if(my!==tok||$("book").hidden)return;turn(page+1)},700);else listened=true}
   $("prev").onclick=()=>{if(page>0)turn(page-1)};
   $("rep").onclick=()=>{const my=++tok,pg=ST[cur.i].p[page];TZ.say(pg[2]||pg[1],{onend:()=>autoNext(my)})};
   $("next").onclick=()=>{const s=ST[cur.i];if(page<s.p.length-1)turn(page+1);else{tok++;EN.stop();pickQ(s)}};
@@ -177,7 +178,8 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
   function showMean(s){const q0=cur;
     const m=$("mean");m.innerHTML=`<span class="kai">${idiomHTML(s)}</span>${TZ.zy("：")}${TZ.zy(s.m)}`;m.hidden=false;m.classList.remove("pop");void m.offsetWidth;m.classList.add("pop");
     $("skip").innerHTML=TZ.zy("下一題")+" ▶";$("skip").hidden=false;
-    setTimeout(()=>go(0,q0),4500);
+    // 念出成語的意思，念完再換下一題（也可以按「下一題」）
+    setTimeout(()=>{if(cur===q0&&!moved)TZ.say(`答對了！${sayW(s.w)}，意思是：${TZ.plain(s.m)}`,{onend:()=>go(1200,q0)})},700);
   }
   // ---- 成語少了一個字 ----
   function blankQ(s){
@@ -196,7 +198,8 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
       if(el.dataset.c===ans){api.ok();el.classList.add("yes");const h=$("hole");
         TZ.fly(el,h,()=>{h.classList.add("fill");h.innerHTML=TZ.charHTML(ans,s.zy.split(" ")[hole]);EN.sfx.pop();setTimeout(()=>TZ.flyGot(h,GOT),300)},{dur:.55,keepHidden:true});
         const q0=cur;$("skip").innerHTML=TZ.zy("下一題")+" ▶";$("skip").hidden=false;
-        setTimeout(()=>go(0,q0),1500)}
+        // 填好後念出整個成語，念完再換下一題
+        setTimeout(()=>{if(cur===q0&&!moved)TZ.say(sayW(s.w),{onend:()=>go(900,q0)})},800)}
       else{api.bad();el.classList.add("no");if(api.S.tries>=2)ch.querySelector(`.choice[data-c="${ans}"]`).classList.add("glow")}
     });
     setTimeout(()=>{if(!api.S.busy)TZ.say("看注音，成語少了哪一個字？")},300);
