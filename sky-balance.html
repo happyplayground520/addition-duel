@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>宇宙天秤</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
+<style>
+/* 謎題星空第 2 關：宇宙天秤。天秤兩邊的盤子放了星星、數字砝碼或星球，比較重的那邊會往下沉；選出要放多少，天秤才會平衡 */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --ink:#1f2b33; --muted:#5d6b72; --good:#1f9d61; --bad:#d23c3c;
+  --accent:#ff8a3d; --accent-dark:#c95f16; --track:#9c8cff;
+  --num:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
+  --text:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{margin:0;height:100%}
+body{color:var(--ink);font-family:var(--text);overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  background:radial-gradient(circle,rgba(255,255,255,.8) 1px,transparent 1.6px) 0 0/57px 63px,radial-gradient(circle,rgba(255,240,190,.7) 1.3px,transparent 2px) 23px 31px/97px 83px,
+    radial-gradient(ellipse at 80% 0%,#5a49b8 0,transparent 55%),linear-gradient(#26256a,#3b3290 55%,#5a4aa8);
+  display:flex;flex-direction:column}
+[hidden]{display:none!important}
+.top{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;
+  padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 6px max(16px,env(safe-area-inset-left,0px))}
+.ibtn{width:48px;height:48px;border-radius:14px;border:0;background:rgba(255,255,255,.92);font-size:24px;cursor:pointer;
+  display:grid;place-items:center;text-decoration:none;color:inherit;box-shadow:0 3px 0 rgba(0,0,0,.25)}
+.ibtn:active{transform:translateY(2px)}
+.title{justify-self:center;font-weight:800;font-size:clamp(18px,3.2vmin,28px);color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+.title .tz-b,.title .zy .b{color:#e6e0ff}
+.right{display:flex;gap:10px;align-items:center}
+.score{font-family:var(--num);font-weight:800;font-size:clamp(18px,3.2vmin,28px);background:rgba(255,255,255,.92);border-radius:999px;padding:4px 14px;white-space:nowrap}
+main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(10px,2.4vh,26px);
+  padding:0 max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
+.ask{background:#fff;border-radius:999px;padding:.3em 1.1em;font-weight:800;font-size:clamp(19px,3.4vmin,30px);box-shadow:0 5px 0 rgba(0,0,0,.2)}
+
+:root{--accent:#2f9bdb;--accent-dark:#1b6aa0}
+/* 天秤 */
+.known{display:flex;align-items:center;gap:10px;background:#fff8d6;border:3px solid #ffd23f;border-radius:18px;padding:4px 16px;font-size:clamp(26px,4.6vmin,40px);line-height:1.1;box-shadow:0 4px 0 rgba(0,0,0,.2)}
+.known .eq{font-family:var(--num);font-weight:800;color:#5a3b00}
+.known .tg{font-size:14px;font-weight:800;color:#8a6a00}
+.scale{position:relative;flex:1;min-height:0;width:min(100%,760px);display:grid;place-items:center}
+.scale svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+#beam,.pan{transition:transform .9s cubic-bezier(.3,1.4,.5,1);transform-box:view-box}
+#beam{transform-origin:300px 130px}
+#panL{transform-origin:90px 130px}#panR{transform-origin:510px 130px}
+.item{transform-box:fill-box;transform-origin:50% 100%}
+.item.drop{animation:drop .45s cubic-bezier(.3,1.5,.5,1) both}
+@keyframes drop{from{transform:translateY(-60px);opacity:0}}
+.item.ghost{opacity:.55}
+.boss{transform-box:fill-box;transform-origin:50% 100%;transition:transform .3s}
+.boss.happy{animation:bhop .45s 2}
+@keyframes bhop{50%{transform:translateY(-14px)}}
+.sides{display:flex;justify-content:space-between;width:min(100%,760px);margin-top:-6px;padding:0 6%;pointer-events:none}
+.sides span{font-family:var(--num);font-weight:800;font-size:clamp(18px,3vmin,26px);color:#fff;background:rgba(255,255,255,.16);border-radius:999px;padding:0 14px;min-width:3em;text-align:center;opacity:0;transition:opacity .3s}
+.sides.on span{opacity:1}
+.msg{min-height:1.4em;font-weight:800;font-size:clamp(17px,2.8vmin,24px);color:#fff;text-align:center}
+.msg.good{color:#8ff0b5}.msg.bad{color:#ffd0d0}
+/* 選項 */
+.choices{display:flex;gap:clamp(10px,2.4vmin,22px);flex-wrap:wrap;justify-content:center}
+.ch{width:clamp(76px,13vmin,112px);aspect-ratio:1;border-radius:22px;border:4px solid #fff;background:#fff;cursor:pointer;font-size:clamp(38px,7vmin,60px);line-height:1;
+  display:grid;place-items:center;box-shadow:0 6px 0 #9c8cff,0 10px 18px rgba(0,0,0,.25);color:var(--ink);transition:transform .12s}
+.ch.num{font-family:var(--num);font-weight:800;font-size:clamp(32px,6vmin,50px)}
+.ch:active{transform:translateY(4px)}
+.ch.wrong{animation:shake .4s;opacity:.4;pointer-events:none}
+.ch.right{background:#eafff2;border-color:var(--good);box-shadow:0 6px 0 var(--good)}
+.ch.glow{animation:glow 1s infinite}
+@keyframes shake{25%{translate:-8px 0}75%{translate:8px 0}}
+@keyframes glow{50%{box-shadow:0 0 0 6px #ffe27a,0 6px 0 #9c8cff}}
+.msg{min-height:1.4em;font-weight:800;font-size:clamp(17px,2.8vmin,24px);color:#fff;text-align:center}
+.msg.good{color:#8ff0b5}.msg.bad{color:#ffd0d0}
+
+/* 開始／結束畫面 */
+.cover{position:fixed;inset:0;z-index:20;display:grid;place-items:start center;overflow-y:auto;-webkit-overflow-scrolling:touch;background:rgba(38,37,106,.6);
+  padding:max(12px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.cover>.box{margin:auto 0}
+.box{background:#fff;border-radius:24px;padding:clamp(18px,4vmin,32px);width:min(500px,100%);box-shadow:0 12px 40px rgba(0,0,0,.3);
+  display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center}
+.box h2{margin:0;font-size:clamp(26px,5.5vmin,42px)}
+.box p{margin:0;color:var(--muted);font-size:clamp(15px,2.5vmin,19px);line-height:1.5}
+.row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.lbl{font-size:14px;font-weight:700;color:var(--muted);margin-top:4px}
+.opt{font:inherit;font-size:17px;font-weight:700;border:2px solid #cfd8dc;background:#fff;border-radius:14px;padding:9px 14px;cursor:pointer;color:inherit}
+.opt small{display:block;font-size:13px;font-weight:600;opacity:.8;margin-top:2px}
+.opt[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:#fff}
+.big{font-family:var(--text);font-weight:800;font-size:clamp(20px,4vmin,30px);border:0;border-radius:999px;padding:.45em 1.6em;
+  background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 5px 0 var(--accent-dark);text-decoration:none;display:inline-block}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 var(--accent-dark)}
+.big.alt{background:#fff;color:var(--ink);box-shadow:0 5px 0 #cfd8dc;border:2px solid #cfd8dc}
+.stars{font-size:clamp(40px,9vmin,72px);letter-spacing:.1em;line-height:1}
+#start .box>.big{position:sticky;bottom:0;z-index:1}
+@media (max-height:560px){.cover>.box{gap:8px;padding:14px 18px}.cover>.box h2{font-size:24px}#start .box>p{display:none}.cover .stars{font-size:36px}}
+
+main{justify-content:flex-start;padding-top:4px}
+@media (max-height:500px){main{gap:4px}.ask{font-size:16px;padding:.15em .9em}.msg{font-size:15px;min-height:1.2em}.ch{width:58px;border-radius:16px;font-size:30px}.ch.num{font-size:26px}
+  .known{font-size:22px;padding:2px 12px}.sides span{font-size:15px}}
+@media (max-width:400px) and (orientation:portrait){.choices{gap:9px}.ch{width:68px;border-radius:18px;font-size:34px}.ch.num{font-size:30px}.ask{font-size:18px}}
+/* 手機橫放：天秤放左邊、題目和選項放右邊，天秤才夠大 */
+@media (max-height:500px) and (orientation:landscape){
+  main{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);grid-template-rows:auto auto 1fr auto auto;
+    grid-template-areas:"scale ask" "scale known" "scale choices" "scale msg" "sides msg";align-items:center;justify-items:center;column-gap:12px}
+  .ask{grid-area:ask}.known{grid-area:known}.scale{grid-area:scale;width:100%;height:100%}.sides{grid-area:sides;margin:0}.choices{grid-area:choices}.msg{grid-area:msg}}
+@media (prefers-reduced-motion:reduce){#beam,.pan{transition:none}}
+</style>
+<script src="zhuyin.js?v=20261119g"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="park.css?v=20261119g">
+<script src="park.js?v=20261119g"></script>
+</head>
+<body data-park>
+<header class="top">
+  <a class="ibtn" href="sky.html" aria-label="回謎題星空">🏠</a>
+  <div class="title">⚖️<span class="tx"> 宇宙天秤</span></div>
+  <div class="right"><span class="score" id="score">⭐ 0</span><button type="button" class="ibtn" id="again" aria-label="再念一次題目">🔊</button></div>
+</header>
+<main>
+  <div class="ask" id="ask" data-zy></div>
+  <div class="known" id="known" hidden></div>
+  <div class="scale"><svg id="svg" viewBox="0 0 600 400" role="img" aria-label="天秤"></svg></div>
+  <div class="sides" id="sides"><span id="wL"></span><span id="wR"></span></div>
+  <div class="choices" id="choices"></div>
+  <div class="msg" id="msg" data-zy aria-live="polite"></div>
+
+  <section class="cover" id="start">
+    <div class="box">
+      <h2>⚖️ 宇宙天秤</h2>
+      <p data-zy>比較重的那一邊會往下沉。<br>想一想要放多少，天秤才會平衡！</p>
+      <span class="lbl">難度</span>
+      <div class="row" id="levels">
+        <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small>⭐⭐⭐ ⚖️ ⭐ ?</small></button>
+        <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small>3+4 ⚖️ 5+?</small></button>
+        <button type="button" class="opt" data-lv="3" aria-label="高級"><span class="lvst">⭐⭐⭐</span><small>🪐=⭐⭐⭐</small></button>
+      </div>
+      <span class="lbl">題數</span>
+      <div class="row" id="counts"><button type="button" class="opt" data-n="5" aria-label="5 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button><button type="button" class="opt" data-n="10" aria-label="10 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>10</small></button><button type="button" class="opt" data-n="15" aria-label="15 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>15</small></button></div>
+      <button type="button" class="big" id="go" aria-label="開始">READY</button>
+    </div>
+  </section>
+  <section class="cover" id="end" hidden>
+    <div class="box">
+      <div class="stars" id="stars"></div>
+      <h2 id="endTitle"></h2>
+      <p id="endText" data-zy></p>
+      <div class="row">
+        <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+        <a class="big alt ico-btn" href="sky.html" aria-label="回謎題星空">🏠</a>
+      </div>
+    </div>
+  </section>
+</main>
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
+  const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  const pick=a=>a[rnd(0,a.length-1)];
+  const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+  const S={lv:[1,2,3].includes(+pref("sky-balance-lv"))?+pref("sky-balance-lv"):1,total:10,round:0,score:0,tries:0,phase:"start",q:null,last:""};
+  const syncLv=()=>document.querySelectorAll("#levels button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
+  document.querySelectorAll("#levels button").forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("sky-balance-lv",S.lv);syncLv()}));
+  syncLv();
+  {const n0=+pref("sky-balance-total");if([5,10,15].includes(n0))S.total=n0;
+   const cs=[...document.querySelectorAll("#counts button")],sync=()=>cs.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===S.total));
+   sync();cs.forEach(b=>b.addEventListener("click",()=>{S.total=+b.dataset.n;pref("sky-balance-total",S.total);sync()}))}
+
+  // ---- 語音與音效（和遊樂園一樣） ----
+  const synth=window.speechSynthesis;let voice=null;const rate=+(pref("duel-rate")||.9)||.9;
+  const quality=v=>{const u=v.voiceURI||"";return /eloquence|speech\.synthesis\.voice/i.test(u)?0:/\.premium\./i.test(u)?3:/enhanced|-premium/i.test(u)?2:1};
+  function pickVoice(){if(!synth)return;const vs=synth.getVoices().filter(v=>/^(zh|cmn)/i.test(v.lang));const want=pref("duel-voice");
+    const tw=vs.filter(v=>/TW|Hant/i.test(v.lang)&&quality(v)>0).sort((a,b)=>quality(b)-quality(a));
+    voice=(want&&vs.find(v=>(v.voiceURI||v.name)===want))||tw[0]||vs.find(v=>quality(v)>0)||vs[0]||null}
+  if(synth){pickVoice();try{synth.addEventListener("voiceschanged",pickVoice)}catch(e){}}
+  function say(t){if(!synth)return;try{const u=new SpeechSynthesisUtterance(t);u.lang=voice?voice.lang.replace("_","-"):"zh-TW";if(voice)u.voice=voice;u.rate=rate;u.pitch=1.1;
+    if(synth.speaking||synth.pending){synth.cancel();setTimeout(()=>{try{synth.speak(u)}catch(e){}},90)}else synth.speak(u)}catch(e){}}
+  let ac=null;
+  function tone(fs,dur=.12,type="triangle",vol=.15){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume();
+    fs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*dur;o.type=type;o.frequency.value=f;
+      g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)})}catch(e){}}
+  const sfx={good:()=>tone([784,1175],.14,"sine",.3),bad:()=>tone([150],.3,"square",.16),pip:i=>tone([520+i*70],.07,"sine",.12),
+    toot:()=>tone([392,523],.18,"square",.07),win:()=>tone([523,659,784,1047],.16)};
+  {const _g=sfx.good;sfx.good=(...a)=>{try{window.parkBurst&&parkBurst()}catch(err){}return _g(...a)}}
+  function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
+    try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}}
+
+
+  // ---- 題目 ----
+  // 盤子裡的東西：{e:"⭐",w:1} 一個圖案、{n:5} 數字砝碼、{blank:true} 要填的空格
+  const BIG=[["🪐","土星"],["🌍","地球"],["🌙","月亮"],["👽","外星人"],["☄️","彗星"]];
+  function q1(){ // 數星星：左邊幾顆、右邊幾顆，右邊還要放幾顆
+    const L=rnd(3,10),R=rnd(0,L-1),ans=L-R;
+    return{lv:1,left:Array(L).fill({e:"⭐",w:1}),right:Array(R).fill({e:"⭐",w:1}),ans,unit:{e:"⭐",w:1},
+      ask:"右邊還要放幾顆星星？",say:`左邊有${L}顆星星，右邊有${R}顆，右邊還要放幾顆星星，天秤才會平衡？`,
+      why:`左邊 ${L} 顆，右邊 ${R} 顆，再放 ${ans} 顆就一樣重`,whySay:`左邊${L}顆，右邊${R}顆，再放${ans}顆就一樣重`,opts:3};
+  }
+  function q2(){ // 數字砝碼：a+b ＝ c+？
+    let a,b,c,ans;do{a=rnd(1,9);b=rnd(1,9);c=rnd(1,a+b-1);ans=a+b-c}while(ans>12||ans<1);
+    const oneLeft=Math.random()<.3; // 有時候左邊只有一個砝碼：a ＝ c+？
+    if(oneLeft){a=a+b;b=0}
+    const left=b?[{n:a},{n:b}]:[{n:a}];
+    return{lv:2,left,right:[{n:c},{blank:true}],ans,unit:"num",
+      ask:"問號的砝碼是幾？",say:`左邊是${b?a+"加"+b:a}，右邊是${c}加問號，問號是多少，天秤才會平衡？`,
+      why:b?`${a} + ${b} = ${a+b}，${c} + ${ans} = ${a+b}`:`${a} = ${c} + ${ans}`,whySay:`${b?a+"加"+b:a}等於${a+b}，${c}加${ans}也等於${a+b}`,opts:4};
+  }
+  function q3(){ // 換算：1 個星球 = k 顆星星；左邊 m 個星球（有時再加幾顆星星），右邊要放幾顆星星
+    const [e,name]=pick(BIG),k=rnd(2,4),m=rnd(1,3),extra=Math.random()<.4?rnd(1,3):0,ans=m*k+extra;
+    if(ans>12)return q3();
+    const left=[...Array(m).fill({e,w:k}),...Array(extra).fill({e:"⭐",w:1})];
+    return{lv:3,left,right:[],ans,unit:{e:"⭐",w:1},known:{e,name,k},
+      ask:"右邊要放幾顆星星？",say:`1個${name}和${k}顆星星一樣重。左邊有${m}個${name}${extra?"和"+extra+"顆星星":""}，右邊要放幾顆星星，天秤才會平衡？`,
+      why:`${m} 個${e}＝${m*k} 顆⭐${extra?`，再加 ${extra} 顆＝${ans} 顆`:""}`,whySay:`1個${name}是${k}顆星星，${m}個${name}就是${m*k}顆${extra?"，再加"+extra+"顆，是"+ans+"顆":""}`,opts:4};
+  }
+  const weight=list=>list.reduce((s,x)=>s+(x.blank?0:x.n!=null?x.n:x.w),0);
+  function newQ(){let q,t=0;do{q=S.lv===1?q1():S.lv===2?q2():q3();t++}while(q.say===S.last&&t<10);S.last=q.say;return q}
+
+  // ---- 天秤 ----
+  const NS="http://www.w3.org/2000/svg",svg=$("svg");
+  const mk=(tag,attrs,parent=svg,txt)=>{const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(txt!=null)e.textContent=txt;parent.appendChild(e);return e};
+  const K="#2b2240";
+  // 底座和柱子
+  mk("path",{d:"M220 388h160l-20-26h-120z",fill:"#9c8cff",stroke:K,"stroke-width":5,"stroke-linejoin":"round"});
+  mk("rect",{x:290,y:132,width:20,height:232,rx:8,fill:"#c9a2ff",stroke:K,"stroke-width":5});
+  const beam=mk("g",{id:"beam"});
+  mk("rect",{x:66,y:122,width:468,height:18,rx:9,fill:"#ffd23f",stroke:K,"stroke-width":5},beam);
+  [90,510].forEach(x=>mk("circle",{cx:x,cy:131,r:7,fill:"#fff",stroke:K,"stroke-width":4},beam));
+  // 兩個盤子：掛在橫桿兩端，跟著橫桿動，但自己一直保持水平
+  function panG(id,x){const g=mk("g",{id,class:"pan"},beam);
+    mk("path",{d:`M${x} 131L${x-62} 238M${x} 131L${x+62} 238`,stroke:"#d8d0ff","stroke-width":3,fill:"none"},g);
+    const items=mk("g",{},g);
+    mk("path",{d:`M${x-82} 236h164q-10 34-82 34t-82-34z`,fill:"#7cc7ff",stroke:K,"stroke-width":5,"stroke-linejoin":"round"},g);
+    return{g,items,x}}
+  const P={L:panG("panL",90),R:panG("panR",510)};
+  mk("circle",{cx:300,cy:131,r:14,fill:"#ff8fc7",stroke:K,"stroke-width":5});
+  // 坐在天秤上面的小外星人
+  const boss=mk("text",{x:300,y:112,"font-size":54,"text-anchor":"middle",class:"boss"},svg,"👽");
+  function drawPan(side,list,dropFrom=-1){
+    const p=P[side];p.items.innerHTML="";
+    // 分成三種：數字砝碼（一排 3 個）、大星球（一排 3 個）、小星星（一排 5 個）；大的放下面，星星疊在上面
+    const kind=it=>it.n!=null||it.blank?"box":it.w>1?"big":"star";
+    const SPEC={box:{per:3,dx:66,dy:50},big:{per:3,dx:50,dy:46},star:{per:5,dx:31,dy:31}};
+    let y0=232;
+    ["box","big","star"].forEach(k=>{
+      const idx=list.map((it,i)=>kind(it)===k?i:-1).filter(i=>i>=0);if(!idx.length)return;
+      const sp=SPEC[k],n=idx.length;
+      idx.forEach((i,j)=>{
+        const it=list[i],r=Math.floor(j/sp.per),inRow=Math.min(sp.per,n-r*sp.per),c=j%sp.per;
+        const x=p.x+(c-(inRow-1)/2)*sp.dx,y=y0-r*sp.dy;
+        const g=mk("g",{class:"item"+(i>=dropFrom&&dropFrom>=0?" drop":"")+(it.ghost?" ghost":""),style:`animation-delay:${Math.max(0,i-dropFrom)*.05}s`},p.items);
+        if(k==="box"){
+          mk("rect",{x:x-29,y:y-42,width:58,height:42,rx:10,fill:it.blank?"#fff7e0":"#ffb36b",stroke:it.blank?"#ff8a3d":K,"stroke-width":4,"stroke-dasharray":it.blank?"6 5":""},g);
+          mk("text",{x,y:y-12,"font-size":30,"font-weight":800,"text-anchor":"middle","font-family":"Baloo 2, Arial Rounded MT Bold, sans-serif",fill:it.blank?"#ff8a3d":K},g,it.blank?"?":String(it.n));
+        }else mk("text",{x,y:y-2,"font-size":k==="big"?42:28,"text-anchor":"middle"},g,it.e);
+      });
+      y0-=Math.ceil(n/sp.per)*sp.dy;
+    });
+  }
+  // 傾斜角度：右邊比較重 → 往右下沉（正的角度）
+  function tilt(L,R){const a=Math.max(-14,Math.min(14,(R-L)*(S.lv===2?1.6:3.2)));
+    beam.style.transform=`rotate(${a}deg)`;P.L.g.style.transform=`rotate(${-a}deg)`;P.R.g.style.transform=`rotate(${-a}deg)`;
+    boss.textContent=Math.abs(a)<.01?"👽":"😵";}
+  function showW(L,R,on){$("wL").textContent=L;$("wR").textContent=R;$("sides").classList.toggle("on",!!on)}
+
+  // ---- 流程 ----
+  const sayQ=()=>say(S.q.say);
+  function next(){
+    if(S.round>=S.total)return finish();
+    S.round++;S.tries=0;S.phase="play";const q=S.q=newQ();upd();
+    $("ask").textContent=q.ask;
+    const kn=$("known");if(q.known){kn.hidden=false;kn.innerHTML=`<span class="tg" data-zy>一樣重</span><span>${q.known.e}</span><span class="eq">=</span><span>${"⭐".repeat(q.known.k)}</span>`}else kn.hidden=true;
+    drawPan("L",q.left,0);drawPan("R",q.right,0);
+    tilt(weight(q.left),weight(q.right));showW("","",false);
+    $("msg").textContent="";$("msg").className="msg";
+    const opts=new Set([q.ans]);[q.ans+1,q.ans-1,q.ans+2,q.ans-2,q.ans+3].forEach(v=>{if(opts.size<q.opts&&v>=1)opts.add(v)});
+    while(opts.size<q.opts)opts.add(q.ans+opts.size+1);
+    $("choices").innerHTML=shuffle([...opts]).map(v=>`<button type="button" class="ch num" data-v="${v}" aria-label="${v}">${v}</button>`).join("");
+    $("choices").querySelectorAll(".ch").forEach(b=>b.addEventListener("click",()=>choose(b)));
+    setTimeout(()=>{if(S.q===q)sayQ()},500);
+  }
+  // 把選的數放上右邊的盤子：數字題填進問號，星星題放那麼多顆星星
+  function rightWith(q,v,ghost){
+    if(q.unit==="num")return q.right.map(x=>x.blank?{n:v,ghost}:x);
+    return[...q.right,...Array(v).fill(Object.assign({},q.unit,{ghost}))];
+  }
+  function choose(b){
+    if(S.phase!=="play")return;
+    const q=S.q,v=+b.dataset.v,L=weight(q.left);
+    const list=rightWith(q,v,false),R=weight(list);
+    S.phase="busy";drawPan("R",list,q.right.filter(x=>!x.blank).length);tilt(L,R);
+    if(q.unit==="num")showW(L,R,true);
+    if(v===q.ans){
+      if(S.tries===0)S.score++;upd();b.classList.add("right");sfx.good();
+      boss.classList.remove("happy");void boss.getBBox();boss.classList.add("happy");
+      $("msg").textContent=`平衡了！${q.why}`;$("msg").className="msg good";
+      say(`平衡了！${q.whySay}`);
+      setTimeout(()=>{if(S.q===q)next()},Math.max(3600,q.whySay.length*230));
+    }else{
+      S.tries++;sfx.bad();b.classList.add("wrong");
+      const heavy=R>L?"太多了，右邊比較重":"太少了，左邊比較重";
+      $("msg").textContent=heavy;$("msg").className="msg bad";say(heavy);
+      if(S.tries>=2)$("choices").querySelector(`.ch[data-v="${q.ans}"]`)?.classList.add("glow");
+      // 一下下之後拿回來，再試一次
+      setTimeout(()=>{if(S.q!==q)return;drawPan("R",q.right);tilt(L,weight(q.right));showW("","",false);S.phase="play"},1700);
+    }
+  }
+  const upd=()=>{$("score").textContent=`⭐ ${S.score} / ${S.total}`};
+  function start(){unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.score=0;S.last="";upd();next();
+    try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}}
+  function finish(){
+    S.phase="end";sfx.win();
+    const r=S.score/S.total,st=r>=.9?3:r>=.6?2:1;
+    $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);
+    $("endTitle").textContent=st===3?"太厲害了！":st===2?"做得很好！":"再練習一下！";
+    $("endText").textContent=`${S.total} 題裡面，有 ${S.score} 題第一次就答對。`;
+    $("end").hidden=false;say(`${$("endTitle").textContent}${S.total}題裡面，有${S.score}題第一次就答對`);
+  }
+  $("go").addEventListener("click",start);$("replay").addEventListener("click",start);
+  $("again").addEventListener("click",()=>{if(S.q&&S.phase!=="end")sayQ()});
+  // 開始畫面後面先擺一個示範的天秤
+  drawPan("L",Array(4).fill({e:"⭐",w:1}));drawPan("R",Array(2).fill({e:"⭐",w:1}));S.lv0=S.lv;tilt(4,2);upd();
+})();
+</script>
+</body>
+</html>
