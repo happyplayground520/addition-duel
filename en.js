@@ -160,9 +160,14 @@
       <circle cx="50" cy="20" r="12" fill="#e8302a"/><circle cx="50" cy="43" r="12" fill="#e8302a"/><circle cx="50" cy="66" r="12" fill="#e8302a"/>
       <g fill="#fff" stroke="none" opacity=".85"><ellipse cx="45" cy="15" rx="3" ry="4.5"/><ellipse cx="45" cy="38" rx="3" ry="4.5"/><ellipse cx="45" cy="61" rx="3" ry="4.5"/></g>`,
     cookie:`<circle cx="50" cy="50" r="34" fill="#e8b06a"/><g fill="#6e4122" stroke="none"><ellipse cx="38" cy="38" rx="5" ry="4"/><ellipse cx="60" cy="34" rx="4" ry="3.5"/><ellipse cx="64" cy="58" rx="5" ry="4"/><ellipse cx="42" cy="62" rx="4.5" ry="3.5"/><ellipse cx="52" cy="48" rx="3.5" ry="3"/></g>`,
-    spaghetti:`<path d="M84 22 72 52" fill="none" stroke="#9aa8b8" stroke-width="4"/><ellipse cx="48" cy="67" rx="40" ry="16" fill="#fff"/>
-      <path d="M22 64q0-24 26-24t26 24z" fill="#ffe08a"/><path d="M29 58q6-8 12 0t12 0 12 0M33 50q5-6 10 0t10 0" fill="none" stroke="#e8b84a" stroke-width="3"/>
-      <path d="M35 46q13-10 26 0q-4 8-13 8t-13-8z" fill="#e8433a"/><circle cx="48" cy="42" r="7" fill="#8a4a22"/>`,
+    spaghetti:`<ellipse cx="50" cy="74" rx="45" ry="16" fill="#fff"/><ellipse cx="50" cy="72" rx="33" ry="9" fill="#eef4fb" stroke="none"/>
+      <path d="M17 70q-1-26 33-30q34 4 33 30q-33 9-66 0z" fill="#ffd66b"/>
+      <path d="M22 66q5-7 10 0t10 0 10 0 10 0 10 0M25 58q5-7 10 0t10 0 10 0 10 0M31 50q4-6 9 0t9 0 9 0" fill="none" stroke="#e0a030" stroke-width="3"/>
+      <path d="M30 70q2 8 6 10M66 70q-1 8-5 11" fill="none" stroke="#e0a030" stroke-width="3"/>
+      <path d="M31 46q5-13 19-13t19 13q-5 8-19 8t-19-8z" fill="#e8433a"/>
+      <circle cx="41" cy="42" r="6.5" fill="#8a4a22"/><circle cx="58" cy="40" r="6.5" fill="#8a4a22"/><circle cx="50" cy="47" r="5.5" fill="#8a4a22"/>
+      <path d="M48 33q6-8 12-4q-4 7-12 4z" fill="#5cc24a" stroke-width="2.5"/>
+      <path d="M90 8 73 50" fill="none" stroke="#9aa8b8" stroke-width="6"/><path d="M85 4 81 16M91 6 87 18M96 9 92 20" fill="none" stroke="#9aa8b8" stroke-width="3.5"/>`,
     tomato:`<circle cx="50" cy="57" r="31" fill="#ff4d3a"/><path d="M50 32l-14-8 8 10-14 3 14 3 6 8 6-8 14-3-14-3 8-10z" fill="#5cc24a" stroke-width="3"/>
       <path d="M50 28v-10" fill="none"/><ellipse cx="34" cy="50" rx="5" ry="8" fill="#fff" stroke="none" opacity=".5"/>`,
     // 交通與玩具
@@ -190,9 +195,17 @@
       <circle cx="50" cy="52" r="34" fill="none"/><ellipse cx="36" cy="34" rx="5" ry="3" fill="#fff" stroke="none" opacity=".7" transform="rotate(-35 36 34)"/>`,
     kite:`<path d="M50 74q-9 7 0 13t0 11" fill="none" stroke-width="3"/><path d="M44 84l-6-3v6zM56 92l6-3v6z" fill="#4da3ff" stroke-width="2"/>
       <path d="M50 8l27 31-27 35-27-35z" fill="#ff6b9a"/><path d="M50 8v66M23 39h54" fill="none" stroke-width="3"/><path d="M50 8l27 31H50z" fill="#ffd93d" stroke="none" opacity=".9"/>`,
-    doll:`<path d="M25 46q0-32 25-32t25 32v26H25z" fill="#a8683a"/><path d="M34 64h32l11 28H23z" fill="#ff6b9a"/><circle cx="50" cy="45" r="18" fill="#ffe0c2"/>
-      <path d="M32 41q4-17 18-17t18 17q-10-7-18-7t-18 7z" fill="#a8683a" stroke-width="3"/>${e(43,47,3.6)}${e(57,47,3.6)}<path d="M46 54q4 3 8 0" fill="none" stroke-width="3"/>${ch(38,53)}${ch(62,53)}
-      <path d="M64 26l11-7v13zM64 26l-1-10 8 4z" fill="#ff4d8a" stroke-width="3"/>`,
+    doll:`<rect x="38" y="84" width="9" height="11" rx="3" fill="#ffe0c2" stroke-width="3"/><rect x="53" y="84" width="9" height="11" rx="3" fill="#ffe0c2" stroke-width="3"/>
+      <ellipse cx="42" cy="95" rx="7" ry="4" fill="#d23c5a" stroke-width="3"/><ellipse cx="58" cy="95" rx="7" ry="4" fill="#d23c5a" stroke-width="3"/>
+      <rect x="15" y="62" width="20" height="9" rx="4.5" fill="#ffe0c2" stroke-width="3" transform="rotate(28 25 66)"/><rect x="65" y="62" width="20" height="9" rx="4.5" fill="#ffe0c2" stroke-width="3" transform="rotate(-28 75 66)"/>
+      <path d="M38 58h24l14 30H24z" fill="#ff6b9a"/><path d="M42 58l8 9 8-9" fill="#fff" stroke-width="3"/>
+      <g fill="#fff" stroke="none"><circle cx="38" cy="80" r="2.6"/><circle cx="50" cy="76" r="2.6"/><circle cx="62" cy="80" r="2.6"/><circle cx="44" cy="70" r="2.2"/><circle cx="56" cy="70" r="2.2"/></g>
+      <circle cx="22" cy="36" r="8" fill="#8a4a22"/><circle cx="78" cy="36" r="8" fill="#8a4a22"/>
+      <path d="M22 30l-6-5M22 30l-7 3M78 30l6-5M78 30l7 3" fill="none" stroke="#ff4d8a" stroke-width="3.5"/>
+      <circle cx="50" cy="37" r="21" fill="#ffe0c2"/>
+      <path d="M29 36q1-22 21-22t21 22q-6-9-13-9l-8 6-8-6q-7 0-13 9z" fill="#8a4a22" stroke-width="3"/>
+      ${e(42,40,3.8)}${e(58,40,3.8)}<path d="M45 48q5 4 10 0" fill="none" stroke-width="3"/>${ch(35,46)}${ch(65,46)}
+      <path d="M50 15l-11-7v14zM50 15l11-7v14z" fill="#ff4d8a" stroke-width="3"/><circle cx="50" cy="15" r="3.5" fill="#ff4d8a" stroke-width="3"/>`,
     robot:`<path d="M50 21v-9" fill="none"/><circle cx="50" cy="10" r="4.5" fill="#ff4d4d"/><rect x="18" y="30" width="8" height="14" rx="3" fill="#9aa8b8"/><rect x="74" y="30" width="8" height="14" rx="3" fill="#9aa8b8"/>
       <rect x="25" y="20" width="50" height="37" rx="9" fill="#b9c7d6"/><circle cx="40" cy="36" r="6" fill="#4dc3ff"/><circle cx="60" cy="36" r="6" fill="#4dc3ff"/>
       <rect x="40" y="46" width="20" height="5" rx="2.5" fill="${K}" stroke="none"/><rect x="30" y="59" width="40" height="30" rx="6" fill="#9aa8b8"/>
@@ -349,12 +362,31 @@
     // 再玩一次時重新播
     const start=document.getElementById("start");["replay","go"].forEach(id=>{const b=document.getElementById(id);b&&b.addEventListener("click",()=>{delete end.dataset.shown},true)});
   }
+  // 結尾的寶箱：蓋子打開，金幣和寶石一顆一顆跳出來
+  const COIN=(x,y,r=7,c="cs")=>`<g class="${c}"><circle cx="${x}" cy="${y}" r="${r}" fill="#ffd23f" stroke="#b9860b" stroke-width="2.5"/><circle cx="${x}" cy="${y}" r="${r*.55}" fill="none" stroke="#f3b51c" stroke-width="2"/></g>`;
+  const GEM=(x,y,c,d)=>`<path class="gm" style="animation-delay:${d}s" d="M${x-8} ${y}l4-6h8l4 6-8 10z" fill="${c}" stroke="#3a2a22" stroke-width="2.5" stroke-linejoin="round"/>`;
+  const SPK=(x,y,d,s=1)=>`<path class="spk" style="animation-delay:${d}s" d="M${x} ${y-9*s}q1.5 7.5 9 9q-7.5 1.5-9 9q-1.5-7.5-9-9q7.5-1.5 9-9z" fill="#fff8c2" stroke="#f3b51c" stroke-width="1.5"/>`;
+  const CHEST=`<svg viewBox="0 0 170 135" aria-hidden="true"><g stroke="#3a2a22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+    <g class="loot">
+      <path d="M22 64q10-34 63-37q53 3 63 37z" fill="#ffd23f"/>
+      ${COIN(40,52,8,"")}${COIN(58,42,8,"")}${COIN(80,34,8,"")}${COIN(104,40,8,"")}${COIN(126,52,8,"")}${COIN(70,56,7,"")}${COIN(98,58,7,"")}
+      <path d="M44 60q20 14 40 2q20 12 42-2" fill="none" stroke="#fff" stroke-width="5" stroke-dasharray=".5 8"/>
+      <path d="M68 22l6-12 8 9 7-11 7 11 8-9 4 12z" fill="#ffcf2e"/><circle cx="85" cy="16" r="3" fill="#e8433a" stroke-width="2"/>
+    </g>
+    ${GEM(50,34,"#ff4d6d",1.75)}${GEM(118,30,"#4da3ff",1.9)}${GEM(92,24,"#3ccf8e",2.05)}${GEM(32,46,"#c27bff",2.2)}
+    <g class="clid"><path d="M18 66q0-34 67-36q67 2 67 36z" fill="#a0562b"/><path d="M40 63q0-27 45-29M130 63q0-27-45-29" fill="none" stroke="#e8a23a" stroke-width="6"/></g>
+    <rect x="18" y="62" width="134" height="58" rx="8" fill="#c46f36"/>
+    <rect x="18" y="62" width="134" height="12" fill="#e8a23a"/><rect x="40" y="62" width="11" height="58" fill="#e8a23a"/><rect x="119" y="62" width="11" height="58" fill="#e8a23a"/>
+    <rect x="74" y="76" width="22" height="24" rx="5" fill="#ffd23f"/><path d="M85 84v8" stroke-width="4"/><circle cx="85" cy="84" r="2.5" fill="#3a2a22" stroke="none"/>
+    ${COIN(14,124,7)}${COIN(30,128,6)}${COIN(150,126,7)}${COIN(162,118,5)}
+    ${SPK(30,22,2.3)}${SPK(146,28,2.6,.8)}${SPK(88,4,2.9,.7)}${SPK(10,70,3.1,.6)}
+  </g></svg>`;
   EN.finale=function(done){
     const night=document.body.dataset.finale==="night";
     const o=document.createElement("div");o.className="efinale"+(night?" night":"");
     o.innerHTML=night?`<div class="ecard"><div class="moon">🌙</div><div class="sleep">${EN.icon("Dad")}<span class="zz">z z z</span></div><p class="en">Good night!</p></div>`
-      :`<div class="ecard"><div class="sea2"><span class="eship">${SHIP}</span><span class="eisle"><b>✕</b></span></div><div class="echest"><span class="lid2"></span><span class="gold"></span></div><p class="en">You found the treasure!</p></div>`;
-    document.body.appendChild(o);EN.sfx.clear();setTimeout(()=>{EN.burstAt(o.querySelector(night?".moon":".echest"))},1500);
+      :`<div class="ecard"><div class="sea2"><span class="eship">${SHIP}</span><span class="eisle"><b>✕</b></span></div><div class="echest2">${CHEST}</div><p class="en">You found the treasure!</p></div>`;
+    document.body.appendChild(o);EN.sfx.clear();setTimeout(()=>{EN.burstAt(o.querySelector(night?".moon":".echest2"))},1500);
     EN.say(night?"Good night!":"You found the treasure!");
     setTimeout(()=>{o.classList.add("out");setTimeout(()=>{o.remove();done&&done()},300)},3200);
   };

@@ -7,7 +7,7 @@
 <title>鸚鵡拼字</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261118s">
+<link rel="stylesheet" href="en.css?v=20261119a">
 <style>
 /* 鸚鵡拼字：聽單字，點字母積木排進木板上的格子。⭐ 只補第一個字母；⭐⭐ 三個字母排順序；⭐⭐⭐ 沒有圖、四五個字母，還多放用不到的字母 */
 body{background:radial-gradient(circle at 80% 15%,rgba(255,255,255,.5) 0 3px,transparent 4px) 0 0/60px 60px,linear-gradient(#ffd9ec,#fff1f7)}
@@ -54,10 +54,10 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
 @media (max-height:500px){.mid2{display:flex}}
 @media (prefers-reduced-motion:reduce){.slot.next,.board.win{animation:none}}
 </style>
-<script src="zhuyin.js?v=20261118s"></script>
-<link rel="stylesheet" href="park.css?v=20261118s">
-<script src="park.js?v=20261118s"></script>
-<script src="en.js?v=20261118s"></script>
+<script src="zhuyin.js?v=20261119a"></script>
+<link rel="stylesheet" href="park.css?v=20261119a">
+<script src="park.js?v=20261119a"></script>
+<script src="en.js?v=20261119a"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
 <body data-game="spell">
@@ -177,17 +177,19 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
   }
   function unplace(s){
     if(S.busy||!s.firstChild||s.firstChild.classList.contains("ok"))return;
-    tiles[+s.firstChild.dataset.from].classList.remove("used");s.innerHTML="";markNext();
+    backTile(tiles[+s.firstChild.dataset.from]);s.innerHTML="";markNext();
   }
+  // 積木回到下面原來的位置（飛上去時原本的積木被藏起來，回來要再顯示）
+  function backTile(t){t.classList.remove("used","bad");t.style.visibility=""}
   function check(){
     const L=[...S.word];let allOk=true;
     slots.forEach(s=>{const k=+s.dataset.k,t=s.firstChild;if(!t)return;
       if(t.dataset.c===L[k])t.classList.add("ok");else allOk=false});
     if(allOk)return win();
-    // 放錯的積木彈回去，對的留著（變綠色）
+    // 拼錯了：放錯的積木抖一下，然後全部積木都回到下面原來的位置，重新拼一次
     S.miss++;sfx.bad();EN.mood($("parrot"),"oops");S.busy=true;
-    slots.forEach(s=>{const t=s.firstChild;if(t&&!t.classList.contains("ok"))t.classList.add("bad")});
-    setTimeout(()=>{slots.forEach(s=>{const t=s.firstChild;if(t&&!t.classList.contains("ok")){tiles[+t.dataset.from].classList.remove("used");s.innerHTML=""}});
+    slots.forEach(s=>{const t=s.firstChild;if(t){t.classList.remove("ok");if(t.dataset.c!==S.word[+s.dataset.k])t.classList.add("bad")}});
+    setTimeout(()=>{slots.forEach(s=>{const t=s.firstChild;if(t){backTile(tiles[+t.dataset.from]);s.innerHTML=""}});
       S.busy=false;markNext();
       if(S.miss>=2){const s=slots.find(x=>!x.firstChild);if(s){const want=S.word[+s.dataset.k],t=tiles.find(x=>!x.classList.contains("used")&&x.dataset.c===want);if(t){t.classList.remove("bad");void t.offsetWidth;t.classList.add("bad")}}}
       sayWord()},520);

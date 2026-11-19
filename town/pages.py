@@ -1,7 +1,7 @@
 # 產生甜點小鎮的四關頁面：python pages.py（每一關共用標題列、開始畫面、結束畫面，只有題目區和玩法不同）
 import os
 HERE=os.path.dirname(os.path.abspath(__file__));ROOT=os.path.dirname(HERE)
-V="20261118s"
+V="20261119a"
 HEAD='''<!doctype html>
 <html lang="zh-Hant">
 <head>
@@ -463,8 +463,11 @@ main="""<div class="qline" id="q"></div>
 <div class="choices" id="choices"></div>""",
 script="""(()=>{
   const $=id=>document.getElementById(id),Z=ZI;
-  $("q").innerHTML=TZ.zy("把糖葫蘆照順序串起來，變成一句話。")+`<button type="button" class="ibtn" id="say" aria-label="念句子">🔊</button>`;
-  let cur="";$("say").onclick=()=>{if(cur)TZ.say(cur.split("/").join(""))};
+  $("q").innerHTML=TZ.zy("把糖葫蘆照順序串起來，變成一句話。")+`<button type="button" class="ibtn" id="say" aria-label="念題目">🔊</button>`;
+  // 喇叭念題目（不念答案的句子）
+  let cur="";$("say").onclick=()=>TZ.say("把糖葫蘆照順序串起來，變成一句話。");
+  // 糖葫蘆回到下面原來的位置（飛上去時原本那顆被藏起來，回來要再顯示）
+  const back=b=>{b.classList.remove("used","bad");b.style.visibility=""};
   const api=TZ.run({key:"town-order",gotIcon:EN.icon("candied fruit"),
     finale:done=>{const n=+TZ.got().dataset.n;TZ.finale(`<div class="stand"><div class="frow">${Array(Math.min(n,10)).fill(EN.icon("candied fruit")).join("")}</div></div>`,"糖葫蘆都串好了，插上展示架！",done,2800)},
     help:"串糖葫蘆。下面有幾顆糖葫蘆，每一顆上面是一個詞語。照句子的順序一顆一顆點，把它們串到竹籤上。串錯的會掉下來，再試一次。學過的字沒有注音，沒學過的字有注音。",
@@ -484,14 +487,14 @@ script="""(()=>{
         if(slots.every(x=>x.firstChild))setTimeout(check,350);
       });
       slots.forEach(s=>s.onclick=()=>{if(api.S.busy||!s.firstChild||s.firstChild.classList.contains("ok"))return;
-        balls.find(b=>b.dataset.i===s.firstChild.dataset.i).classList.remove("used");s.innerHTML="";mark()});
+        back(balls.find(b=>b.dataset.i===s.firstChild.dataset.i));s.innerHTML="";mark()});
       function check(){
         let all=true;slots.forEach(s=>{const k=+s.dataset.k,b=s.firstChild;if(+b.dataset.i===k)b.classList.add("ok");else all=false});
         if(all){api.ok();const sl=$("slots");sl.classList.remove("glaze");void sl.offsetWidth;sl.classList.add("glaze");EN.sfx.clear();setTimeout(()=>TZ.flyGot(sl,EN.icon("candied fruit")),700);
           TZ.say(t.split("/").join(""),{onend:()=>api.next(600)});return}
         api.bad();api.S.busy=true;
         slots.forEach(s=>{const b=s.firstChild;if(b&&!b.classList.contains("ok"))b.classList.add("bad")});
-        setTimeout(()=>{slots.forEach(s=>{const b=s.firstChild;if(b&&!b.classList.contains("ok")){balls.find(x=>x.dataset.i===b.dataset.i).classList.remove("used");s.innerHTML=""}});
+        setTimeout(()=>{slots.forEach(s=>{const b=s.firstChild;if(b&&!b.classList.contains("ok")){back(balls.find(x=>x.dataset.i===b.dataset.i));s.innerHTML=""}});
           api.S.busy=false;mark()},550);
       }
     }});
@@ -889,15 +892,21 @@ script='''(()=>{
     }});
 
   // 聽到的話裡有沒有這個字（或同音字）
-  function judge(alts){
-    if(api.S.busy)return;
-    const c=cur,cands=alts.map(t=>(t.match(/[\\u4e00-\\u9fff]/g)||[]).join("")).filter(Boolean);
-    if(!cands.length){tip("沒有聽到，再按一次麥克風說說看。");TZ.say("沒有聽到，再說一次");return}
-    const trim=t=>{const a=[...t];if(a.length<=5)return t;const i=a.indexOf(c);return a.slice(Math.max(0,i-2),Math.max(0,i-2)+5).join("")};
-    for(const t of cands)if([...t].length>=2&&t.includes(c))return success(trim(t));
+  const hanOnly=alts=>alts.map(t=>(String(t).match(/[\\u4e00-\\u9fff]/g)||[]).join("")).filter(Boolean);
+  // 聽到的話裡有說對的語詞就回傳那個詞，沒有就回傳 null
+  function hit(cands){
+    const c=cur,trim=t=>{const a=[...t];if(a.length<=5)return t;const i=a.indexOf(c);return a.slice(Math.max(0,i-2),Math.max(0,i-2)+5).join("")};
+    for(const t of cands)if([...t].length>=2&&t.includes(c))return trim(t);
     // 平板常把字聽成同音的別字，同音也算對（顯示成正確的字）
     const zc=Z.ZY[c];
-    if(zc)for(const t of cands){const a=[...t],i=a.findIndex(ch=>Z.ZY[ch]===zc);if(a.length>=2&&i>=0){a[i]=c;return success(trim(a.join("")))}}
+    if(zc)for(const t of cands){const a=[...t],i=a.findIndex(ch=>Z.ZY[ch]===zc);if(a.length>=2&&i>=0){a[i]=c;return trim(a.join(""))}}
+    return null;
+  }
+  function judge(alts){
+    if(api.S.busy)return;
+    const c=cur,zc=Z.ZY[c],cands=hanOnly(alts);
+    if(!cands.length){tip("沒有聽到，再按一次麥克風說說看。");TZ.say("沒有聽到，再說一次");return}
+    const w=hit(cands);if(w)return success(w);
     const t0=cands[0];api.bad();
     $("heard").innerHTML=TZ.zy("我聽到：")+`<span class="kai">${TZ.zy(t0)}</span>`;$("heard").hidden=false;
     if([...t0].length<2&&(t0===c||Z.ZY[t0]===zc)){tip("要說兩個字以上的語詞喔！");TZ.say(`要說兩個字以上的語詞喔，${c}什麼？`)}
@@ -923,20 +932,42 @@ script='''(()=>{
   }
   $("hint").onclick=()=>showHints();
   $("adult").onclick=()=>{if(!api.S.busy&&cur)success(null)};
+  // ---- 聽小朋友說話 ----
+  // 一直聽到說完為止（小朋友常常想一下才開口），邊聽邊把聽到的字顯示出來；聽到說對的詞就馬上停。
+  // 有些平板一按就馬上結束（還沒開始聽），這時自動再聽一次。
+  let live="",judged=false,startAt=0,retried=false,stopT=null;
+  const stopRec=()=>{clearTimeout(stopT);try{rec&&rec.stop()}catch(e){}};
+  function showLive(t){const h=hanOnly([t])[0];if(!h)return;$("heard").innerHTML=TZ.zy("我聽到：")+`<span class="kai">${TZ.zy(h)}</span>`;$("heard").hidden=false}
+  function listen(){
+    if(api.S.busy||!cur)return;
+    try{rec=new SR();rec.lang="zh-TW";rec.interimResults=true;rec.maxAlternatives=5;rec.continuous=true}catch(e){needAdult("這台平板不能聽，說給大人聽，說對了請大人按 ✓。");return}
+    live="";judged=false;
+    rec.onresult=e=>{
+      const alts=[];let fin=false;
+      live=[...e.results].map(r=>r[0].transcript).join("");alts.push(live);
+      for(let i=e.resultIndex;i<e.results.length;i++){const r=e.results[i];for(let k=0;k<r.length;k++)alts.push(r[k].transcript);if(r.isFinal)fin=true}
+      showLive(live);
+      if(hit(hanOnly(alts))){judged=true;stopRec();judge(alts);return}
+      if(fin){judged=true;stopRec();judge(alts)}
+    };
+    rec.onerror=e=>{const er=e.error;
+      if(er==="not-allowed"||er==="service-not-allowed"||er==="audio-capture"){judged=true;needAdult("沒辦法使用麥克風。說給大人聽，說對了請大人按 ✓。")}
+      else if(er==="network"){judged=true;needAdult("連不上網路，聽不到。說給大人聽，說對了請大人按 ✓。")}};
+    rec.onend=()=>{listening=false;clearTimeout(stopT);if(api.S.busy)return;setMic("idle");
+      if(judged)return;
+      if(live){judge([live]);return}
+      if(canMic&&!retried&&Date.now()-startAt<1500){retried=true;setTimeout(listen,300);return}
+      tip("沒有聽到聲音，按一下麥克風，再大聲說一次。")};
+    try{rec.start();listening=true;startAt=Date.now();setMic("on");tip("說吧！我在聽。");stopT=setTimeout(stopRec,8000)}
+    catch(e){needAdult("這台平板不能聽，說給大人聽，說對了請大人按 ✓。")}
+  }
   $("mic").onclick=()=>{
     if(api.S.busy||!cur)return;EN.unlock();
     if(!canMic){tip("說出來給大人聽，說對了請大人按 ✓。");TZ.say("說出來給大人聽，說對了請大人按勾勾");$("adult").classList.add("big");return}
-    if(listening){try{rec.stop()}catch(e){}return}
-    EN.stop();
-    let got=false;
-    try{rec=new SR();rec.lang="zh-TW";rec.interimResults=false;rec.maxAlternatives=5;rec.continuous=false}catch(e){needAdult("這台平板不能聽，說給大人聽，說對了請大人按 ✓。");return}
-    rec.onresult=e=>{got=true;const alts=[];for(const r of e.results)for(let k=0;k<r.length;k++)alts.push(r[k].transcript);judge(alts)};
-    rec.onerror=e=>{const er=e.error;
-      if(er==="not-allowed"||er==="service-not-allowed"||er==="audio-capture")needAdult("沒辦法使用麥克風。說給大人聽，說對了請大人按 ✓。");
-      else if(er==="network")needAdult("連不上網路，聽不到。說給大人聽，說對了請大人按 ✓。");
-      else if(er==="no-speech")tip("沒有聽到聲音，再按一次麥克風說說看。")};
-    rec.onend=()=>{listening=false;if(!api.S.busy)setMic("idle");if(!got&&canMic&&!api.S.busy&&!$("tip").textContent)tip("沒有聽到聲音，再按一次麥克風說說看。")};
-    try{rec.start();listening=true;setMic("on");tip("")}catch(e){needAdult("這台平板不能聽，說給大人聽，說對了請大人按 ✓。")}
+    if(listening){stopRec();return}
+    // 先停掉念題目的聲音，等一下下再開始聽（平板要先把喇叭切到麥克風）
+    EN.stop();retried=false;$("heard").hidden=true;setMic("on");tip("");
+    setTimeout(listen,300);
   };
   setMic("idle");
 })();''')

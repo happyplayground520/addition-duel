@@ -7,7 +7,7 @@
 <title>港口聊天</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261118s">
+<link rel="stylesheet" href="en.css?v=20261119a">
 <style>
 /* 港口聊天：鸚鵡在港口攤子前連續問小朋友三個問題（心情、天氣、幾歲），從對話泡泡裡選出要回答的話 */
 body{background:linear-gradient(#bfeaff,#e9f8ff 55%,#7fd0ea 55.1%,#4fb8dc)}
@@ -31,6 +31,7 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
 .kid.wave{animation:kwave .5s ease-in-out 4}
 @keyframes kwave{25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
 .hintp{width:calc(var(--u)*2.8);height:calc(var(--u)*2.8);animation:bpop .35s}
+.hintp.cake{width:calc(var(--u)*4.2)}
 .bub{position:relative;max-width:calc(var(--u)*6);background:#fff;border:4px solid var(--ink);border-radius:20px;padding:6px 14px;font-family:var(--en);font-weight:700;
   font-size:calc(var(--u)*.5);line-height:1.15;box-shadow:0 4px 0 rgba(0,0,0,.1);display:flex;align-items:center;gap:8px;min-height:calc(var(--u)*.95)}
 .bub.q{background:#fff3c4}
@@ -55,10 +56,10 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
 }
 @media (prefers-reduced-motion:reduce){.rbtn.glow{animation:none}}
 </style>
-<script src="zhuyin.js?v=20261118s"></script>
-<link rel="stylesheet" href="park.css?v=20261118s">
-<script src="park.js?v=20261118s"></script>
-<script src="en.js?v=20261118s"></script>
+<script src="zhuyin.js?v=20261119a"></script>
+<link rel="stylesheet" href="park.css?v=20261119a">
+<script src="park.js?v=20261119a"></script>
+<script src="en.js?v=20261119a"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
 <body data-game="chat">
@@ -84,7 +85,7 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
     <div class="row" id="levels">
       <button type="button" class="opt" data-lv="1" aria-label="一顆星"><span class="lvst">⭐</span><small>💬 💬</small></button>
       <button type="button" class="opt" data-lv="2" aria-label="兩顆星"><span class="lvst">⭐⭐</span><small>💬 💬 💬</small></button>
-      <button type="button" class="opt" data-lv="3" aria-label="三顆星"><span class="lvst">⭐⭐⭐</span><small>🔊 🔊 🔊</small></button>
+      <button type="button" class="opt" data-lv="3" aria-label="三顆星"><span class="lvst">⭐⭐⭐</span><small>💬 💬 💬 💬</small></button>
     </div>
     <span class="lbl2">Questions</span>
     <div class="row" id="totals">
@@ -123,7 +124,7 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
   const HELP={
     1:"港口聊天，一顆星。鸚鵡會用英文問你問題，像是你好嗎、天氣怎麼樣、你幾歲。下面有兩個對話泡泡，選出應該要回答的那一句。點泡泡可以聽它怎麼念，選好了按 OK。",
     2:"港口聊天，兩顆星。這次有三個泡泡，而且都是同一種回答。要看旁邊的圖：小朋友的表情、窗外的天氣、蛋糕上有幾根蠟燭，選出對的那一句。",
-    3:"港口聊天，三顆星。泡泡上沒有字了，只有喇叭。一個一個點來聽，聽完選出對的回答，再按 OK。"
+    3:"港口聊天，三顆星。這次有四個泡泡，都是同一種回答，要更仔細看旁邊的圖，選出對的那一句。點泡泡可以聽，選好了按 OK。"
   };
   EN.helpBtn($("help"),()=>HELP[S.lv]);
 
@@ -159,13 +160,13 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
     cold:win("#d7f0ff",`<g stroke="#4da3ff" stroke-width="3.5"><path d="M30 20v24M18 32h24M21 23l18 18M39 23L21 41"/><path d="M50 58v20M40 68h20M43 61l14 14M57 61L43 75"/></g><rect x="70" y="22" width="12" height="46" rx="6" fill="#fff"/><circle cx="76" cy="72" r="10" fill="#2f7bff"/><rect x="73" y="56" width="6" height="12" fill="#2f7bff" stroke="none"/>`)
   };
   function cake(n){
-    // 蠟燭排兩排（上排 5 根），比較好數
-    const rows=n>5?[5,n-5]:[n];let c="";
-    rows.forEach((k,ri)=>{for(let i=0;i<k;i++){const x=50+(i-(k-1)/2)*15,y=ri?36:14;
-      c+=`<rect x="${x-3.5}" y="${y+10}" width="7" height="${ri?14:26}" rx="2.5" fill="${["#ff8fc7","#7cc7ff","#ffd93d","#9ef0b9"][(i+ri)%4]}" stroke-width="2.5"/><path d="M${x} ${y}q5 5 0 10q-5-5 0-10z" fill="#ff9a1f" stroke-width="2"/>`}});
-    return `<svg viewBox="0 0 100 100" aria-hidden="true"><g stroke="${K}" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">${c}
-      <ellipse cx="50" cy="91" rx="46" ry="6" fill="#d7f0ff"/><rect x="8" y="50" width="84" height="36" rx="7" fill="#ffe0b0"/>
-      <path d="M8 60q0-10 10-10h64q10 0 10 10q-6 7-12 0q-7 7-14 0q-7 7-14 0q-7 7-14 0q-7 7-14 0q-5 6-10 0z" fill="#ffb3c7"/></g></svg>`;
+    // 蠟燭排成一排，又粗又高；數到第 5 根之後空一點，比較好數
+    let c="";const sp=14,gap=n>5?8:0,w=(n-1)*sp+gap,x0=80-w/2;
+    for(let i=0;i<n;i++){const x=x0+i*sp+(i>=5?gap:0);
+      c+=`<rect x="${x-4.5}" y="24" width="9" height="30" rx="3" fill="${["#ff8fc7","#7cc7ff","#ffd93d","#9ef0b9"][i%4]}" stroke-width="2.5"/><path d="M${x} 7q7 7 0 14q-7-7 0-14z" fill="#ff9a1f" stroke-width="2"/><circle cx="${x}" cy="16" r="2" fill="#fff3a8" stroke="none"/>`}
+    return `<svg viewBox="0 0 160 100" aria-hidden="true"><g stroke="${K}" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">${c}
+      <ellipse cx="80" cy="91" rx="76" ry="6" fill="#d7f0ff"/><rect x="8" y="52" width="144" height="34" rx="8" fill="#ffe0b0"/>
+      <path d="M8 62q0-10 10-10h124q10 0 10 10q-6 7-12 0q-7 7-14 0q-7 7-14 0q-7 7-14 0q-7 7-14 0q-7 7-14 0q-7 7-14 0q-7 7-14 0q-7 7-14 0q-5 6-10 0z" fill="#ffb3c7"/></g></svg>`;
   }
   // ---- 題目 ----
   const MOODS=["happy","sad","tired","angry"],WEATHER=["sunny","rainy","cloudy","windy","hot","cold"],AGES=["six","seven","eight","nine"];
@@ -181,7 +182,7 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
     if(S.lv===1){
       const ot=pick(Object.keys(TYPES).filter(t=>t!==type));opts=shuffle([T.reply(ans),TYPES[ot].reply(pick(TYPES[ot].list))]);
     }else{
-      const ds=shuffle(T.list.filter(x=>x!==ans&&!clash(x,ans))).slice(0,2);opts=shuffle([ans,...ds].map(T.reply));
+      const ds=shuffle(T.list.filter(x=>x!==ans&&!clash(x,ans))).slice(0,S.lv===3?3:2);opts=shuffle([ans,...ds].map(T.reply));
     }
     return{type,ans:T.reply(ans),key:ans,q:(first?"Hi! ":"")+T.q,opts};
   }
@@ -189,9 +190,9 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
     const q=S.q;$("qt").textContent=q.q;$("mb").className="bub me";$("mb").textContent="";
     $("kid").innerHTML=face(q.type==="mood"?q.key:"plain",S.kid);
     $("hint").innerHTML=q.type==="weather"?WEA[q.key]:q.type==="age"?cake(AGES.indexOf(q.key)+6):"";
-    $("hint").style.display=q.type==="mood"?"none":"";$("kid").classList.toggle("kbig",q.type==="mood");
+    $("hint").style.display=q.type==="mood"?"none":"";$("hint").classList.toggle("cake",q.type==="age");$("kid").classList.toggle("kbig",q.type==="mood");
     S.sel=null;
-    $("opts").innerHTML=q.opts.map((o,k)=>`<button type="button" class="rbtn" data-w="${o}" aria-pressed="false" aria-label="${S.lv===3?"回答 "+(k+1):o}">${S.lv===3?`🔊 ${k+1}`:o}</button>`).join("")+
+    $("opts").innerHTML=q.opts.map((o,k)=>`<button type="button" class="rbtn" data-w="${o}" aria-pressed="false" aria-label="${o}">${o}</button>`).join("")+
       `<button type="button" class="big ok" id="ok" disabled>OK</button>`;
     document.querySelectorAll(".rbtn").forEach(b=>b.onclick=()=>{
       if(S.busy)return;S.sel=b.dataset.w;say(S.sel);

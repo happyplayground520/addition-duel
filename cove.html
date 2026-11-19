@@ -7,7 +7,7 @@
 <title>海盜灣</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261118s">
+<link rel="stylesheet" href="en.css?v=20261119a">
 <style>
 /* 海盜灣地圖：海上一座沙灘小島，一條小路彎彎曲曲連起七個地點（先開放三個） */
 body{background:linear-gradient(#8fdcf2,#4fbfe0 40%,#2b9cc4);align-items:center;justify-content:center;gap:clamp(6px,1.2vmin,12px);
@@ -63,7 +63,7 @@ h1 .flag{font-size:.7em;text-shadow:none}
 /* 手機直放：地圖變長，往下捲 */
 html.phone,html.phone body{height:auto;min-height:100%}
 html.phone body{overflow-y:auto;justify-content:flex-start}
-html.phone .map{width:100%;aspect-ratio:auto;height:calc((100vw - 28px) * 1.95);max-height:none}
+html.phone .map{width:100%;aspect-ratio:auto;height:calc((100vw - 28px) * 2.05);max-height:none}
 html.phone .spot .icon{width:84px}
 html.phone .spot .name{font-size:16px}
 @media (max-width:370px){html.phone .spot .name{font-size:14px}html.phone .spot .icon{width:76px}} html.phone .spot .tag{font-size:13px}
@@ -86,10 +86,10 @@ html.phone .spot .name{font-size:16px}
 @keyframes wig{25%{translate:-6px 0}75%{translate:6px 0}}
 @media (max-width:420px){.hats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
-<script src="zhuyin.js?v=20261118s"></script>
-<link rel="stylesheet" href="park.css?v=20261118s">
-<script src="park.js?v=20261118s"></script>
-<script src="en.js?v=20261118s"></script>
+<script src="zhuyin.js?v=20261119a"></script>
+<link rel="stylesheet" href="park.css?v=20261119a">
+<script src="park.js?v=20261119a"></script>
+<script src="en.js?v=20261119a"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
 <body>
@@ -146,7 +146,7 @@ html.phone .spot .name{font-size:16px}
   const LAY={
     land:{H:62.5,pts:[[12,72],[24,34],[38,72],[52,34],[66,72],[78,34],[89,72]],decos:[["palm",6,16,8],["palm",95,18,7]]},
     port:{H:125,pts:[[27,11],[73,24],[27,37],[73,50],[27,63],[73,76],[27,89]],decos:[["palm",76,7,11],["x",76,93,7],["palm",8,52,9],["rock",92,38,6]]},
-    phone:{H:195,pts:[[26,8],[74,21.5],[26,35.5],[74,49.5],[26,63.5],[74,77.5],[26,91]],decos:[["palm",80,5,13]]}
+    phone:{H:205,pts:[[26,8],[74,21],[26,34],[74,47],[26,60],[74,73],[26,86]],decos:[["palm",80,5,13]]}
   };
   const DECO={
     palm:`<svg viewBox="0 0 100 120"><g stroke="${K}" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><path d="M50 116q-8-40 4-80" fill="none" stroke="#a8683a" stroke-width="9"/>

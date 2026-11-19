@@ -7,7 +7,7 @@
 <title>船長說故事</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261118s">
+<link rel="stylesheet" href="en.css?v=20261119a">
 <style>
 /* 船長說故事：一本繪本，每一句旁邊有一張圖，念到哪一句那一行就亮起來；聽完回答 Who／What／When，點英文字聽、選好按 OK */
 body{background:radial-gradient(circle at 15% 20%,rgba(255,255,255,.3) 0 2px,transparent 3px) 0 0/44px 44px,linear-gradient(#d9c4f2,#f3e9ff)}
@@ -59,10 +59,10 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
 }
 @media (prefers-reduced-motion:reduce){.book.flip,.line.glow,.wbtn.glow,.listen i{animation:none}}
 </style>
-<script src="zhuyin.js?v=20261118s"></script>
-<link rel="stylesheet" href="park.css?v=20261118s">
-<script src="park.js?v=20261118s"></script>
-<script src="en.js?v=20261118s"></script>
+<script src="zhuyin.js?v=20261119a"></script>
+<link rel="stylesheet" href="park.css?v=20261119a">
+<script src="park.js?v=20261119a"></script>
+<script src="en.js?v=20261119a"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
 <body data-game="story">
@@ -146,7 +146,8 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
       const o=pick(HAVE);
       if(Math.random()<.5)lines.push({t:`This is ${p1.n}.`,pics:[p1.n]});
       lines.push({t:`${p1.n} has ${art(o)} ${o}.`,pics:[p1.n,o]});
-      return{lines,q:`Who has ${art(o)} ${o}?`,ans:p1.n,opts:shuffle([p1.n,...others(PEOPLE.map(p=>p.n),p1.n,2)]),fact:lines.length-1};
+      // 選項裡放一個故事裡有出現、但不是答案的字（例如問 Who 時出現 cat），要聽懂問題才答得對
+      return{lines,q:`Who has ${art(o)} ${o}?`,ans:p1.n,opts:shuffle([p1.n,...others(PEOPLE.map(p=>p.n),p1.n,1),o]),fact:lines.length-1};
     }
     if(S.lv===2){
       // 兩個人各一件事（有什麼或喜歡什麼），問其中一件的 Who 或 What
@@ -157,10 +158,9 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
       let off=0;if(Math.random()<.4){lines.unshift({t:`This is ${p1.n} and ${p2.n}.`,pics:[p1.n,p2.n]});off=1}
       const k=rnd(0,1),f=F[k],g=F[1-k];
       if(Math.random()<.5){
-        const third=pick(PEOPLE.filter(p=>p!==p1&&p!==p2)).n;
-        return{lines,q:f.like?`Who likes ${f.o}?`:`Who has ${art(f.o)} ${f.o}?`,ans:f.p.n,opts:shuffle([p1.n,p2.n,third]),fact:k+off};
+        return{lines,q:f.like?`Who likes ${f.o}?`:`Who has ${art(f.o)} ${f.o}?`,ans:f.p.n,opts:shuffle([p1.n,p2.n,g.o]),fact:k+off};
       }
-      const opts=[f.o,g.o];opts.push(pick(f.pool.filter(x=>!opts.includes(x))));
+      const opts=[f.o,g.o,g.p.n];
       return{lines,q:`What does ${f.p.n} ${f.like?"like":"have"}?`,ans:f.o,opts:shuffle(opts),fact:k+off};
     }
     // ⭐⭐⭐：三句，兩個人，一句有時間
@@ -169,9 +169,10 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
     lines.push({t:`${p1.n} has ${art(o1)} ${o1}.`,pics:[p1.n,o1]});
     lines.push({t:`${p2.n} ${a.v3} ${obj} ${tm[0]}.`,pics:[p2.n,icObj,tm[1]]});
     const kind=pick(["who","what","when","when"]);
-    if(kind==="when")return{lines,q:`When does ${p2.n} ${a.v} ${obj}?`,ans:tm[1],opts:["morning","afternoon","night"],fact:2};
-    if(kind==="who")return{lines,q:`Who ${a.v3} ${obj}?`,ans:p2.n,opts:shuffle([p1.n,p2.n,others(PEOPLE.map(p=>p.n),p1.n,3).find(x=>x!==p2.n)]),fact:2};
-    const pool=HAVE;return{lines,q:`What does ${p1.n} have?`,ans:o1,opts:shuffle([o1,...others(pool,o1,2)]),fact:1};
+    const objW=obj.replace(/^an? /,"");
+    if(kind==="when")return{lines,q:`When does ${p2.n} ${a.v} ${obj}?`,ans:tm[1],opts:shuffle([tm[1],pick(TIME.filter(x=>x!==tm))[1],o1]),fact:2};
+    if(kind==="who")return{lines,q:`Who ${a.v3} ${obj}?`,ans:p2.n,opts:shuffle([p1.n,p2.n,o1]),fact:2};
+    return{lines,q:`What does ${p1.n} have?`,ans:o1,opts:shuffle([o1,objW===o1?pick(HAVE.filter(x=>x!==o1)):objW,p2.n]),fact:1};
   }
 
   // ---- 畫面 ----

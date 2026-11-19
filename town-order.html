@@ -7,8 +7,8 @@
 <title>串糖葫蘆</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261118s">
-<link rel="stylesheet" href="town/town.css?v=20261118s">
+<link rel="stylesheet" href="en.css?v=20261119a">
+<link rel="stylesheet" href="town/town.css?v=20261119a">
 <style>
 main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(12px,2.6vh,28px);
   padding:0 max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
@@ -36,12 +36,12 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
 .ball.bad{animation:wig .4s}
 @media (max-height:500px){.ball{font-size:26px;min-height:58px;padding:2px 12px}.slot{min-height:58px;min-width:72px}main.stage2{flex-direction:column;gap:10px}}
 </style>
-<script src="zhuyin.js?v=20261118s"></script>
-<link rel="stylesheet" href="park.css?v=20261118s">
-<script src="park.js?v=20261118s"></script>
-<script src="en.js?v=20261118s"></script>
-<script src="town/zi-data.js?v=20261118s"></script>
-<script src="town/town.js?v=20261118s"></script>
+<script src="zhuyin.js?v=20261119a"></script>
+<link rel="stylesheet" href="park.css?v=20261119a">
+<script src="park.js?v=20261119a"></script>
+<script src="en.js?v=20261119a"></script>
+<script src="town/zi-data.js?v=20261119a"></script>
+<script src="town/town.js?v=20261119a"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
 <body>
@@ -86,8 +86,11 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
 <script>
 (()=>{
   const $=id=>document.getElementById(id),Z=ZI;
-  $("q").innerHTML=TZ.zy("把糖葫蘆照順序串起來，變成一句話。")+`<button type="button" class="ibtn" id="say" aria-label="念句子">🔊</button>`;
-  let cur="";$("say").onclick=()=>{if(cur)TZ.say(cur.split("/").join(""))};
+  $("q").innerHTML=TZ.zy("把糖葫蘆照順序串起來，變成一句話。")+`<button type="button" class="ibtn" id="say" aria-label="念題目">🔊</button>`;
+  // 喇叭念題目（不念答案的句子）
+  let cur="";$("say").onclick=()=>TZ.say("把糖葫蘆照順序串起來，變成一句話。");
+  // 糖葫蘆回到下面原來的位置（飛上去時原本那顆被藏起來，回來要再顯示）
+  const back=b=>{b.classList.remove("used","bad");b.style.visibility=""};
   const api=TZ.run({key:"town-order",gotIcon:EN.icon("candied fruit"),
     finale:done=>{const n=+TZ.got().dataset.n;TZ.finale(`<div class="stand"><div class="frow">${Array(Math.min(n,10)).fill(EN.icon("candied fruit")).join("")}</div></div>`,"糖葫蘆都串好了，插上展示架！",done,2800)},
     help:"串糖葫蘆。下面有幾顆糖葫蘆，每一顆上面是一個詞語。照句子的順序一顆一顆點，把它們串到竹籤上。串錯的會掉下來，再試一次。學過的字沒有注音，沒學過的字有注音。",
@@ -107,14 +110,14 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
         if(slots.every(x=>x.firstChild))setTimeout(check,350);
       });
       slots.forEach(s=>s.onclick=()=>{if(api.S.busy||!s.firstChild||s.firstChild.classList.contains("ok"))return;
-        balls.find(b=>b.dataset.i===s.firstChild.dataset.i).classList.remove("used");s.innerHTML="";mark()});
+        back(balls.find(b=>b.dataset.i===s.firstChild.dataset.i));s.innerHTML="";mark()});
       function check(){
         let all=true;slots.forEach(s=>{const k=+s.dataset.k,b=s.firstChild;if(+b.dataset.i===k)b.classList.add("ok");else all=false});
         if(all){api.ok();const sl=$("slots");sl.classList.remove("glaze");void sl.offsetWidth;sl.classList.add("glaze");EN.sfx.clear();setTimeout(()=>TZ.flyGot(sl,EN.icon("candied fruit")),700);
           TZ.say(t.split("/").join(""),{onend:()=>api.next(600)});return}
         api.bad();api.S.busy=true;
         slots.forEach(s=>{const b=s.firstChild;if(b&&!b.classList.contains("ok"))b.classList.add("bad")});
-        setTimeout(()=>{slots.forEach(s=>{const b=s.firstChild;if(b&&!b.classList.contains("ok")){balls.find(x=>x.dataset.i===b.dataset.i).classList.remove("used");s.innerHTML=""}});
+        setTimeout(()=>{slots.forEach(s=>{const b=s.firstChild;if(b&&!b.classList.contains("ok")){back(balls.find(x=>x.dataset.i===b.dataset.i));s.innerHTML=""}});
           api.S.busy=false;mark()},550);
       }
     }});
