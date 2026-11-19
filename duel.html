@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>*,*::before,*::after{box-sizing:border-box}html,body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}</style>
-<script src="zhuyin.js?v=20261119d"></script>
+<script src="zhuyin.js?v=20261119e"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261119d">
-<script src="park.js?v=20261119d"></script>
+<link rel="stylesheet" href="park.css?v=20261119e">
+<script src="park.js?v=20261119e"></script>
 <style>:root{--theme:#8e3fb0}</style>
 </head>
 <body>
@@ -284,7 +284,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
     <button type="button" class="ok" id="tourOk">知道了</button>
   </div>
 </div>
-<a class="home-btn" href="./" aria-label="回遊樂園地圖">🏠</a>
+<a class="home-btn" href="park.html" aria-label="回遊樂園地圖">🏠</a>
 <div class="scrim" id="scrim" hidden></div>
 <aside class="drawer" id="drawer" aria-label="設定" aria-hidden="true">
   <header><h2>設定</h2><button type="button" class="x" id="closeMenu" aria-label="關閉選單">×</button></header>
@@ -345,7 +345,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
   <div class="group">
     <span class="lbl">遊戲</span>
     <button type="button" class="opt wide" id="restart">↺ 重新開始</button>
-    <a class="opt wide" href="./" style="text-decoration:none;text-align:center;color:inherit">🏠 回遊樂園地圖</a>
+    <a class="opt wide" href="park.html" style="text-decoration:none;text-align:center;color:inherit">🏠 回遊樂園地圖</a>
     <label class="chk"><input type="checkbox" id="tourShow" checked> 開啟時顯示新手導覽</label>
   </div>
 </aside>
@@ -451,7 +451,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
       <div class="overlay"><h2></h2>
         <div class="row lvs">${[1,2,3].map(l=>`<button type="button" class="opt" data-lv="${l}" aria-label="${LV[l].name}"><span class="lvst">${STAR[l]}</span><small>${LV[l].sub}</small></button>`).join("")}</div>
         <div class="row vrow"><button type="button" class="opt vbtn"></button></div>
-        <p></p><div class="final" hidden></div><div class="row endrow"><button type="button" class="ready">READY</button><a class="homeb" href="./" aria-label="回遊樂園">🏠</a></div></div>`;
+        <p></p><div class="final" hidden></div><div class="row endrow"><button type="button" class="ready">READY</button><a class="homeb" href="park.html" aria-label="回遊樂園">🏠</a></div></div>`;
     const u={el,msg:el.querySelector(".msg"),score:el.querySelector(".score"),scoreB:el.querySelector(".score b"),
       pad:el.querySelector(".pad"),keys:[],ov:el.querySelector(".overlay"),ovH:el.querySelector(".overlay h2"),
       ovP:el.querySelector(".overlay p"),final:el.querySelector(".final"),readyBtn:el.querySelector(".ready"),

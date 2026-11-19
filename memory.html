@@ -99,10 +99,10 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   .overlay h2{display:none} .overlay .opt small{display:none}
 }
 </style>
-<script src="zhuyin.js?v=20261119d"></script>
+<script src="zhuyin.js?v=20261119e"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261119d">
-<script src="park.js?v=20261119d"></script>
+<link rel="stylesheet" href="park.css?v=20261119e">
+<script src="park.js?v=20261119e"></script>
 <style>:root{--theme:#2b7f50}</style>
 </head>
 <body>
@@ -151,7 +151,7 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   // ---- 玩家區 ----
   const ui=[...document.querySelectorAll(".side")].sort((a,b)=>a.dataset.p-b.dataset.p).map((el,p)=>{
     el.innerHTML=`
-      <div class="head"><a class="home" href="./" aria-label="回遊樂園地圖">🏠</a><span class="name">${NAMES[p]}</span>
+      <div class="head"><a class="home" href="park.html" aria-label="回遊樂園地圖">🏠</a><span class="name">${NAMES[p]}</span>
         <span class="msg" data-zy></span><span class="pairs" aria-label="拿到的對數"><span class="mini"></span><b>0</b></span>
         <button type="button" class="spk" aria-label="再念一次">🔊</button></div>
       <div class="overlay">
@@ -159,7 +159,7 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
         <div class="row lvs">${[1,2,3].map(l=>`<button type="button" class="opt" data-lv="${l}" aria-label="${LV[l].name}"><span class="lvst">${STAR[l]}</span><small>${LV[l].sub}</small></button>`).join("")}</div>
         <div class="row"><button type="button" class="opt vbtn"></button></div>
         <div class="big" hidden></div>
-        <div class="row endrow"><button type="button" class="ready">READY</button><a class="homeb" href="./" aria-label="回遊樂園">🏠</a></div>
+        <div class="row endrow"><button type="button" class="ready">READY</button><a class="homeb" href="park.html" aria-label="回遊樂園">🏠</a></div>
       </div>`;
     const u={el,msg:el.querySelector(".msg"),pairs:el.querySelector(".pairs b"),ov:el.querySelector(".overlay"),h2:el.querySelector(".overlay h2"),
       big:el.querySelector(".overlay .big"),lvs:[...el.querySelectorAll(".lvs .opt")],vbtn:el.querySelector(".vbtn"),ready:el.querySelector(".ready"),spk:el.querySelector(".spk")};

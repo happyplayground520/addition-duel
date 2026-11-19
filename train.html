@@ -106,10 +106,10 @@ rect.land{animation:sqland .9s ease-out}
   font-weight:800;font-size:clamp(20px,4vmin,34px);box-shadow:0 8px 24px rgba(0,0,0,.2);pointer-events:none;white-space:nowrap}
 .toast.flip{transform:translate(-50%,-50%) rotate(180deg)}
 </style>
-<script src="zhuyin.js?v=20261119d"></script>
+<script src="zhuyin.js?v=20261119e"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261119d">
-<script src="park.js?v=20261119d"></script>
+<link rel="stylesheet" href="park.css?v=20261119e">
+<script src="park.js?v=20261119e"></script>
 <style>:root{--theme:#c0392b}</style>
 </head>
 <body>
@@ -204,7 +204,7 @@ rect.land{animation:sqland .9s ease-out}
   // ---- 畫面 ----
   const ui=[...document.querySelectorAll(".side")].sort((a,b)=>a.dataset.p-b.dataset.p).map((el,p)=>{
     el.innerHTML=`
-      <div class="head">${p===0?'<a class="home" href="./" aria-label="回遊樂園地圖">🏠</a>':""}<span class="name">${NAMES[p]}</span><span class="lvtag"></span><span class="msg"></span>
+      <div class="head">${p===0?'<a class="home" href="park.html" aria-label="回遊樂園地圖">🏠</a>':""}<span class="name">${NAMES[p]}</span><span class="lvtag"></span><span class="msg"></span>
         <button type="button" class="spk" aria-label="再念一次我的題目">🔊</button></div>
       <div class="play">
         <button type="button" class="roll">🎲 擲骰子</button>
@@ -215,7 +215,7 @@ rect.land{animation:sqland .9s ease-out}
         <h2>${NAMES[p]}的小火車</h2>
         <div class="row lvs">${[1,2,3].map(l=>`<button type="button" class="opt" data-lv="${l}" aria-label="${LV[l].name}"><span class="lvst">${STAR[l]}</span><small>${LV[l].sub}</small></button>`).join("")}</div>
         <div class="row"><button type="button" class="opt vbtn"></button></div>
-        <div class="row endrow"><button type="button" class="ready">READY</button><a class="homeb" href="./" aria-label="回遊樂園">🏠</a></div>
+        <div class="row endrow"><button type="button" class="ready">READY</button><a class="homeb" href="park.html" aria-label="回遊樂園">🏠</a></div>
       </div>`;
     const u={el,msg:el.querySelector(".msg"),lvtag:el.querySelector(".lvtag"),spk:el.querySelector(".spk"),roll:el.querySelector(".roll"),
       qline:el.querySelector(".qline"),die:el.querySelector(".die"),q:el.querySelector(".q"),choices:el.querySelector(".choices"),chs:[...el.querySelectorAll(".ch")],

@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>謎題星空</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<style>
+/* 謎題星空地圖：深藍色的夜空，每一關是一顆小星球，星球之間用火箭飛過的虛線連起來；還沒做好的星球是灰色、蓋著雲霧 */
+*,*::before,*::after{box-sizing:border-box}
+:root{--ink:#1f2b33;--text:"Chiron GoRound TC","PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;color-scheme:light}
+html,body{margin:0;height:100%}
+body{font-family:var(--text);color:#fff;overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+  background:radial-gradient(ellipse at 80% 0%,#4b3a9e 0,transparent 55%),radial-gradient(ellipse at 10% 100%,#2b5fa8 0,transparent 50%),linear-gradient(#1b1d4f,#2a2470 60%,#3a2f86);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(6px,1.2vmin,12px);
+  padding:max(10px,env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) max(10px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
+[hidden]{display:none!important}
+/* 滿天星星：小點點鋪滿，再加幾顆會閃的星星和一顆流星 */
+.stars{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(circle,rgba(255,255,255,.9) 1px,transparent 1.6px) 0 0/53px 61px,radial-gradient(circle,rgba(255,255,255,.55) 1px,transparent 1.5px) 21px 33px/89px 71px,
+    radial-gradient(circle,rgba(255,240,180,.8) 1.4px,transparent 2px) 40px 10px/131px 117px}
+.tw{position:absolute;color:#fff6c2;font-size:16px;animation:tw 2.4s ease-in-out infinite;text-shadow:0 0 8px #fff3a0}
+@keyframes tw{50%{opacity:.2;transform:scale(.6)}}
+.shoot{position:absolute;top:12%;left:-10%;width:120px;height:3px;border-radius:3px;background:linear-gradient(90deg,transparent,#fff);transform:rotate(18deg);animation:shoot 7s linear infinite}
+@keyframes shoot{0%,78%{left:-10%;top:10%;opacity:0}80%{opacity:1}100%{left:110%;top:48%;opacity:0}}
+header{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;gap:12px;width:100%;max-width:1100px}
+.ibtn{width:56px;height:56px;border-radius:16px;border:0;background:#fff;display:grid;place-items:center;text-decoration:none;font-size:30px;line-height:1;
+  box-shadow:0 4px 0 #9c8cff,0 8px 16px rgba(0,0,0,.25);color:inherit}
+.ibtn:active{transform:translateY(3px)}
+header .home{position:absolute;left:0;top:50%;transform:translateY(-50%)}
+header .home:active{transform:translateY(calc(-50% + 3px))}
+h1{margin:0;font-size:clamp(26px,5vmin,52px);line-height:1.15;font-weight:900;letter-spacing:.08em;color:#fff;padding:.18em .9em .22em;border-radius:999px;border:4px solid #fff;
+  background:linear-gradient(90deg,#5b4bd6,#8f5bd6 50%,#3b7bd6);text-shadow:0 3px 0 rgba(0,0,0,.3);box-shadow:0 6px 0 #2b2470,0 0 28px rgba(160,140,255,.55);display:flex;align-items:center;gap:.3em}
+h1 .star{font-size:.7em;text-shadow:none}
+/* 地圖 */
+.map{position:relative;z-index:1;width:min(100%,calc((100dvh - 120px) * 1.6));aspect-ratio:16/10;border-radius:30px;overflow:hidden;container-type:inline-size;
+  background:rgba(255,255,255,.06);border:4px solid rgba(255,255,255,.55);box-shadow:inset 0 0 40px rgba(120,100,255,.35)}
+.map>svg{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1}
+.spot{position:absolute;transform:translate(-50%,-38%);display:flex;flex-direction:column;align-items:center;gap:3px;z-index:3;border:0;background:none;padding:0;cursor:pointer;
+  font:inherit;color:inherit;text-decoration:none;touch-action:manipulation}
+.spot .icon{position:relative;width:clamp(56px,9.4cqw,140px);aspect-ratio:1;display:grid;place-items:center}
+.spot .icon svg{width:100%;height:100%;display:block;overflow:visible;filter:drop-shadow(0 0 10px color-mix(in srgb,var(--c) 60%,transparent))}
+.spot .icon .emo{position:absolute;right:-4%;bottom:-2%;font-size:clamp(20px,3cqw,40px);line-height:1;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+.spot.open .icon{animation:float 3.2s ease-in-out infinite}
+.spot.open:nth-of-type(2n) .icon{animation-delay:-1.6s}
+@keyframes float{50%{transform:translateY(-6px) rotate(-3deg)}}
+.spot:active .icon{transform:translateY(4px)}
+.spot .name{background:var(--c);color:#fff;border:2px solid #fff;border-radius:12px;padding:0 clamp(6px,1cqw,12px);font-weight:800;white-space:nowrap;box-shadow:0 3px 0 rgba(0,0,0,.25);
+  font-size:clamp(13px,1.9cqw,24px);text-shadow:0 1px 0 rgba(0,0,0,.25)}
+.spot .tag{white-space:nowrap;font-weight:800;color:#2b2470;background:rgba(255,255,255,.92);border-radius:999px;padding:0 9px;font-size:clamp(11px,1.4cqw,18px)}
+/* 還沒開放：灰色星球、蓋一層雲霧、鎖頭 */
+.spot.lock .icon svg{filter:grayscale(.85) brightness(.85)}
+.spot.lock .icon::before{content:"☁️";position:absolute;left:-14%;bottom:4%;font-size:clamp(28px,4.4cqw,60px);opacity:.92;z-index:2}
+.spot.lock .icon::after{content:"🔒";position:absolute;right:-6%;top:-4%;font-size:clamp(15px,2.4cqw,30px);z-index:3}
+.spot.lock .icon .emo{opacity:.5}
+.spot.lock .name{background:#7d7a9e}
+html.phone .spot .name.long{font-size:13.5px}
+@media (orientation:portrait){.map{aspect-ratio:4/5;width:min(100%,calc((100dvh - 130px) * .8))}
+  .spot .icon{width:clamp(56px,14cqw,150px)} .spot .name{font-size:clamp(13px,2.9cqw,28px)} .spot .tag{font-size:clamp(11px,2cqw,19px)} .spot .icon .emo{font-size:clamp(20px,4.4cqw,44px)}}
+/* 手機：地圖變長，往下捲 */
+html.phone,html.phone body{height:auto;min-height:100%}
+html.phone body{overflow-y:auto;justify-content:flex-start}
+html.phone .map{width:100%;aspect-ratio:auto;height:calc((100vw - 28px) * 2.1);max-height:none}
+html.phone .spot .icon{width:84px} html.phone .spot .name{font-size:15px} html.phone .spot .tag{font-size:13px} html.phone .spot .icon .emo{font-size:28px}
+html.phone .spot.lock .icon::before{font-size:44px} html.phone .spot.lock .icon::after{font-size:20px}
+html.phone.land .map{height:calc((100vw - 28px) * .62)}
+html.phone.land .spot .icon{width:66px} html.phone.land .spot .icon .emo{font-size:22px}
+@media (max-width:370px){html.phone .spot .name{font-size:13px}html.phone .spot .name.long{font-size:12px;padding:0 4px;letter-spacing:-.03em}html.phone .spot .icon{width:74px}}
+@media (max-height:500px){h1{font-size:22px;border-width:3px}h1 .star{display:none}}
+/* 手機直放：🗺️ 在標題左邊，標題在中間（同另外三張地圖） */
+@media (max-width:600px){header{display:grid;grid-template-columns:46px minmax(0,1fr) 46px;column-gap:8px;align-items:center}
+  header .home{position:static;transform:none;grid-column:1;width:46px;height:46px;font-size:24px}header .home:active{transform:translateY(3px)}
+  h1{grid-column:2;justify-self:center;font-size:21px;padding:.16em .6em .2em;border-width:3px;letter-spacing:.04em}h1 .star{display:none}}
+.toast{position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:9;background:#fff;color:var(--ink);
+  padding:10px 20px;border-radius:999px;font-size:18px;font-weight:800;box-shadow:0 6px 20px rgba(0,0,0,.35);transition:opacity .25s;white-space:nowrap}
+.toast[hidden]{display:block!important;opacity:0;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.tw,.shoot,.spot .icon{animation:none!important}}
+</style>
+<script src="zhuyin.js?v=20261119e"></script>
+</head>
+<body>
+<div class="stars" aria-hidden="true"><span class="tw" style="left:8%;top:14%">✦</span><span class="tw" style="left:30%;top:6%;animation-delay:-.8s">✦</span>
+  <span class="tw" style="left:62%;top:10%;animation-delay:-1.6s">✦</span><span class="tw" style="left:90%;top:40%;animation-delay:-.4s">✦</span>
+  <span class="tw" style="left:4%;top:70%;animation-delay:-1.2s">✦</span><span class="tw" style="left:94%;top:86%;animation-delay:-2s">✦</span><span class="shoot"></span></div>
+<header>
+  <a class="ibtn home" href="./" aria-label="回選地圖">🗺️</a>
+  <h1><span class="star">⭐</span>謎題星空<span class="star">⭐</span></h1>
+</header>
+<div class="map" id="map" role="navigation" aria-label="謎題星空地圖">
+  <svg id="art" aria-hidden="true"></svg>
+</div>
+<div class="toast" id="toast" role="status" data-zy hidden></div>
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  // 一顆星球：圓球、條紋或坑洞，有的有光環
+  const planet=(c,c2,ring,deco)=>`<svg viewBox="0 0 100 100" aria-hidden="true"><g stroke="#2b2240" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+    ${ring?`<path d="M10 62q-6 10 14 8q26-2 56-20q18-12 6-14" fill="none" stroke="${c2}" stroke-width="7"/>`:""}
+    <circle cx="50" cy="50" r="34" fill="${c}"/>${deco}
+    <circle cx="38" cy="36" r="7" fill="#fff" opacity=".45" stroke="none"/>
+    ${ring?`<path d="M86 36q12 8-6 14" fill="none" stroke="${c2}" stroke-width="7"/><path d="M10 62q-6 10 14 8" fill="none" stroke="${c2}" stroke-width="7"/>`:""}</g></svg>`;
+  const STRIPE=c=>`<path d="M20 44q30 8 60-2M18 58q32 8 64 0" fill="none" stroke="${c}" stroke-width="5"/>`;
+  const CRATER=c=>`<circle cx="60" cy="40" r="6" fill="${c}" stroke-width="2.5"/><circle cx="44" cy="62" r="8" fill="${c}" stroke-width="2.5"/><circle cx="66" cy="62" r="4" fill="${c}" stroke-width="2"/>`;
+  const SPOTS=[
+    {k:"pattern",name:"太空列車排排看",tag:"找規律",c:"#ff8a3d",emo:"🚃",ic:planet("#ffb36b","#ffe27a",false,STRIPE("#ff8a3d"))},
+    {k:"balance",name:"宇宙天秤",tag:"天秤平衡",c:"#2f9bdb",emo:"⚖️",ic:planet("#7cc7ff","#ffd23f",true,STRIPE("#4da3ff"))},
+    {k:"sudoku",name:"星際數獨",tag:"不能重複",c:"#3cb371",emo:"👽",ic:planet("#8ee08a","#fff",false,CRATER("#5cc24a"))},
+    {k:"rover",name:"火星探險車",tag:"排指令走迷宮",c:"#e8584f",emo:"🚙",ic:planet("#ff8a6b","#fff",false,CRATER("#d9503f"))},
+    {k:"code",name:"外星密碼",tag:"猜數字",c:"#9b5bd6",emo:"🔐",ic:planet("#c9a2ff","#7cf0d8",true,STRIPE("#a77bff"))},
+    {k:"tangram",name:"拼火箭",tag:"七巧板",c:"#e0a800",emo:"🚀",ic:planet("#ffe27a","#ff8fc7",false,STRIPE("#f5c400"))},
+    {k:"pyramid",name:"星星金字塔",tag:"數字金字塔",c:"#e0559a",emo:"🔺",ic:planet("#ff9fd0","#9fe8ff",true,CRATER("#f070b0"))}
+  ];
+  const map=$("map");
+  SPOTS.forEach(s=>{
+    const a=document.createElement(s.href?"a":"button");a.className="spot "+(s.href?"open":"lock");a.style.setProperty("--c",s.c);a.dataset.k=s.k;
+    if(s.href)a.href=s.href;else{a.type="button";a.setAttribute("aria-label",s.name+"（還沒開放）")}
+    a.innerHTML=`<span class="icon">${s.ic}<span class="emo">${s.emo}</span></span><span class="name${[...s.name].length>=6?" long":""}" data-zy>${s.name}</span><span class="tag" data-zy>${s.tag}</span>`;
+    if(!s.href)a.addEventListener("click",()=>toast("這顆星球快要開放囉！"));
+    map.appendChild(a);
+  });
+  // 火箭的航線：一排一排來回（蛇形）
+  const snake=(cols,rows,x0,x1,y0,y1)=>{const pts=[];for(let r=0;r<rows;r++){const y=rows>1?y0+(y1-y0)*r/(rows-1):y0;const xs=[...Array(cols)].map((_,c)=>x0+(x1-x0)*c/(cols-1));(r%2?xs.reverse():xs).forEach(x=>pts.push([x,y]))}return pts.slice(0,SPOTS.length)};
+  const LAY={land:{H:62.5,pts:snake(4,2,13,87,27,70)},port:{H:125,pts:snake(3,3,18,82,13,80)},
+    phone:{H:210,pts:snake(2,4,29,71,10,84)},phoneLand:{H:62,pts:snake(4,2,15,85,25,70)}};
+  function path(P){let d=`M${P[0][0]} ${P[0][1]}`;
+    for(let i=1;i<P.length;i++){const [x0,y0]=P[i-1],[x1,y1]=P[i];
+      if(Math.abs(y1-y0)<.01)d+=` L${x1} ${y1}`;else{const side=x0>50?1:-1,r=(y1-y0)/2;d+=` C${x0+side*r*1.1} ${y0} ${x1+side*r*1.1} ${y1} ${x1} ${y1}`}}
+    return d}
+  const phoneMQ=matchMedia("(max-width:600px),(max-height:500px)");
+  function layout(){
+    const phone=phoneMQ.matches,land=innerWidth>innerHeight;document.documentElement.classList.toggle("phone",phone);document.documentElement.classList.toggle("land",phone&&land);
+    const L=phone?(land?LAY.phoneLand:LAY.phone):matchMedia("(orientation:portrait)").matches?LAY.port:LAY.land,H=L.H;
+    const P=L.pts.map(([x,y])=>[x,y*H/100]),d=path(P);
+    $("art").setAttribute("viewBox",`0 0 100 ${H}`);
+    $("art").innerHTML=`<path d="${d}" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="5" stroke-linecap="round"/>
+      <path d="${d}" fill="none" stroke="#ffe27a" stroke-width="1.3" stroke-linecap="round" stroke-dasharray="1.6 2.6"/>`;
+    SPOTS.forEach((s,i)=>{const a=map.querySelector(`[data-k="${s.k}"]`);a.style.left=L.pts[i][0]+"%";a.style.top=L.pts[i][1]+"%"});
+  }
+  layout();
+  matchMedia("(orientation:portrait)").addEventListener?.("change",layout);phoneMQ.addEventListener?.("change",layout);
+  let rz=0;addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(layout,150)});addEventListener("load",layout);
+  let tt=0;function toast(t){const e=$("toast");e.textContent=t;e.hidden=false;clearTimeout(tt);tt=setTimeout(()=>e.hidden=true,1800)}
+})();
+</script>
+</body>
+</html>

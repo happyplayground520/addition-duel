@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>數學遊樂園</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
+<style>
+/* 遊樂園導覽地圖：一條環狀主路繞一圈，中間是馬戲團大帳篷，入口在下方；點設施進入小遊戲 */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --ink:#1f2b33; --muted:#5d6b72;
+  --sky1:#9fdcff; --sky2:#d8f1ff;
+  --grass:#a6dc7f; --grass2:#93d06b; --grass3:#b8e692;
+  --path:#fbeccb; --path-edge:#e7cf9c;
+  --sign:#fffaf0;
+  --num:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
+  --text:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{margin:0;height:100%}
+body{background:linear-gradient(var(--sky1),var(--sky2) 30%,var(--grass3) 30.1%,var(--grass) 100%);color:var(--ink);font-family:var(--text);
+  overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(6px,1.4vmin,14px);position:relative;
+  padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+/* 天空：太陽和慢慢飄的雲 */
+.sky{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.sun{position:absolute;left:5%;top:3%;width:clamp(48px,9vmin,90px);aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle,#fff6a8 0 45%,#ffd84d 46% 62%,rgba(255,216,77,0) 63%);box-shadow:0 0 40px 10px rgba(255,230,120,.55)}
+.cloud{position:absolute;font-size:clamp(30px,6vmin,60px);opacity:.95;animation:drift 38s linear infinite}
+.cloud.c2{top:9%;animation-duration:52s;animation-delay:-20s;font-size:clamp(22px,4.4vmin,44px)}
+@keyframes drift{from{transform:translateX(-15vw)}to{transform:translateX(115vw)}}
+header,.map,.toast{position:relative;z-index:1}
+/* 右上角：注音開關（所有小遊戲一起套用） */
+.zybtn{position:fixed;z-index:5;top:max(10px,env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));
+  display:flex;align-items:center;gap:8px;font:inherit;font-weight:800;font-size:clamp(15px,2.2vmin,19px);color:var(--ink);
+  background:#fff;border:3px solid #fff;border-radius:999px;padding:6px 8px 6px 14px;cursor:pointer;box-shadow:0 4px 0 #b9dff5,0 8px 16px rgba(0,0,0,.12)}
+.zybtn .sw{position:relative;width:52px;height:30px;border-radius:999px;background:#cfd8dc;transition:background .2s}
+.zybtn .sw::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;
+  box-shadow:0 2px 4px rgba(0,0,0,.25);transition:transform .2s}
+.zybtn[aria-pressed="true"] .sw{background:#1f9d61}
+.zybtn[aria-pressed="true"] .sw::after{transform:translateX(22px)}
+.zybtn .st{min-width:1.2em;color:var(--muted)}
+/* 注音開關在右上角（左上角是海盜灣的小船），直放橫放都一樣；直放時標題小一點，才不會碰到 */
+@media (orientation:portrait){html:not(.phone) header{margin-top:clamp(60px,5.6vh,80px)}
+  html:not(.phone) .map{flex:none;width:min(100%,calc((100dvh - 140px - clamp(60px,5.6vh,80px)) * .8))!important}}
+/* 左上角：開船去海盜灣（英文區），一個小圖示按鈕 */
+.covebtn{position:fixed;z-index:5;top:max(10px,env(safe-area-inset-top,0px));left:max(12px,env(safe-area-inset-left,0px));
+  width:56px;height:56px;border-radius:16px;background:#fff;display:grid;place-items:center;text-decoration:none;box-shadow:0 4px 0 #b9dff5,0 8px 16px rgba(0,0,0,.12)}
+.covebtn:active{transform:translateY(3px)}
+.covebtn svg{width:44px;height:44px;display:block;animation:rock 2.4s ease-in-out infinite;transform-origin:50% 80%}
+@keyframes rock{50%{transform:rotate(-7deg)}}
+/* 左上角：回選地圖 */
+.mapbtn{font-size:32px;line-height:1;text-decoration:none}html.phone .mapbtn{font-size:26px}
+.townbtn{position:fixed;z-index:5;top:max(10px,env(safe-area-inset-top,0px));left:calc(max(12px,env(safe-area-inset-left,0px)) + 66px);
+  width:56px;height:56px;border-radius:16px;background:#fff;display:grid;place-items:center;text-decoration:none;box-shadow:0 4px 0 #f5b9cc,0 8px 16px rgba(0,0,0,.12)}
+.townbtn:active{transform:translateY(3px)}
+.townbtn svg{width:44px;height:44px;display:block;animation:rock 2.4s ease-in-out infinite;animation-delay:-1.2s;transform-origin:50% 80%}
+html.phone .townbtn{position:absolute;left:auto;right:max(6px,env(safe-area-inset-right,0px));top:max(6px,env(safe-area-inset-top,0px));width:46px;height:46px}html.phone .townbtn svg{width:38px;height:38px}
+
+html.phone .covebtn{position:absolute;top:max(6px,env(safe-area-inset-top,0px));width:46px;height:46px}html.phone .covebtn svg{width:38px;height:38px}
+/* 標題招牌：紅白條紋的帳篷布，下面一條緞帶 */
+header{display:flex;flex-direction:column;align-items:center;gap:4px}
+h1{margin:0;font-size:clamp(26px,5vmin,52px);line-height:1.15;font-weight:800;letter-spacing:.08em;color:#fff;
+  padding:.18em .9em .22em;border-radius:22px 22px 14px 14px;border:4px solid #fff;
+  background:repeating-linear-gradient(90deg,#e8434f 0 28px,#ff6b6b 28px 56px);
+  text-shadow:0 3px 0 #a3202b;box-shadow:0 6px 0 #b82a35,0 12px 22px rgba(0,0,0,.18);display:flex;align-items:center;gap:.3em}
+h1 .star{font-size:.7em;text-shadow:none}
+.sub{margin:0;font-size:clamp(14px,2.3vmin,20px);font-weight:800;color:#7a4b12;background:#ffe27a;border:3px solid #fff;
+  border-radius:999px;padding:2px 16px;box-shadow:0 3px 0 #e2b23b}
+/* 地圖畫布：橫向 16:10，直拿平板時改成 4:5 */
+.map{position:relative;width:min(100%,calc((100dvh - 120px) * 1.6));aspect-ratio:16/10;
+  background:
+    radial-gradient(circle at 12% 88%,var(--grass2) 0 7%,transparent 7.5%),
+    radial-gradient(circle at 90% 10%,var(--grass2) 0 6%,transparent 6.5%),
+    radial-gradient(circle,rgba(255,255,255,.18) 1.5px,transparent 2px) 0 0/26px 26px,
+    var(--grass);
+  border-radius:30px;border:6px solid #fff;box-shadow:0 0 0 4px #7cc35a,0 14px 30px rgba(0,0,0,.18);overflow:hidden}
+.map svg{position:absolute;inset:0;width:100%;height:100%}
+.road-edge,.road,.road-dash{fill:none;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.road-edge{stroke:var(--path-edge);stroke-width:62px} .road{stroke:var(--path);stroke-width:52px}
+.road-dash{stroke:#fff;stroke-width:3px;stroke-dasharray:10 14;opacity:.9}
+.pond{fill:#8fd3f4;stroke:#fff;stroke-width:3px;vector-effect:non-scaling-stroke}
+.deco{position:absolute;transform:translate(-50%,-50%);pointer-events:none;line-height:1}
+/* 頂端的彩色小旗子 */
+.plaza{position:absolute;top:3%;bottom:3%;right:1.5%;border-radius:clamp(16px,3cqw,34px);pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent 0 22px,rgba(255,255,255,.35) 22px 24px),
+             repeating-linear-gradient(90deg,transparent 0 44px,rgba(255,255,255,.35) 44px 46px),linear-gradient(#f6c7a4,#efb48d);
+  box-shadow:inset 0 0 0 4px rgba(255,255,255,.7),0 4px 0 rgba(0,0,0,.08)}
+.zsign{position:absolute;top:1.6%;transform:translateX(-50%);z-index:4;white-space:nowrap;pointer-events:none;
+  font-weight:900;font-size:clamp(13px,1.9cqw,24px);padding:.15em .9em;border-radius:999px;border:3px solid #fff;box-shadow:0 3px 0 rgba(0,0,0,.12)}
+.zsign.solo{background:#7cc35a;color:#fff}
+.zsign.duo{background:#e0602b;color:#fff}
+.bunting{position:absolute;left:0;right:0;top:0;height:7%;display:flex;justify-content:space-around;pointer-events:none;z-index:1}
+.bunting::before{content:"";position:absolute;left:-2%;right:-2%;top:18%;height:2px;background:#fff;opacity:.9}
+.bunting i{width:3.2%;height:100%;clip-path:polygon(0 18%,100% 18%,50% 100%)}
+/* 入口拱門 */
+.gate{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:10%;height:8%;pointer-events:none;z-index:2;
+  display:flex;justify-content:space-between;align-items:flex-start}
+.gate::before,.gate::after{content:"";width:9%;height:100%;border-radius:6px 6px 0 0;background:repeating-linear-gradient(#e8434f 0 8px,#fff 8px 16px)}
+.gate b{position:absolute;left:-6%;right:-6%;top:-38%;display:flex;align-items:center;justify-content:center;gap:.2em;padding:.1em 0;border-radius:999px;
+  background:#ffe27a;border:3px solid #fff;color:#7a4b12;font-weight:800;font-size:clamp(12px,1.9cqw,24px);box-shadow:0 3px 0 #e2b23b;white-space:nowrap}
+/* 設施 */
+.spot{position:absolute;transform:translate(-50%,-38%);display:flex;flex-direction:column;align-items:center;gap:3px;z-index:3;
+  border:0;background:none;padding:0;cursor:pointer;font:inherit;color:inherit;text-decoration:none;touch-action:manipulation}
+.spot .icon{position:relative;width:clamp(56px,13vmin,130px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;
+  font-size:clamp(32px,7.6vmin,76px);background:radial-gradient(circle at 35% 30%,#fff 0 55%,color-mix(in srgb,var(--c) 12%,#fff));
+  box-shadow:0 5px 0 color-mix(in srgb,var(--c) 75%,#000),0 10px 16px rgba(0,0,0,.18);
+  border:5px solid var(--c);transition:transform .12s}
+.spot:active .icon{transform:translateY(4px) scale(.97);box-shadow:0 1px 0 color-mix(in srgb,var(--c) 75%,#000),0 4px 10px rgba(0,0,0,.18)}
+.spot:focus-visible .icon{outline:4px solid #fff;outline-offset:3px}
+.spot .name{background:var(--c);color:#fff;border:2px solid #fff;border-radius:12px;padding:1px 12px;
+  font-weight:800;white-space:nowrap;box-shadow:0 3px 0 rgba(0,0,0,.14);letter-spacing:.04em}
+.spot .tag{white-space:nowrap;font-weight:800;color:color-mix(in srgb,var(--c) 80%,#000);background:rgba(255,255,255,.92);
+  border-radius:999px;padding:0 9px;box-shadow:0 2px 0 rgba(0,0,0,.08)}
+.spot.big .icon{border-width:6px}
+.spot.open .icon{animation:bob 2.6s ease-in-out infinite}
+.spot.open:nth-child(odd) .icon{animation-delay:-1.3s}
+@keyframes bob{50%{transform:translateY(-5px)}}
+.toast{position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:9;
+  background:var(--ink);color:#fff;padding:10px 20px;border-radius:999px;font-size:17px;font-weight:700;
+  box-shadow:0 6px 20px rgba(0,0,0,.25);transition:opacity .25s;white-space:nowrap}
+.toast[hidden]{display:block;opacity:0;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.spot.open .icon,.cloud{animation:none}}
+/* 設施大小跟著地圖寬度縮放 */
+@supports (container-type:inline-size){
+  .map{container-type:inline-size}
+  .spot .icon{width:clamp(44px,9.4cqw,140px);font-size:clamp(24px,5.6cqw,84px);border-width:clamp(3px,.5cqw,6px)}
+  .spot.big .icon{width:clamp(52px,12cqw,170px);font-size:clamp(30px,7.4cqw,104px)}
+  .spot .name{font-size:clamp(13px,2.25cqw,30px);padding:0 clamp(6px,1cqw,13px)}
+  .spot .tag{font-size:clamp(11px,1.5cqw,19px);padding:0 clamp(5px,.8cqw,10px)}
+  .deco{font-size:clamp(14px,3.2cqw,40px)}
+  .road-edge{stroke-width:max(18px,5.4cqw)} .road{stroke-width:max(14px,4.4cqw)}
+}
+/* 直拿平板：地圖改成直的 */
+@media (orientation:portrait){
+  .map{aspect-ratio:4/5;width:min(100%,calc((100dvh - 130px) * .8))}
+  @supports (container-type:inline-size){
+    .spot .icon{width:clamp(44px,11.5cqw,140px);font-size:clamp(24px,7cqw,84px)}
+    .spot.big .icon{width:clamp(52px,14.5cqw,170px);font-size:clamp(30px,9cqw,104px)}
+    .spot .name{font-size:clamp(13px,2.8cqw,30px)} .spot .tag{font-size:clamp(11px,1.9cqw,19px)}
+    .road-edge{stroke-width:max(18px,6.6cqw)} .road{stroke-width:max(14px,5.4cqw)}
+    .gate{width:13%;height:6%} .gate b{font-size:clamp(12px,2.4cqw,24px)}
+    .zsign{font-size:clamp(13px,2.4cqw,26px)}
+  }
+}
+/* 手機橫放：標題縮小，讓地圖大一點 */
+@media (max-height:500px){
+  h1{font-size:22px;border-width:3px} .sub{display:none}
+  .map{width:min(100%,calc((100dvh - 56px) * 1.6))}
+}
+</style>
+<script src="zhuyin.js?v=20261119e"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<style>:root{--text:"Chiron GoRound TC","PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif}
+/* ---- 手機：地圖變成長長的步道，往下捲著逛（一排 2 個，手機橫放一排 4 個） ---- */
+html.phone,html.phone body{height:auto;min-height:100%}
+html.phone body{overflow-x:hidden;overflow-y:auto;justify-content:flex-start;-webkit-overflow-scrolling:touch}
+html.phone header{order:0} html.phone .zybtn{order:1;position:static;margin:2px auto 4px} html.phone .map{order:2}
+html.phone h1{font-size:21px;border-width:3px;letter-spacing:.04em} html.phone h1 .star{display:none}
+@media (max-width:370px){html.phone h1{font-size:19px}} html.phone .sub{display:block;font-size:15px}
+html.phone .map{width:100%;max-width:900px;aspect-ratio:auto;flex:none;margin-bottom:max(16px,env(safe-area-inset-bottom,0px))}
+html.phone .spot .icon{width:84px;font-size:50px;border-width:5px}
+html.phone .spot.big .icon{width:108px;font-size:66px}
+html.phone .spot .name{font-size:17px;padding:0 10px}
+html.phone .spot .tag{font-size:13px;padding:0 8px}
+html.phone .deco{font-size:26px}
+html.phone .road-edge{stroke-width:34px} html.phone .road{stroke-width:27px}
+html.phone .zsign{font-size:17px}
+html.phone .gate{width:130px;height:46px} html.phone .gate b{font-size:16px}
+html.phone .bunting{height:36px}
+</style>
+</head>
+<body>
+<div class="sky" aria-hidden="true"><div class="sun"></div><span class="cloud" style="top:3%">☁️</span><span class="cloud c2">☁️</span></div>
+<header>
+  <h1><span class="star">⭐</span>數學遊樂園<span class="star">⭐</span></h1>
+</header>
+
+<div class="map" role="navigation" aria-label="遊樂園地圖">
+  <svg viewBox="0 0 160 100" preserveAspectRatio="none" aria-hidden="true">
+    <path class="road-edge" id="roadEdge"/><path class="road" id="road"/><path class="road-dash" id="roadDash"/>
+  </svg>
+  <div class="plaza" id="plaza" aria-hidden="true"></div>
+  <div class="bunting" aria-hidden="true"></div>
+  <span class="zsign solo" id="signSolo" data-zy>👤 一個人玩</span>
+  <span class="zsign duo" id="signDuo" data-zy>👥 兩個人對戰</span>
+  <div class="gate" aria-hidden="true"><b data-zy>🎉 入口</b></div>
+  <div id="decos" aria-hidden="true"></div>
+
+  <a class="spot open" data-k="booth" href="booth.html" style="--c:#e0772b">
+    <span class="icon">🎟️</span><span class="name" data-zy>售票亭</span><span class="tag">👤 認識錢幣</span>
+  </a>
+  <a class="spot open" data-k="train" href="train.html" style="--c:#c0392b">
+    <span class="icon">🚂</span><span class="name" data-zy>小火車</span><span class="tag">👥 大富翁</span>
+  </a>
+  <a class="spot open" data-k="bumper" href="bumper.html" style="--c:#2f6fdb">
+    <span class="icon">🚗</span><span class="name" data-zy>碰碰車</span><span class="tag">👥 賽跑對戰</span>
+  </a>
+  <a class="spot open" data-k="ferris" href="ferris.html" style="--c:#2f8fdb">
+    <span class="icon">🎡</span><span class="name" data-zy>摩天輪</span><span class="tag">👤 乘法</span>
+  </a>
+  <a class="spot open" data-k="carousel" href="carousel.html" style="--c:#d1478f">
+    <span class="icon">🎠</span><span class="name" data-zy>旋轉木馬</span><span class="tag">👤 認識時鐘</span>
+  </a>
+  <a class="spot open" data-k="ring" href="ring.html" style="--c:#14a99c">
+    <span class="icon"><svg class="ringico" viewBox="0 0 64 64" width="1em" height="1em" aria-hidden="true" style="vertical-align:-.12em"><rect x="27" y="10" width="10" height="20" rx="3" fill="#b9ece4"/><rect x="25.5" y="7" width="13" height="6" rx="2" fill="#7fd6c8"/><rect x="17" y="27" width="30" height="31" rx="10" fill="#b9ece4"/><circle cx="26" cy="42" r="2.2" fill="#1f2b33"/><circle cx="38" cy="42" r="2.2" fill="#1f2b33"/><path d="M28.5 47q3.5 3 7 0" stroke="#1f2b33" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="22" cy="46" r="2.6" fill="#ffb3c7" opacity=".8"/><circle cx="42" cy="46" r="2.6" fill="#ffb3c7" opacity=".8"/><ellipse cx="32" cy="24" rx="17" ry="6" fill="none" stroke="#ff6b9a" stroke-width="5" transform="rotate(-10 32 24)"/><ellipse cx="32" cy="24" rx="17" ry="6" fill="none" stroke="#ffd23f" stroke-width="5" stroke-dasharray="9 9" transform="rotate(-10 32 24)"/></svg></span><span class="name" data-zy>套圈圈</span><span class="tag">👤 九九快答</span>
+  </a>
+  <a class="spot open" data-k="balloon" href="balloon.html" style="--c:#e0477b">
+    <span class="icon">🎈</span><span class="name" data-zy>射氣球</span><span class="tag">👤 加減法</span>
+  </a>
+  <a class="spot open" data-k="donut" href="donut.html" style="--c:#c2551f">
+    <span class="icon">🍩</span><span class="name" data-zy>甜甜圈攤</span><span class="tag">👤 排排看乘法</span>
+  </a>
+  <a class="spot open" data-k="coaster" href="coaster.html" style="--c:#7a4fd6">
+    <span class="icon">🎢</span><span class="name" data-zy>雲霄飛車</span><span class="tag">👤 計時挑戰</span>
+  </a>
+  <a class="spot open" data-k="fish" href="fish.html" style="--c:#f07a2a">
+    <span class="icon">🐠</span><span class="name" data-zy>撈金魚</span><span class="tag">👤 找出全部</span>
+  </a>
+  <a class="spot open" data-k="claw" href="claw.html" style="--c:#c04fd6">
+    <span class="icon">🧸</span><span class="name" data-zy>夾娃娃機</span><span class="tag">👤 兩種玩法</span>
+  </a>
+  <a class="spot open" data-k="memory" href="memory.html" style="--c:#2b7f50">
+    <span class="icon">🃏</span><span class="name" data-zy>翻牌湊十</span><span class="tag">👥 輪流翻牌</span>
+  </a>
+  <a class="spot open" data-k="shape" href="shape.html" style="--c:#14a99c">
+    <span class="icon">🔷</span><span class="name" data-zy>形狀搶答</span><span class="tag">👥 找形狀</span>
+  </a>
+  <a class="spot open big" data-k="duel" href="duel.html" style="--c:#8e3fb0">
+    <span class="icon">🎪</span><span class="name" data-zy>搶答對決</span><span class="tag">👥 加減法</span>
+  </a>
+</div>
+<a class="covebtn mapbtn" href="./" aria-label="回選地圖">🗺️</a>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(()=>{
+  // ---- 位置（百分比：x 是寬度 %、y 是高度 %）----
+  // 左邊「一個人玩」草地區 3×3；右邊「兩個人對戰」磚紅色廣場，馬戲團在正中間；中間一條大街，入口在下方
+  const map=document.querySelector(".map");
+  function mkLayout(c,dc,dmid,street,rows,plazaLeft){
+    const [r1,r2,r3]=rows;
+    const pos={balloon:[c[0],r1],coaster:[c[1],r1],fish:[c[2],r1],
+               ferris:[c[0],r2],donut:[c[1],r2],ring:[c[2],r2],
+               carousel:[c[0],r3],claw:[c[1],r3],booth:[c[2],r3],
+               train:[dc[0],r1],bumper:[dc[1],r1],duel:[dmid,r2],memory:[dc[0],r3],shape:[dc[1],r3]};
+    const lines=[];
+    rows.forEach(y=>lines.push([[c[0],y],[dc[1],y]]));             // 三條橫的路
+    [...c,...dc].forEach(x=>lines.push([[x,r1],[x,r3]]));           // 每一欄一條直的路
+    lines.push([[street,104],[street,r1]]);                          // 中間大街（入口往上）
+    return{pos,lines,plaza:{left:plazaLeft+"%",top:"3%",right:"1.5%",bottom:"3%"},gate:street,signs:[[(c[0]+c[2])/2,1.6],[(dc[0]+dc[1])/2,1.6]]};
+  }
+  const LAYOUT={
+    land:Object.assign(mkLayout([9.5,26.5,43.5],[69.5,89.5],79.5,55,[19,50,81],60),
+      {decos:[["🌷",18,35],["🌼",35,35],["🌳",18,66],["🌲",35,66],["🎈",97,95],["🌳",3,95]]}),
+    // 直放：上半部草地（一個人玩 3×3），下半部對戰廣場（小火車、馬戲團、碰碰車／翻牌湊十、形狀搶答）
+    port:{
+      pos:{balloon:[17,13],coaster:[50,13],fish:[83,13],
+           ferris:[17,29.5],donut:[50,29.5],ring:[83,29.5],
+           carousel:[17,45.5],claw:[50,45.5],booth:[83,45.5],
+           train:[17,71],duel:[50,71],bumper:[83,71],memory:[30,89],shape:[70,89]},
+      lines:[[[17,13],[83,13]],[[17,29.5],[83,29.5]],[[17,45.5],[83,45.5]],[[17,71],[83,71]],[[30,89],[70,89]],
+             [[17,13],[17,71]],[[83,13],[83,71]],[[50,104],[50,13]]],
+      plaza:{left:"1.5%",right:"1.5%",top:"56%",bottom:"1.5%"},gate:50,signs:[[50,1.2],[50,56.6]],
+      decos:[["🌷",33,20],["🌼",67,20],["🌳",33,37],["🌲",67,37],["🎈",95,97],["🌳",5,97]]}
+  };
+  const spots={};document.querySelectorAll(".spot").forEach(a=>spots[a.dataset.k]=a);
+  const set=(el,x,y)=>{el.style.left=x+"%";el.style.top=y+"%"};
+  // Catmull-Rom 轉成平滑的貝茲曲線（closed=true 時頭尾相接）
+  function smooth(pts,closed){
+    const n=pts.length,get=i=>closed?pts[(i+n)%n]:pts[Math.max(0,Math.min(n-1,i))];
+    let d=`M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
+    for(let i=0;i<(closed?n:n-1);i++){
+      const p0=get(i-1),p1=get(i),p2=get(i+1),p3=get(i+2);
+      const c1=[p1[0]+(p2[0]-p0[0])/6,p1[1]+(p2[1]-p0[1])/6],c2=[p2[0]-(p3[0]-p1[0])/6,p2[1]-(p3[1]-p1[1])/6];
+      d+=` C${c1[0].toFixed(1)} ${c1[1].toFixed(1)} ${c2[0].toFixed(1)} ${c2[1].toFixed(1)} ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`;
+    }
+    return d+(closed?" Z":"");
+  }
+  // 手機版的位置：依地圖寬度決定一排幾個，算出每一排的高度，地圖拉長到放得下全部
+  const SOLO=["balloon","coaster","fish","ferris","donut","ring","carousel","claw","booth"],DUO=["train","bumper","memory","shape"];
+  function phoneLayout(){
+    const W=map.clientWidth,cols=W>=640?4:2,rowH=W>=640?158:168,signH=54;
+    const pos={},lines=[],yPx={};let y=12;
+    const rowXs=n=>Array.from({length:n},(_,j)=>50+(j-(n-1)/2)*(100/cols));
+    const place=(keys,zone)=>{const rows=[];for(let i=0;i<keys.length;i+=cols)rows.push(keys.slice(i,i+cols));
+      rows.forEach(r=>{const xs=rowXs(r.length);r.forEach((k,j)=>{pos[k]=[xs[j],y+58]});zone.push({xs,y:y+58});y+=rowH})};
+    const signs=[[50,0],[50,0]];
+    signs[0][1]=y;y+=signH;const soloRows=[];place(SOLO,soloRows);
+    const plazaTop=y-6;y+=6;signs[1][1]=y;y+=signH;
+    const duoRows=[];pos.duel=[50,y+64];duoRows.push({xs:[50],y:y+64});y+=rowH+26;place(DUO,duoRows);
+    const H=y+64;map.style.height=H+"px";
+    const P=v=>v/H*100;
+    Object.keys(pos).forEach(k=>pos[k]=[pos[k][0],P(pos[k][1])]);
+    // 路：每一排一條橫的、每一欄一條直的，中間一條大街通到最下面的入口
+    [soloRows,duoRows].forEach(rows=>{
+      rows.forEach(r=>{if(r.xs.length>1)lines.push([[r.xs[0],P(r.y)],[r.xs[r.xs.length-1],P(r.y)]])});
+      const xs=[...new Set(rows.flatMap(r=>r.xs))];
+      xs.forEach(x=>{const ys=rows.filter(r=>r.xs.includes(x)).map(r=>r.y);if(ys.length>1)lines.push([[x,P(Math.min(...ys))],[x,P(Math.max(...ys))]])});
+    });
+    lines.push([[50,104],[50,P(soloRows[0].y)]]);
+    const decos=[];soloRows.concat(duoRows).forEach((r,i)=>{if(i%2===0)decos.push([i%4?96:4,P(r.y+rowH/2),["🌳","🌷","🌲","🌼"][i%4]])});
+    return{pos,lines,plaza:{left:"2%",right:"2%",top:P(plazaTop)+"%",bottom:"1.2%"},gate:50,
+      signs:signs.map(([x,yy])=>[x,P(yy+6)]),decos:decos.map(([x,yy,e])=>[e,x,yy])};
+  }
+  // 手機：畫面寬度 600 以下（直放）或高度 500 以下（橫放）
+  const phoneMQ=matchMedia("(max-width:600px),(max-height:500px)");
+  function layout(){
+    const phone=phoneMQ.matches;document.documentElement.classList.toggle("phone",phone);
+    if(!phone)map.style.height="";
+    const L=phone?phoneLayout():matchMedia("(orientation:portrait)").matches?LAYOUT.port:LAYOUT.land;
+    Object.entries(L.pos).forEach(([k,[x,y]])=>set(spots[k],x,y));
+    const S=p=>[p[0]*1.6,p[1]];let d="";
+    L.lines.forEach(([a,b])=>{const A=S(a),B=S(b);d+=` M${A[0].toFixed(1)} ${A[1]} L${B[0].toFixed(1)} ${B[1]}`});
+    ["roadEdge","road","roadDash"].forEach(id=>document.getElementById(id).setAttribute("d",d.trim()));
+    Object.assign(document.getElementById("plaza").style,L.plaza);
+    [["signSolo",L.signs[0]],["signDuo",L.signs[1]]].forEach(([id,[x,y]])=>{const e=document.getElementById(id);e.style.left=x+"%";e.style.top=y+"%"});
+    const g=document.querySelector(".gate");g.style.left=L.gate+"%";
+    document.getElementById("decos").innerHTML=L.decos.map(([e,x,y])=>`<span class="deco" style="left:${x}%;top:${y}%">${e}</span>`).join("");
+  }
+  layout();
+  matchMedia("(orientation:portrait)").addEventListener?.("change",layout);
+  phoneMQ.addEventListener?.("change",layout);
+  let rz=0;addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(layout,150)});addEventListener("load",layout);
+  // 彩色小旗
+  const COLORS=["#ff6b6b","#ffd23f","#4dc3ff","#7bd389","#c58cff","#ff9f43"];
+  document.querySelector(".bunting").innerHTML=Array.from({length:18},(_,i)=>`<i style="background:${COLORS[i%COLORS.length]}"></i>`).join("");
+})();
+</script>
+</body>
+</html>

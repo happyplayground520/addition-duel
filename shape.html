@@ -88,10 +88,10 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   .choices{height:100%;align-items:center} .ch{max-height:100%;max-width:90px;padding:5%}
 }
 </style>
-<script src="zhuyin.js?v=20261119d"></script>
+<script src="zhuyin.js?v=20261119e"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261119d">
-<script src="park.js?v=20261119d"></script>
+<link rel="stylesheet" href="park.css?v=20261119e">
+<script src="park.js?v=20261119e"></script>
 <style>:root{--theme:#1fb5a8}</style>
 </head>
 <body>
@@ -246,7 +246,7 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   // ---- 畫面 ----
   const ui=[...document.querySelectorAll(".side")].sort((a,b)=>a.dataset.p-b.dataset.p).map((el,p)=>{
     el.innerHTML=`
-      <div class="head"><a class="home" href="./" aria-label="回遊樂園地圖">🏠</a><span class="name">${NAMES[p]}</span><span class="lvtag"></span><span class="msg" data-zy></span>
+      <div class="head"><a class="home" href="park.html" aria-label="回遊樂園地圖">🏠</a><span class="name">${NAMES[p]}</span><span class="lvtag"></span><span class="msg" data-zy></span>
         <button type="button" class="spk" aria-label="念我的題目">🔊</button></div>
       <div class="ask" data-zy></div>
       <div class="choices"></div>
@@ -255,7 +255,7 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
         <div class="row lvs">${[1,2,3].map(l=>`<button type="button" class="opt" data-lv="${l}" aria-label="${LV[l].name}"><span class="lvst">${STAR[l]}</span><small>${LV[l].sub}</small></button>`).join("")}</div>
         <div class="row"><button type="button" class="opt vbtn"></button></div>
         <div class="big" hidden></div>
-        <div class="row endrow"><button type="button" class="ready">READY</button><a class="homeb" href="./" aria-label="回遊樂園">🏠</a></div>
+        <div class="row endrow"><button type="button" class="ready">READY</button><a class="homeb" href="park.html" aria-label="回遊樂園">🏠</a></div>
       </div>`;
     const u={el,msg:el.querySelector(".msg"),ask:el.querySelector(".ask"),choices:el.querySelector(".choices"),lvtag:el.querySelector(".lvtag"),spk:el.querySelector(".spk"),
       ov:el.querySelector(".overlay"),h2:el.querySelector(".overlay h2"),big:el.querySelector(".overlay .big"),
