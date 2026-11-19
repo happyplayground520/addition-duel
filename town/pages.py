@@ -1,7 +1,7 @@
 # 產生甜點小鎮的四關頁面：python pages.py（每一關共用標題列、開始畫面、結束畫面，只有題目區和玩法不同）
 import os
 HERE=os.path.dirname(os.path.abspath(__file__));ROOT=os.path.dirname(HERE)
-V="20261119a"
+V="20261119b"
 HEAD='''<!doctype html>
 <html lang="zh-Hant">
 <head>
@@ -163,7 +163,7 @@ script='''(()=>{
       // 糖果從罐子上面掉下去，堆在罐底
       const d=document.createElement("i");d.className="drop";const row=Math.floor((k-1)/6),col=(k-1)%6;
       d.style.cssText=`--c:${COL[k%COL.length]};left:${10+col*14+(row%2)*6}%;bottom:${6+row*11}%`;jar.appendChild(d);EN.sfx.pop();
-      if(k>=n){clearInterval(t);TZ.say(`${n}畫`);setTimeout(()=>{TZ.flyGot(jar,'<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="14" fill="#ff9fb2" stroke="#6b3f22" stroke-width="4"/></svg>');setTimeout(done,700)},700)}},300);
+      if(k>=n){clearInterval(t);setTimeout(()=>{TZ.flyGot(jar,'<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="14" fill="#ff9fb2" stroke="#6b3f22" stroke-width="4"/></svg>');setTimeout(done,700)},700)}},300);
   }
   const CANDY='<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="14" fill="#ff9fb2" stroke="#6b3f22" stroke-width="4"/></svg>';
   const api=TZ.run({key:"town-n",gotIcon:CANDY,
@@ -324,14 +324,20 @@ style=""".basket{background:#fff;border:5px solid var(--choc);border-radius:24px
 .bask{padding:14px 18px 22px;border-radius:12px 12px 40px 40px;background:repeating-linear-gradient(45deg,#e8b06a 0 10px,#d39a5c 10px 20px);border:6px solid var(--choc);min-width:220px}
 .basket .ibtn{position:absolute;right:-14px;top:-18px;width:48px;height:48px;font-size:24px;background:#ffe9a8;box-shadow:0 3px 0 #d18e0a}
 .basket{padding-top:max(36px,clamp(12px,2.6vmin,22px))}
-.sent2{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px 6px;font-family:var(--kai);font-size:clamp(28px,5.2vmin,48px)}
-.ap{position:relative;display:inline-flex;align-items:center;border:0;background:#fff3f3;border-radius:18px;padding:6px 16px 6px 8px;cursor:pointer;font:inherit;color:var(--ink);min-width:44px;min-height:56px;box-shadow:inset 0 0 0 2px #ffd6d6}
-.ap .tz-b{font-size:max(.38em,14px);margin-left:.12em}
+.sent2{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 8px;font-family:var(--kai);font-size:clamp(28px,5.2vmin,48px)}
+/* 句子裡每個字都是一顆蘋果：紅色、上面有梗和葉子；字和注音用白色 */
+.ap{position:relative;display:inline-flex;align-items:center;border:0;cursor:pointer;font:inherit;color:#fff;min-width:44px;min-height:56px;margin-top:12px;
+  padding:8px 16px 6px 10px;border-radius:46% 46% 50% 50%/40% 40% 60% 60%;text-shadow:0 2px 0 rgba(120,20,15,.45);
+  background:radial-gradient(circle at 18% 24%,rgba(255,255,255,.8) 0 4%,transparent 5%),radial-gradient(circle at 50% 50%,#ff8f86,#e8392f 80%);
+  box-shadow:inset 0 -5px 0 rgba(0,0,0,.14),0 3px 0 #a8261e}
+.ap::before{content:"";position:absolute;left:50%;top:-14px;width:30px;height:18px;transform:translateX(-40%);pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 18'%3E%3Cpath d='M9 17q0-8 3-14' fill='none' stroke='%236b3f22' stroke-width='3.5' stroke-linecap='round'/%3E%3Cpath d='M12 8q6-8 16-5q-5 9-16 5z' fill='%235cc24a' stroke='%232e7d32' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat center/contain}
+.ap .tz-b{font-size:max(.38em,14px);margin-left:.12em;color:#fff}
 .ap .tz-b .zy-t{font-size:1.15em;left:100%;top:-.55em}
 .ap.bad{animation:wig .4s}
-.ap.rot{background:#c9a27a;box-shadow:inset 0 0 0 3px #8a5a36}
+.ap.rot{background:radial-gradient(circle at 60% 40%,#8a5a36 0 9%,transparent 10%),radial-gradient(circle at 50% 50%,#d2a878,#9a6a3e 80%);box-shadow:inset 0 -5px 0 rgba(0,0,0,.18),0 3px 0 #6b3f22}
 .ap.rot::after{content:"🐛";position:absolute;right:-12px;top:-16px;font-size:24px}
-.ap.fixed{background:#eafff2;box-shadow:inset 0 0 0 3px var(--good)}
+.ap.fixed{box-shadow:inset 0 -5px 0 rgba(0,0,0,.14),0 3px 0 #a8261e,0 0 0 4px #1f9d61}
 .ap.fixed::after{content:none}
 .ap.glow{animation:glow 1s infinite}
 .sent2 .tp{font-size:.9em}
@@ -382,7 +388,7 @@ script="""(()=>{
           if(api.S.busy)return;
           if(el.dataset.c===c){api.ok();el.classList.add("yes");
             TZ.fly(el,badBtn,()=>{badBtn.classList.remove("rot");badBtn.classList.add("fixed");badBtn.innerHTML=TZ.charHTML(c,Z.ZY[c]);EN.sfx.pop();setTimeout(()=>TZ.flyGot(badBtn,EN.icon("apple")),300)},{dur:.6,keepHidden:true});
-            TZ.say(`答對了！要寫${c}。`+TZ.plain(t.replace("＿",c)),{onend:()=>api.next(500)})}
+            api.next(1600)}
           else{api.bad();el.classList.add("no");if(api.S.tries>=2)document.querySelector(`.choice[data-c="${c}"]`).classList.add("glow")}
         });
       }
@@ -1020,15 +1026,15 @@ main='''<div class="book" id="book"><span class="bt" id="bt"></span><span class=
     <button type="button" class="tb" id="rep" aria-label="再念一次">🔊</button><button type="button" class="tb" id="next" aria-label="下一頁">▶</button></div></div>
 <div class="quiz" id="quiz" hidden><div class="qline" id="q"></div><div class="idi big4" id="show4" hidden></div><div class="choices" id="choices"></div><div class="mean" id="mean" hidden></div></div>''',
 script='''(()=>{
-  const $=id=>document.getElementById(id),Z=ZI,ST=[{"w":"守株待兔","zy":"ㄕㄡˇ ㄓㄨ ㄉㄞˋ ㄊㄨˋ","m":"不努力，只想等好運氣自己來。","p":[["👨‍🌾🌳🐇","有一個農夫在田裡工作，一隻兔子[˙ㄗ]跑過來，撞到樹昏倒了。"],["👨‍🌾🐇😄","農夫撿到兔子[˙ㄗ]，好高興。"],["🪑👨‍🌾🌳","從此他不工作了，天天坐在樹旁邊，等兔子[˙ㄗ]再撞過來。"],["🌾🌾🌳","田裡長[ㄓㄤˇ]滿了[˙ㄌㄜ]草，兔子[˙ㄗ]再也沒有來。"]]},{"w":"拔苗助長","zy":"ㄅㄚˊ ㄇㄧㄠˊ ㄓㄨˋ ㄓㄤˇ","m":"太心急，不照著順序做，反而把事情[˙ㄑㄧㄥ]弄壞了。","p":[["👨🌱🌱","有一個人種[ㄓㄨㄥˋ]了[˙ㄌㄜ]稻子[˙ㄗ]，他覺[ㄐㄩㄝˊ]得[˙ㄉㄜ]稻子[˙ㄗ]長[ㄓㄤˇ]得[˙ㄉㄜ]太慢了[˙ㄌㄜ]。"],["💪🌱⬆️","他把每一株小苗都往上拔高一點。"],["🥀🥀😢","第二天，小苗全都枯死了[˙ㄌㄜ]。"]]},{"w":"畫蛇添足","zy":"ㄏㄨㄚˋ ㄕㄜˊ ㄊㄧㄢ ㄗㄨˊ","m":"做了不需要做的事，反而不好。","p":[["🖌️🐍🎁","大家比賽畫蛇，先畫好的[˙ㄉㄜ]人可以得[ㄉㄜˊ]到獎品。"],["🐍🦶😏","有一個人很快就畫好了[˙ㄌㄜ]，他說：「我還[ㄏㄞˊ]可以幫蛇畫上腳！」"],["🎁🏃😮","別人說：「蛇沒有腳！」獎品就被拿走了[˙ㄌㄜ]。"]]},{"w":"狐假虎威","zy":"ㄏㄨˊ ㄐㄧㄚˇ ㄏㄨˇ ㄨㄟ","m":"靠別人的力量來嚇人。","p":[["🐯🦊","老虎抓到一隻狐狸[˙ㄌㄧ]，狐狸[˙ㄌㄧ]說：「我是森林之王，不信你跟我走！」"],["🦊🐯🐰🐿️","狐狸[˙ㄌㄧ]走在前面[˙ㄇㄧㄢ]，老虎跟在後面[˙ㄇㄧㄢ]，動物們[˙ㄇㄣ]看到都跑走了[˙ㄌㄜ]。"],["🐯🤔","老虎以為[ㄨㄟˊ]大家怕狐狸[˙ㄌㄧ]，其實大家怕的[˙ㄉㄜ]是老虎。"]]},{"w":"井底之蛙","zy":"ㄐㄧㄥˇ ㄉㄧˇ ㄓ ㄨㄚ","m":"看到的東西[˙ㄒㄧ]很少，就以為[ㄨㄟˊ]自己什麼[˙ㄇㄜ]都知道[˙ㄉㄠ]。","p":[["🕳️🐸","有一隻青蛙住在一口井的[˙ㄉㄜ]底下。"],["🐸⭕☁️","牠抬頭往上看，天空只有井口那麼[˙ㄇㄜ]大。"],["🐢🌊🐸","海龜告訴[˙ㄙㄨ]牠，外面[˙ㄇㄧㄢ]的[˙ㄉㄜ]世界很大很大，青蛙一點也不相信。"]]},{"w":"亡羊補牢","zy":"ㄨㄤˊ ㄧㄤˊ ㄅㄨˇ ㄌㄠˊ","m":"做錯了事，趕快改正還來得及。","p":[["🐑🕳️🐺","有一個人的[˙ㄉㄜ]羊圈破了[˙ㄌㄜ]一個[˙ㄍㄜ]洞，晚上[˙ㄕㄤ]野狼跑進來，叼走一隻羊。"],["👨🐑","鄰居說：「快把洞補好吧[˙ㄅㄚ]！」他說：「羊都丟了[˙ㄌㄜ]，補也沒有用。」"],["🔨🐑🐑","第二天羊又少了[˙ㄌㄜ]一隻，他趕快把洞補好，羊就再也沒有少了[˙ㄌㄜ]。"]]},{"w":"對牛彈琴","zy":"ㄉㄨㄟˋ ㄋㄧㄡˊ ㄊㄢˊ ㄑㄧㄣˊ","m":"說話不看對象，對方聽不懂。","p":[["🧑🎵🐂","有一個人很會彈琴，他對著[˙ㄓㄜ]一頭牛彈好聽的[˙ㄉㄜ]曲[ㄑㄩˇ]子[˙ㄗ]。"],["🐂🌿","牛只顧著[˙ㄓㄜ]低頭吃草，一點也聽不懂。"],["🦟🐄🐂","他改彈像蚊子[˙ㄗ]和小牛叫的[˙ㄉㄜ]聲音，牛才搖搖尾巴[˙ㄅㄚ]，抬起頭來聽。"]]},{"w":"葉公好龍","zy":"ㄧㄝˋ ㄍㄨㄥ ㄏㄠˋ ㄌㄨㄥˊ","m":"嘴巴[˙ㄅㄚ]說喜歡[˙ㄏㄨㄢ]，其實不是真的[˙ㄉㄜ]喜歡[˙ㄏㄨㄢ]。","p":[["🧓🐉🖼️","葉公說他最喜歡[˙ㄏㄨㄢ]龍，家裡[˙ㄌㄧ]到處[ㄔㄨˋ]都畫著[˙ㄓㄜ]龍。"],["☁️🐉","天上的[˙ㄉㄜ]真龍知道[˙ㄉㄠ]了[˙ㄌㄜ]，就飛來看他。"],["🐉😱🏃","葉公一看到真的[˙ㄉㄜ]龍，嚇得[˙ㄉㄜ]趕快逃走了[˙ㄌㄜ]。"]]},{"w":"盲人摸象","zy":"ㄇㄤˊ ㄖㄣˊ ㄇㄛ ㄒㄧㄤˋ","m":"只知[ㄓ]道[˙ㄉㄠ]一小部分，就以為[ㄨㄟˊ]知道[˙ㄉㄠ]全部。","p":[["🧑‍🦯🧑‍🦯🐘","幾個看不見的[˙ㄉㄜ]人，想知道[˙ㄉㄠ]大象長[ㄓㄤˇ]什麼[˙ㄇㄜ]樣子[˙ㄗ]。"],["🐘👃🦵","摸到鼻子[˙ㄗ]的[˙ㄉㄜ]人說：「大象像水管。」摸到腿的[˙ㄉㄜ]人說：「大象像柱子[˙ㄗ]。」"],["🐘❓","他們[˙ㄇㄣ]都只摸到一點點，就以為[ㄨㄟˊ]知道[˙ㄉㄠ]大象的[˙ㄉㄜ]樣子[˙ㄗ]。"]]},{"w":"愚公移山","zy":"ㄩˊ ㄍㄨㄥ ㄧˊ ㄕㄢ","m":"做事不怕困難，一直努力就會成功。","p":[["🏔️🏠🏔️","愚公家門前有兩座大山，出門很不方便。"],["👴⛏️🪨","他帶著[˙ㄓㄜ]家人，每天挖山搬石頭[˙ㄊㄡ]。"],["👴👦👶","他說：「我做不完，還[ㄏㄞˊ]有兒子[˙ㄗ]、孫子[˙ㄗ]會一直做下去！」"],["✨🏔️🕊️","天神被他感動了[˙ㄌㄜ]，就把大山搬走了[˙ㄌㄜ]。"]]}];
+  const $=id=>document.getElementById(id),Z=ZI,ST=[{"w":"守株待兔","zy":"ㄕㄡˇ ㄓㄨ ㄉㄞˋ ㄊㄨˋ","m":"不努力，只想等好運氣自己來。","p":[["👨‍🌾🌳🐇","有一個農夫在田裡工作，一隻兔子[˙ㄗ]跑過來，撞到樹昏倒了。"],["👨‍🌾🐇😄","農夫撿到兔子[˙ㄗ]，好高興。"],["🪑👨‍🌾🌳","從此他不工作了，天天坐在樹旁邊，等兔子[˙ㄗ]再撞過來。"],["🌾🌾🌳","田裡長[ㄓㄤˇ]滿了[˙ㄌㄜ]草，兔子[˙ㄗ]再也沒有來。"]]},{"w":"揠苗助長","zy":"ㄧㄚˋ ㄇㄧㄠˊ ㄓㄨˋ ㄓㄤˇ","m":"太心急，不照順序做，反而把事情[˙ㄑㄧㄥ]弄壞了。","p":[["👨🌱🌱","有一個人種[ㄓㄨㄥˋ]了[˙ㄌㄜ]稻子[˙ㄗ]，他覺[ㄐㄩㄝˊ]得[˙ㄉㄜ]稻子[˙ㄗ]長[ㄓㄤˇ]得[˙ㄉㄜ]太慢了[˙ㄌㄜ]。","有一個人，眾了稻子，他覺得稻子長得太慢了。"],["💪🌱⬆️","他把每一株小苗都往上拔高一點。"],["🥀🥀😢","第二天，小苗全都枯死了[˙ㄌㄜ]。"]]},{"w":"畫蛇添足","zy":"ㄏㄨㄚˋ ㄕㄜˊ ㄊㄧㄢ ㄗㄨˊ","m":"做了不需要做的事，反而不好。","p":[["🖌️🐍🎁","大家比賽畫蛇，先畫好的[˙ㄉㄜ]人可以得[ㄉㄜˊ]到獎品。"],["🐍🦶😏","有一個人很快就畫好了[˙ㄌㄜ]，他說：「我還[ㄏㄞˊ]可以幫蛇畫上腳！」"],["🎁🏃😮","別人說：「蛇沒有腳！」獎品就被拿走了[˙ㄌㄜ]。"]]},{"w":"狐假虎威","zy":"ㄏㄨˊ ㄐㄧㄚˇ ㄏㄨˇ ㄨㄟ","m":"靠別人的力量來嚇人。","p":[["🐯🦊","老虎抓到一隻狐狸[˙ㄌㄧ]，狐狸[˙ㄌㄧ]說：「我是森林之王，不信你跟我走！」"],["🦊🐯🐰🐿️","狐狸[˙ㄌㄧ]走在前面[˙ㄇㄧㄢ]，老虎跟在後面[˙ㄇㄧㄢ]，動物們[˙ㄇㄣ]看到都跑走了[˙ㄌㄜ]。"],["🐯🤔","老虎以為[ㄨㄟˊ]大家怕狐狸[˙ㄌㄧ]，其實大家怕的[˙ㄉㄜ]是老虎。"]]},{"w":"井底之蛙","zy":"ㄐㄧㄥˇ ㄉㄧˇ ㄓ ㄨㄚ","m":"看到的東西[˙ㄒㄧ]很少，就以為[ㄨㄟˊ]自己什麼[˙ㄇㄜ]都知道[˙ㄉㄠ]。","p":[["🕳️🐸","有一隻青蛙住在一口井的[˙ㄉㄜ]底下。"],["🐸⭕☁️","牠抬頭往上看，天空只有井口那麼[˙ㄇㄜ]大。"],["🐢🌊🐸","海龜告訴[˙ㄙㄨ]牠，外面[˙ㄇㄧㄢ]的[˙ㄉㄜ]世界很大很大，青蛙一點也不相信。"]]},{"w":"亡羊補牢","zy":"ㄨㄤˊ ㄧㄤˊ ㄅㄨˇ ㄌㄠˊ","m":"事情[˙ㄑㄧㄥ]做錯了[˙ㄌㄜ]，趕快改正還來得及。","p":[["🐑🕳️🐺","有一個人的[˙ㄉㄜ]羊圈[ㄐㄩㄢˋ]破了[˙ㄌㄜ]一個[˙ㄍㄜ]洞，晚上[˙ㄕㄤ]野狼跑進來，叼走一隻羊。"],["👨🐑","鄰居說：「快把洞補好吧[˙ㄅㄚ]！」他說：「羊都丟了[˙ㄌㄜ]，補也沒有用。」"],["🔨🐑🐑","第二天羊又少了[˙ㄌㄜ]一隻，他趕快把洞補好，羊就再也沒有少了[˙ㄌㄜ]。"]]},{"w":"對牛彈琴","zy":"ㄉㄨㄟˋ ㄋㄧㄡˊ ㄊㄢˊ ㄑㄧㄣˊ","m":"說話不看對象，對方聽不懂。","p":[["🧑🎵🐂","有一個人很會彈琴，他對一頭牛彈好聽的[˙ㄉㄜ]曲[ㄑㄩˇ]子[˙ㄗ]。"],["🐂🌿","牛只顧低頭吃草，一點也聽不懂。"],["🦟🐄🐂","他改彈像蚊子[˙ㄗ]和小牛叫的[˙ㄉㄜ]聲音，牛才搖搖尾巴[˙ㄅㄚ]，抬起頭來聽。","他改談，像蚊子和小牛叫的聲音，牛才搖搖尾巴，抬起頭來聽。"]]},{"w":"葉公好龍","zy":"ㄕㄜˋ ㄍㄨㄥ ㄏㄠˋ ㄌㄨㄥˊ","m":"嘴巴[˙ㄅㄚ]說喜歡[˙ㄏㄨㄢ]，其實不是真的[˙ㄉㄜ]喜歡[˙ㄏㄨㄢ]。","p":[["🧓🐉🖼️","葉[ㄕㄜˋ]公說他最喜歡[˙ㄏㄨㄢ]龍，家裡[˙ㄌㄧ]到處[ㄔㄨˋ]都畫了[˙ㄌㄜ]龍。"],["☁️🐉","天上的[˙ㄉㄜ]真龍知道[˙ㄉㄠ]了[˙ㄌㄜ]，就飛來看他。"],["🐉😱🏃","葉[ㄕㄜˋ]公一看到真的[˙ㄉㄜ]龍，嚇得[˙ㄉㄜ]趕快逃走了[˙ㄌㄜ]。"]]},{"w":"盲人摸象","zy":"ㄇㄤˊ ㄖㄣˊ ㄇㄛ ㄒㄧㄤˋ","m":"只知[ㄓ]道[˙ㄉㄠ]一小部分，就以為[ㄨㄟˊ]知道[˙ㄉㄠ]全部。","p":[["🧑‍🦯🧑‍🦯🐘","幾個看不見的[˙ㄉㄜ]人，想知道[˙ㄉㄠ]大象長[ㄓㄤˇ]什麼[˙ㄇㄜ]樣子[˙ㄗ]。"],["🐘👃🦵","摸到鼻子[˙ㄗ]的[˙ㄉㄜ]人說：「大象像水管。」摸到腿的[˙ㄉㄜ]人說：「大象像柱子[˙ㄗ]。」"],["🐘❓","他們[˙ㄇㄣ]都只摸到一點點，就以為[ㄨㄟˊ]知道[˙ㄉㄠ]大象的[˙ㄉㄜ]樣子[˙ㄗ]。"]]},{"w":"愚公移山","zy":"ㄩˊ ㄍㄨㄥ ㄧˊ ㄕㄢ","m":"做事不怕困難，一直努力就會成功。","p":[["🏔️🏠🏔️","愚公家門前有兩座大山，出門很不方便。"],["👴⛏️🪨","他和家人每天一起挖山、搬石頭[˙ㄊㄡ]。"],["👴👦👶","他說：「我做不完，還[ㄏㄞˊ]有兒子[˙ㄗ]、孫子[˙ㄗ]會一直做下去！」"],["✨🏔️🕊️","天神被他感動了[˙ㄌㄜ]，就把大山搬走了[˙ㄌㄜ]。"]]}];
   // 故事用到、但題庫注音表沒有的字
-  Object.entries({"努":"ㄋㄨˇ","撞":"ㄓㄨㄤˋ","昏":"ㄏㄨㄣ","撿":"ㄐㄧㄢˇ","興":"ㄒㄧㄥˋ","此":"ㄘˇ","旁":"ㄆㄤˊ","急":"ㄐㄧˊ","序":"ㄒㄩˋ","而":"ㄦˊ","弄":"ㄋㄨㄥˋ","稻":"ㄉㄠˋ","拔":"ㄅㄚˊ","枯":"ㄎㄨ","死":"ㄙˇ","需":"ㄒㄩ","賽":"ㄙㄞˋ","品":"ㄆㄧㄣˇ","靠":"ㄎㄠˋ","量":"ㄌㄧㄤˋ","嚇":"ㄒㄧㄚˋ","虎":"ㄏㄨˇ","抓":"ㄓㄨㄚ","狐":"ㄏㄨˊ","王":"ㄨㄤˊ","信":"ㄒㄧㄣˋ","實":"ㄕˊ","知":"ㄓ","井":"ㄐㄧㄥˇ","底":"ㄉㄧˇ","牠":"ㄊㄚ","抬":"ㄊㄞˊ","海":"ㄏㄞˇ","龜":"ㄍㄨㄟ","世":"ㄕˋ","界":"ㄐㄧㄝˋ","趕":"ㄍㄢˇ","及":"ㄐㄧˊ","破":"ㄆㄛˋ","野":"ㄧㄝˇ","狼":"ㄌㄤˊ","叼":"ㄉㄧㄠ","鄰":"ㄌㄧㄣˊ","居":"ㄐㄩ","補":"ㄅㄨˇ","吧":"˙ㄅㄚ","丟":"ㄉㄧㄡ","懂":"ㄉㄨㄥˇ","彈":"ㄊㄢˊ","琴":"ㄑㄧㄣˊ","牛":"ㄋㄧㄡˊ","顧":"ㄍㄨˋ","蚊":"ㄨㄣˊ","才":"ㄘㄞˊ","龍":"ㄌㄨㄥˊ","逃":"ㄊㄠˊ","摸":"ㄇㄛ","鼻":"ㄅㄧˊ","管":"ㄍㄨㄢˇ","腿":"ㄊㄨㄟˇ","柱":"ㄓㄨˋ","困":"ㄎㄨㄣˋ","難":"ㄋㄢˊ","功":"ㄍㄨㄥ","愚":"ㄩˊ","便":"ㄅㄧㄢˋ","挖":"ㄨㄚ","搬":"ㄅㄢ","兒":"ㄦˊ","孫":"ㄙㄨㄣ","神":"ㄕㄣˊ","感":"ㄍㄢˇ","午":"ㄨˇ","茶":"ㄔㄚˊ","語":"ㄩˇ"}).forEach(([k,v])=>{if(!Z.ZY[k])Z.ZY[k]=v});
+  Object.entries({"努":"ㄋㄨˇ","撞":"ㄓㄨㄤˋ","昏":"ㄏㄨㄣ","撿":"ㄐㄧㄢˇ","興":"ㄒㄧㄥˋ","此":"ㄘˇ","旁":"ㄆㄤˊ","急":"ㄐㄧˊ","序":"ㄒㄩˋ","而":"ㄦˊ","弄":"ㄋㄨㄥˋ","稻":"ㄉㄠˋ","拔":"ㄅㄚˊ","枯":"ㄎㄨ","死":"ㄙˇ","需":"ㄒㄩ","賽":"ㄙㄞˋ","品":"ㄆㄧㄣˇ","靠":"ㄎㄠˋ","量":"ㄌㄧㄤˋ","嚇":"ㄒㄧㄚˋ","虎":"ㄏㄨˇ","抓":"ㄓㄨㄚ","狐":"ㄏㄨˊ","王":"ㄨㄤˊ","信":"ㄒㄧㄣˋ","實":"ㄕˊ","知":"ㄓ","井":"ㄐㄧㄥˇ","底":"ㄉㄧˇ","牠":"ㄊㄚ","抬":"ㄊㄞˊ","海":"ㄏㄞˇ","龜":"ㄍㄨㄟ","世":"ㄕˋ","界":"ㄐㄧㄝˋ","趕":"ㄍㄢˇ","及":"ㄐㄧˊ","破":"ㄆㄛˋ","野":"ㄧㄝˇ","狼":"ㄌㄤˊ","叼":"ㄉㄧㄠ","鄰":"ㄌㄧㄣˊ","居":"ㄐㄩ","補":"ㄅㄨˇ","吧":"˙ㄅㄚ","丟":"ㄉㄧㄡ","懂":"ㄉㄨㄥˇ","彈":"ㄊㄢˊ","琴":"ㄑㄧㄣˊ","牛":"ㄋㄧㄡˊ","顧":"ㄍㄨˋ","蚊":"ㄨㄣˊ","才":"ㄘㄞˊ","龍":"ㄌㄨㄥˊ","逃":"ㄊㄠˊ","摸":"ㄇㄛ","鼻":"ㄅㄧˊ","管":"ㄍㄨㄢˇ","腿":"ㄊㄨㄟˇ","柱":"ㄓㄨˋ","困":"ㄎㄨㄣˋ","難":"ㄋㄢˊ","功":"ㄍㄨㄥ","愚":"ㄩˊ","便":"ㄅㄧㄢˋ","挖":"ㄨㄚ","搬":"ㄅㄢ","兒":"ㄦˊ","孫":"ㄙㄨㄣ","神":"ㄕㄣˊ","感":"ㄍㄢˇ","午":"ㄨˇ","茶":"ㄔㄚˊ","語":"ㄩˇ","揠":"ㄧㄚˋ"}).forEach(([k,v])=>{if(!Z.ZY[k])Z.ZY[k]=v});
   const GOT=EN.icon("cookie");
   const idiomHTML=(s,hole)=>{const z=s.zy.split(" ");return [...s.w].map((ch,i)=>i===hole?`<span class="hole" id="hole">${TZ.charHTML("",z[i])}</span>`:TZ.charHTML(ch,z[i])).join("")};
   let cur=null,page=0,tok=0,listened=false;
   const api=TZ.run({key:"town-story",noRange:true,gotIcon:GOT,
     finale:done=>{const n=Math.max(1,Math.min(+TZ.got().dataset.n,8));TZ.finale(`<div class="frow"><span style="font-size:clamp(50px,9vmin,72px);line-height:1">🫖</span>${Array(n).fill(GOT).join("")}</div>`,"故事都聽完了，一起喝下午茶吧！",done,3000)},
-    help:"午茶說故事。先聽一個成語故事，一頁一頁看，按右邊的箭頭換下一頁。故事聽完，選出這是哪一個成語。答對了，會告訴你這個成語是什麼意思。",
+    help:"午茶說故事。先聽一個成語故事，故事會自己一頁一頁念下去，想再聽一次就按喇叭，也可以按箭頭翻頁。故事聽完，選出這是哪一個成語。答對了，會告訴你這個成語是什麼意思。",
     build:n=>{const a=TZ.shuffle(ST.map((_,i)=>i)),qs=a.map(i=>({t:"A",i}));TZ.shuffle(ST.map((_,i)=>i)).forEach(i=>qs.push({t:"B",i}));return qs.slice(0,n)},
     show:(q)=>{cur=q;const s=ST[q.i];$("mean").hidden=true;$("show4").hidden=true;
       if(q.t==="A"){$("quiz").hidden=true;$("book").hidden=false;listened=false;
@@ -1037,7 +1043,8 @@ script='''(()=>{
 
   // ---- 說故事：一頁一頁 ----
   function turn(k){
-    const s=ST[cur.i];page=k;const [pic,txt]=s.p[k];const my=++tok;
+    // 第三個欄位是給語音念的寫法（平板會念錯的破音字，換成同音字念）
+    const s=ST[cur.i];page=k;const [pic,txt,spk]=s.p[k];const my=++tok;
     $("scene").innerHTML=[...pic.matchAll(/\\p{Extended_Pictographic}(\\u200d\\p{Extended_Pictographic}|\\ufe0f)*/gu)].map((m,i)=>`<span style="animation-delay:${i*.12}s">${m[0]}</span>`).join("");
     const t=$("stx");t.innerHTML=TZ.zy(txt);t.classList.remove("in");void t.offsetWidth;t.classList.add("in");
     $("pdots").querySelectorAll("i").forEach((d,i)=>d.classList.toggle("on",i<=k));
@@ -1045,10 +1052,14 @@ script='''(()=>{
     const last=k===s.p.length-1,nx=$("next");
     nx.classList.toggle("go",last);nx.innerHTML=last?TZ.zy("聽完了")+" ✓":"▶";nx.classList.remove("ready");
     EN.sfx.pop();
-    setTimeout(()=>{if(my===tok)TZ.say(txt,{onend:()=>{if(my===tok){nx.classList.add("ready");if(last)listened=true}}})},350);
+    // 一頁念完自動翻到下一頁；最後一頁念完自動出題目（也可以自己按箭頭）
+    setTimeout(()=>{if(my===tok)TZ.say(spk||txt,{onend:()=>autoNext(my)})},350);
   }
+  function autoNext(my){if(my!==tok)return;const s=ST[cur.i];
+    $("next").classList.add("ready");
+    setTimeout(()=>{if(my!==tok||$("book").hidden)return;if(page<s.p.length-1)turn(page+1);else{tok++;listened=true;pickQ(s)}},page<s.p.length-1?700:1100)}
   $("prev").onclick=()=>{if(page>0)turn(page-1)};
-  $("rep").onclick=()=>{const my=tok;TZ.say(ST[cur.i].p[page][1],{onend:()=>{if(my===tok)$("next").classList.add("ready")}})};
+  $("rep").onclick=()=>{const my=++tok,pg=ST[cur.i].p[page];TZ.say(pg[2]||pg[1],{onend:()=>autoNext(my)})};
   $("next").onclick=()=>{const s=ST[cur.i];if(page<s.p.length-1)turn(page+1);else{tok++;EN.stop();pickQ(s)}};
 
   // ---- 這個故事是哪一個成語？ ----
@@ -1094,7 +1105,6 @@ script='''(()=>{
     setTimeout(()=>{if(!api.S.busy)TZ.say("看注音，成語少了哪一個字？")},300);
   }
 })();''')
-
 for fn,k in PAGES.items():
     html=HEAD.format(V=V,title=k["title"],icon=k["icon"],sub=k["sub"],style=COMMON_STYLE+"\n"+k["style"],main=k["main"],script=k["script"])
     open(os.path.join(ROOT,fn),"w",encoding="utf-8").write(html)

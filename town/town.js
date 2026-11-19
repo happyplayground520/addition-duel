@@ -90,8 +90,12 @@
   // 結尾動畫：畫面中間跳出一張卡片（圖＋一句話），播完才進結束畫面
   TZ.finale=function(html,text,done,ms=2600){
     const o=document.createElement("div");o.className="finale";o.innerHTML=`<div class="fcard">${html}<p>${TZ.zy(text)}</p></div>`;document.body.appendChild(o);
-    EN.sfx.clear();try{window.parkBurst&&parkBurst(innerWidth/2,innerHeight/2)}catch(e){}TZ.say(text);
-    setTimeout(()=>{o.classList.add("out");setTimeout(()=>{o.remove();done&&done()},300)},ms)};
+    EN.sfx.clear();try{window.parkBurst&&parkBurst(innerWidth/2,innerHeight/2)}catch(e){}
+    // 要等這句話念完、動畫也播完，才進結束畫面（不然結束畫面的「做得很好」會把話切斷）
+    let spoke=false,timeUp=false,closed=false;
+    const close=()=>{if(closed||!spoke||!timeUp)return;closed=true;o.classList.add("out");setTimeout(()=>{o.remove();done&&done()},300)};
+    TZ.say(text,{onend:()=>{spoke=true;setTimeout(close,250)}});
+    setTimeout(()=>{timeUp=true;close()},ms)};
   // 聲調的音高：一聲平、二聲往上、三聲先降再升、四聲往下、輕聲短短的
   let ac2=null;
   TZ.toneSound=function(t){try{ac2=ac2||new (window.AudioContext||window.webkitAudioContext)();if(ac2.state!=="running")ac2.resume();

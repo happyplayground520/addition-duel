@@ -1,5 +1,5 @@
 /* 甜點小鎮共用外觀：奶油色、草莓粉、巧克力咖啡；題目的國字用全字庫正楷體 */
-@font-face{font-family:"TWKaiSub";src:url("kai.woff2?v=3") format("woff2");font-display:swap}
+@font-face{font-family:"TWKaiSub";src:url("kai.woff2?v=4") format("woff2");font-display:swap}
 :root{--kai:"TWKaiSub","BiauKai","DFKai-SB","KaiTi","STKaiti",serif;--cream:#fff7e8;--choc:#6b3f22;--choc2:#8a5a36;--berry:#e8577a;--berry2:#ffb3c7;
   --mint:#7fd6b2;--lemon:#ffd95a;--accent:#e8577a;--accent-dark:#b8365a;--zyc:#3d5a8a}
 .kai{font-family:var(--kai)}
