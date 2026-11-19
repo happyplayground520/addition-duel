@@ -7,8 +7,8 @@
 <title>餅乾模子</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261119l">
-<link rel="stylesheet" href="town/town.css?v=20261119l">
+<link rel="stylesheet" href="en.css?v=20261119m">
+<link rel="stylesheet" href="town/town.css?v=20261119m">
 <style>
 main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(12px,2.6vh,28px);
   padding:0 max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
@@ -32,12 +32,12 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
 .cutter .bu{font-family:var(--kai);font-size:clamp(50px,9vmin,76px);color:var(--ink)}
 .cutter .tz-b{font-size:17px}
 </style>
-<script src="zhuyin.js?v=20261119l"></script>
-<link rel="stylesheet" href="park.css?v=20261119l">
-<script src="park.js?v=20261119l"></script>
-<script src="en.js?v=20261119l"></script>
-<script src="town/zi-data.js?v=20261119l"></script>
-<script src="town/town.js?v=20261119l"></script>
+<script src="zhuyin.js?v=20261119m"></script>
+<link rel="stylesheet" href="park.css?v=20261119m">
+<script src="park.js?v=20261119m"></script>
+<script src="en.js?v=20261119m"></script>
+<script src="town/zi-data.js?v=20261119m"></script>
+<script src="town/town.js?v=20261119m"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
 <body>
@@ -99,7 +99,7 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
         if(api.S.busy)return;
         if(el.dataset.b===bu){api.ok();el.classList.add("yes");const ck=$("cookie");
           TZ.fly(el,ck,()=>{ck.classList.remove("stamp");void ck.offsetWidth;ck.classList.add("stamp");EN.sfx.pop();setTimeout(()=>TZ.flyGot(ck,EN.icon("cookie")),350)},{dur:.55,scale:1.1});
-          TZ.say(`答對了！${c}的部首是${bu}。`,{onend:()=>api.next(400)})}
+          api.next(1300)}
         else{api.bad();el.classList.add("no");if(api.S.tries>=2)document.querySelector(`.choice[data-b="${bu}"]`).classList.add("glow")}
       });
       setTimeout(()=>{if(!api.S.busy)TZ.say(`${c}，的部首是哪一個？`)},300);

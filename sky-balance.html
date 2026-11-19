@@ -104,12 +104,12 @@ main{justify-content:flex-start;padding-top:4px}
   .ask{grid-area:ask}.known{grid-area:known}.scale{grid-area:scale;width:100%;height:100%}.sides{grid-area:sides;margin:0}.choices{grid-area:choices}.msg{grid-area:msg}}
 @media (prefers-reduced-motion:reduce){#beam,.pan{transition:none}}
 </style>
-<script src="zhuyin.js?v=20261119l"></script>
+<script src="zhuyin.js?v=20261119m"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261119l">
-<script src="park.js?v=20261119l"></script>
-<link rel="stylesheet" href="duo.css?v=20261119l">
-<script src="duo.js?v=20261119l"></script>
+<link rel="stylesheet" href="park.css?v=20261119m">
+<script src="park.js?v=20261119m"></script>
+<link rel="stylesheet" href="duo.css?v=20261119m">
+<script src="duo.js?v=20261119m"></script>
 </head>
 <body data-park>
 <header class="top">
@@ -303,9 +303,8 @@ main{justify-content:flex-start;padding-top:4px}
     if(v===q.ans){
       if(S.tries===0)S.score++;upd();b.classList.add("right");sfx.good();
       boss.classList.remove("happy");void boss.getBBox();boss.classList.add("happy");
-      $("msg").textContent=`平衡了！${q.why}`;$("msg").className="msg good";
-      say(`平衡了！${q.whySay}`);
-      setTimeout(()=>{if(S.q===q)next()},Math.max(3600,q.whySay.length*230));
+      $("msg").textContent="平衡了！";$("msg").className="msg good";
+      setTimeout(()=>{if(S.q===q)next()},2600);
     }else{
       S.tries++;sfx.bad();b.classList.add("wrong");
       const heavy=R>L?"太多了，右邊比較重":"太少了，左邊比較重";

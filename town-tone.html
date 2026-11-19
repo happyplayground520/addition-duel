@@ -7,8 +7,8 @@
 <title>音樂甜筒</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261119l">
-<link rel="stylesheet" href="town/town.css?v=20261119l">
+<link rel="stylesheet" href="en.css?v=20261119m">
+<link rel="stylesheet" href="town/town.css?v=20261119m">
 <style>
 main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(12px,2.6vh,28px);
   padding:0 max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
@@ -39,12 +39,12 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
 .tonebtn .lb{font-size:18px;font-weight:800}
 @media (max-height:500px){.waffle{border-top-width:60px;border-left-width:46px;border-right-width:46px}.scoop{width:130px}.scoop .bigc{font-size:76px}.zyopt{min-height:92px}.zyopt .tz-b{font-size:24px}}
 </style>
-<script src="zhuyin.js?v=20261119l"></script>
-<link rel="stylesheet" href="park.css?v=20261119l">
-<script src="park.js?v=20261119l"></script>
-<script src="en.js?v=20261119l"></script>
-<script src="town/zi-data.js?v=20261119l"></script>
-<script src="town/town.js?v=20261119l"></script>
+<script src="zhuyin.js?v=20261119m"></script>
+<link rel="stylesheet" href="park.css?v=20261119m">
+<script src="park.js?v=20261119m"></script>
+<script src="en.js?v=20261119m"></script>
+<script src="town/zi-data.js?v=20261119m"></script>
+<script src="town/town.js?v=20261119m"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
 <body>
@@ -120,7 +120,7 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
         $("choices").innerHTML=opts.map((x,i)=>`<button type="button" class="choice zyopt" style="--c:${COL[i]}" data-z="${x}" aria-label="注音選項${i+1}">${zyHTML(x)}</button>`).join("");
         document.querySelectorAll(".choice").forEach(el=>el.onclick=()=>{
           if(api.S.busy)return;
-          if(el.dataset.z===z){api.ok();el.classList.add("yes");$("big").innerHTML=TZ.charHTML(c,z);addScoop();TZ.say(`答對了！${c}。`,{onend:()=>api.next(400)})}
+          if(el.dataset.z===z){api.ok();el.classList.add("yes");$("big").innerHTML=TZ.charHTML(c,z);addScoop();api.next(1200)}
           else{api.bad();el.classList.add("no");if(api.S.tries>=2)document.querySelector(`.choice[data-z="${z}"]`).classList.add("glow")}
         });
       }else{
@@ -132,7 +132,7 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
         $("choices").innerHTML=L.map(([v,mk,lb],i)=>`<button type="button" class="choice tonebtn" style="--c:${COL[i]}" data-t="${v}" aria-label="${lb}"><span class="mk">${mk}</span><span class="lb">${TZ.zy(lb)}</span></button>`).join("");
         document.querySelectorAll(".choice").forEach(el=>el.onclick=()=>{
           if(api.S.busy)return;TZ.toneSound(+el.dataset.t);
-          if(+el.dataset.t===t){api.ok();el.classList.add("yes");$("big").innerHTML=TZ.charHTML(c,z);addScoop();TZ.say(`答對了！${c}是${["輕聲","一聲","二聲","三聲","四聲"][t]}。`,{onend:()=>api.next(400)})}
+          if(+el.dataset.t===t){api.ok();el.classList.add("yes");$("big").innerHTML=TZ.charHTML(c,z);addScoop();api.next(1200)}
           else{api.bad();el.classList.add("no");if(api.S.tries>=2)document.querySelector(`.choice[data-t="${t}"]`).classList.add("glow")}
         });
         setTimeout(()=>{if(!api.S.busy)TZ.say(c)},300);

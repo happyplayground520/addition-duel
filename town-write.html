@@ -7,8 +7,8 @@
 <title>蛋糕寫字</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261119l">
-<link rel="stylesheet" href="town/town.css?v=20261119l">
+<link rel="stylesheet" href="en.css?v=20261119m">
+<link rel="stylesheet" href="town/town.css?v=20261119m">
 <style>
 main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(12px,2.6vh,28px);
   padding:0 max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
@@ -41,12 +41,12 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
 .side{display:contents}
 @media (max-height:500px){.side{display:flex}}
 </style>
-<script src="zhuyin.js?v=20261119l"></script>
-<link rel="stylesheet" href="park.css?v=20261119l">
-<script src="park.js?v=20261119l"></script>
-<script src="en.js?v=20261119l"></script>
-<script src="town/zi-data.js?v=20261119l"></script>
-<script src="town/town.js?v=20261119l"></script>
+<script src="zhuyin.js?v=20261119m"></script>
+<link rel="stylesheet" href="park.css?v=20261119m">
+<script src="park.js?v=20261119m"></script>
+<script src="en.js?v=20261119m"></script>
+<script src="town/zi-data.js?v=20261119m"></script>
+<script src="town/town.js?v=20261119m"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
 <body>
@@ -167,7 +167,7 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
   function success(first){api.S.tries=first?0:1;api.ok();guide=false;strokes=[];draw();
     $("candles").innerHTML="<i></i><i></i><i></i>";$("candles").classList.add("on");setTimeout(()=>TZ.flyGot($("cv"),EN.icon("cake")),700);
     ctx.fillStyle="#1f9d61";ctx.font=`${W*.78}px "TWKaiSub"`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(target,W/2,W*.54);
-    TZ.say(`寫對了！是${target}。`,{onend:()=>api.next(500)})}
+    api.next(1600)}
   $("ok").onclick=async()=>{
     if(api.S.busy)return;if(!strokes.length){tip("先在格子裡寫字喔。");return}
     if(stage==="trace"){stage="write2";guide=false;strokes=[];draw();tip("這次自己寫寫看！");TZ.say("這次自己寫寫看");return}

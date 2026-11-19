@@ -1,7 +1,7 @@
 # 產生甜點小鎮的四關頁面：python pages.py（每一關共用標題列、開始畫面、結束畫面，只有題目區和玩法不同）
 import os
 HERE=os.path.dirname(os.path.abspath(__file__));ROOT=os.path.dirname(HERE)
-V="20261119l"
+V="20261119m"
 HEAD='''<!doctype html>
 <html lang="zh-Hant">
 <head>
@@ -115,7 +115,7 @@ script='''(()=>{
         if(api.S.busy)return;
         if(el.dataset.b===bu){api.ok();el.classList.add("yes");const ck=$("cookie");
           TZ.fly(el,ck,()=>{ck.classList.remove("stamp");void ck.offsetWidth;ck.classList.add("stamp");EN.sfx.pop();setTimeout(()=>TZ.flyGot(ck,EN.icon("cookie")),350)},{dur:.55,scale:1.1});
-          TZ.say(`答對了！${c}的部首是${bu}。`,{onend:()=>api.next(400)})}
+          api.next(1300)}
         else{api.bad();el.classList.add("no");if(api.S.tries>=2)document.querySelector(`.choice[data-b="${bu}"]`).classList.add("glow")}
       });
       setTimeout(()=>{if(!api.S.busy)TZ.say(`${c}，的部首是哪一個？`)},300);
@@ -181,7 +181,7 @@ script='''(()=>{
       const finish=()=>countUp(c,n,()=>api.next(200));
       document.querySelectorAll(".choice").forEach(el=>el.onclick=()=>{
         if(api.S.busy)return;
-        if(+el.dataset.v===n){api.ok();el.classList.add("yes");TZ.say(`答對了！${c}有${n}畫。`);setTimeout(finish,500)}
+        if(+el.dataset.v===n){api.ok();el.classList.add("yes");setTimeout(finish,500)}
         else{api.bad();el.classList.add("no");if(api.S.tries>=2){api.S.busy=true;document.querySelector(`.choice[data-v="${n}"]`).classList.add("glow");TZ.say(`${c}有${n}畫，我們一起數一數。`);setTimeout(finish,800)}}
       });
       setTimeout(()=>{if(!api.S.busy)TZ.say(`${c}，有幾畫？`)},300);
@@ -244,11 +244,11 @@ script='''(()=>{
             const r=b.getBoundingClientRect();m.style.left=r.left+"px";m.style.top=r.top+"px";document.body.appendChild(m);
             TZ.fly(m,$("cargo"),()=>{$("cargo").insertAdjacentHTML("beforeend",EN.icon("bread"));tk.classList.remove("bump");void tk.offsetWidth;tk.classList.add("bump");EN.sfx.pop()},{dur:.6,scale:.4});
             setTimeout(()=>m.remove(),1000)},900);
-          setTimeout(()=>TZ.say(t.replace("＿",c),{onend:()=>{
+          setTimeout(()=>{
             if(!last){api.next(300);return}
             const tk=$("truck");EN.sfx.coin();setTimeout(()=>EN.sfx.coin(),220);tk.classList.remove("bump");tk.classList.add("go");
-            TZ.say("麵包全部裝好了，出發送貨囉！",{onend:()=>api.next(600)});
-          }}),1500)}
+            api.next(1800);
+          },1500)}
         else{api.bad();el.classList.remove("hop");void el.offsetWidth;el.classList.add("hop");setTimeout(()=>el.classList.add("no"),500);
           if(api.S.tries>=2)document.querySelector(`.choice[data-c="${c}"]`).classList.add("glow")}
       });
@@ -307,7 +307,7 @@ script='''(()=>{
         if(el.dataset.c===a){api.ok();el.classList.add("yes");const s=$("slot");
           TZ.fly(el,s,()=>{s.style.cssText="border-style:solid;border-color:#1f9d61;background:#eafff2;color:#2b2320;font-family:var(--kai);font-size:clamp(54px,9.5vmin,80px)";s.textContent=a;EN.sfx.pop();
             setTimeout(()=>TZ.flyGot(s,DRINK),400)},{dur:.6,keepHidden:true});
-          TZ.say(`答對了！${q}的相反是${a}。`,{onend:()=>api.next(500)})}
+          api.next(1500)}
         else{api.bad();el.classList.add("no");if(api.S.tries>=2)document.querySelector(`.choice[data-c="${a}"]`).classList.add("glow")}
       });
       setTimeout(()=>{if(!api.S.busy)TZ.say(`和${q}，意思相反的是哪一個字？`)},300);
@@ -437,7 +437,7 @@ script="""(()=>{
         if(api.S.busy)return;
         if(el.dataset.c===m){api.ok();el.classList.add("yes");const b=$("blank");
           TZ.fly(el,$("plate"),()=>{b.classList.add("fill");b.innerHTML=TZ.charHTML(m,Z.ZY[m]);EN.sfx.pop();setTimeout(()=>TZ.flyGot($("plate"),EN.icon(ic)),300)},{dur:.6,scale:.5,keepHidden:true});
-          TZ.say(`答對了！一${m}${TZ.plain(noun)}。`,{onend:()=>api.next(500)})}
+          api.next(1500)}
         else{api.bad();el.classList.add("no");if(api.S.tries>=2)document.querySelector(`.choice[data-c="${m}"]`).classList.add("glow")}
       });
       setTimeout(()=>{if(!api.S.busy)TZ.say("一什麼"+TZ.plain(noun)+"？")},300);
@@ -497,7 +497,7 @@ script="""(()=>{
       function check(){
         let all=true;slots.forEach(s=>{const k=+s.dataset.k,b=s.firstChild;if(+b.dataset.i===k)b.classList.add("ok");else all=false});
         if(all){api.ok();const sl=$("slots");sl.classList.remove("glaze");void sl.offsetWidth;sl.classList.add("glaze");EN.sfx.clear();setTimeout(()=>TZ.flyGot(sl,EN.icon("candied fruit")),700);
-          TZ.say(t.split("/").join(""),{onend:()=>api.next(600)});return}
+          api.next(1700);return}
         api.bad();api.S.busy=true;
         slots.forEach(s=>{const b=s.firstChild;if(b&&!b.classList.contains("ok"))b.classList.add("bad")});
         setTimeout(()=>{slots.forEach(s=>{const b=s.firstChild;if(b&&!b.classList.contains("ok")){back(balls.find(x=>x.dataset.i===b.dataset.i));s.innerHTML=""}});
@@ -565,7 +565,7 @@ script="""(()=>{
         $("choices").innerHTML=opts.map((x,i)=>`<button type="button" class="choice zyopt" style="--c:${COL[i]}" data-z="${x}" aria-label="注音選項${i+1}">${zyHTML(x)}</button>`).join("");
         document.querySelectorAll(".choice").forEach(el=>el.onclick=()=>{
           if(api.S.busy)return;
-          if(el.dataset.z===z){api.ok();el.classList.add("yes");$("big").innerHTML=TZ.charHTML(c,z);addScoop();TZ.say(`答對了！${c}。`,{onend:()=>api.next(400)})}
+          if(el.dataset.z===z){api.ok();el.classList.add("yes");$("big").innerHTML=TZ.charHTML(c,z);addScoop();api.next(1200)}
           else{api.bad();el.classList.add("no");if(api.S.tries>=2)document.querySelector(`.choice[data-z="${z}"]`).classList.add("glow")}
         });
       }else{
@@ -577,7 +577,7 @@ script="""(()=>{
         $("choices").innerHTML=L.map(([v,mk,lb],i)=>`<button type="button" class="choice tonebtn" style="--c:${COL[i]}" data-t="${v}" aria-label="${lb}"><span class="mk">${mk}</span><span class="lb">${TZ.zy(lb)}</span></button>`).join("");
         document.querySelectorAll(".choice").forEach(el=>el.onclick=()=>{
           if(api.S.busy)return;TZ.toneSound(+el.dataset.t);
-          if(+el.dataset.t===t){api.ok();el.classList.add("yes");$("big").innerHTML=TZ.charHTML(c,z);addScoop();TZ.say(`答對了！${c}是${["輕聲","一聲","二聲","三聲","四聲"][t]}。`,{onend:()=>api.next(400)})}
+          if(+el.dataset.t===t){api.ok();el.classList.add("yes");$("big").innerHTML=TZ.charHTML(c,z);addScoop();api.next(1200)}
           else{api.bad();el.classList.add("no");if(api.S.tries>=2)document.querySelector(`.choice[data-t="${t}"]`).classList.add("glow")}
         });
         setTimeout(()=>{if(!api.S.busy)TZ.say(c)},300);
@@ -650,7 +650,7 @@ script="""(()=>{
             const [ax,ay]=ANCHOR[x.p],t=document.createElement("div");t.className="thing plop";t.style.left=ax+"%";t.style.top=ay+"%";t.innerHTML=EN.icon(x.it[2]);$("stage").appendChild(t);
             const ln=document.querySelector(`.ln[data-i="${i}"]`);ln.classList.add("done");ln.querySelector(".ck").textContent="✅";EN.sfx.good();
             document.querySelectorAll(".zone").forEach(q=>q.classList.remove("hint"));
-            left--;if(left===0){api.ok();guests();TZ.flyGot($("stage"),EN.icon("table"));TZ.say("全部擺好了，客人來開動囉！",{onend:()=>api.next(900)})}else TZ.say(TZ.plain(text(x)));
+            left--;if(left===0){api.ok();guests();TZ.flyGot($("stage"),EN.icon("table"));api.next(1800)}
           }else{el.classList.remove("used");if(z){api.bad();el.classList.remove("back");void el.offsetWidth;el.classList.add("back");
             if(api.S.tries>=2)document.querySelector(`.zone[data-p="${x.p}"]`).classList.add("hint");TZ.say(TZ.plain(text(x)))}}};
         el.addEventListener("pointerup",up);el.addEventListener("pointercancel",()=>up(null));
@@ -769,7 +769,7 @@ script="""(()=>{
   function success(first){api.S.tries=first?0:1;api.ok();guide=false;strokes=[];draw();
     $("candles").innerHTML="<i></i><i></i><i></i>";$("candles").classList.add("on");setTimeout(()=>TZ.flyGot($("cv"),EN.icon("cake")),700);
     ctx.fillStyle="#1f9d61";ctx.font=`${W*.78}px "TWKaiSub"`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(target,W/2,W*.54);
-    TZ.say(`寫對了！是${target}。`,{onend:()=>api.next(500)})}
+    api.next(1600)}
   $("ok").onclick=async()=>{
     if(api.S.busy)return;if(!strokes.length){tip("先在格子裡寫字喔。");return}
     if(stage==="trace"){stage="write2";guide=false;strokes=[];draw();tip("這次自己寫寫看！");TZ.say("這次自己寫寫看");return}
@@ -927,7 +927,7 @@ script='''(()=>{
     const b=$("bell");b.classList.remove("ring");void b.offsetWidth;b.classList.add("ring");EN.sfx.coin();
     const g=$("guest");g.classList.remove("in","happy");void g.offsetWidth;g.classList.add("happy");
     setTimeout(()=>TZ.flyGot(d.querySelector(".plate"),GOT),700);
-    TZ.say(word?`${TZ.plain(word)}，說得真好！`:"說得真好！",{onend:()=>api.next(600)});
+    api.next(1800);
   }
   function showHints(){
     if(api.S.busy)return;const hs=hintsFor(cur);if(!hs.length)return;api.S.tries=Math.max(api.S.tries,1);
@@ -1096,7 +1096,7 @@ script='''(()=>{
   function showMean(s){const q0=cur;
     const m=$("mean");m.innerHTML=`<span class="kai">${idiomHTML(s)}</span>${TZ.zy("：")}${TZ.zy(s.m)}`;m.hidden=false;m.classList.remove("pop");void m.offsetWidth;m.classList.add("pop");
     $("skip").innerHTML=TZ.zy("下一題")+" ▶";$("skip").hidden=false;
-    TZ.say(`答對了！${sayW(s.w)}，意思是：${TZ.plain(s.m)}`,{onend:()=>go(900,q0)});
+    setTimeout(()=>go(0,q0),4500);
   }
   // ---- 成語少了一個字 ----
   function blankQ(s){
@@ -1115,7 +1115,7 @@ script='''(()=>{
       if(el.dataset.c===ans){api.ok();el.classList.add("yes");const h=$("hole");
         TZ.fly(el,h,()=>{h.classList.add("fill");h.innerHTML=TZ.charHTML(ans,s.zy.split(" ")[hole]);EN.sfx.pop();setTimeout(()=>TZ.flyGot(h,GOT),300)},{dur:.55,keepHidden:true});
         const q0=cur;$("skip").innerHTML=TZ.zy("下一題")+" ▶";$("skip").hidden=false;
-        TZ.say(`答對了！${sayW(s.w)}。`,{onend:()=>go(700,q0)})}
+        setTimeout(()=>go(0,q0),1500)}
       else{api.bad();el.classList.add("no");if(api.S.tries>=2)ch.querySelector(`.choice[data-c="${ans}"]`).classList.add("glow")}
     });
     setTimeout(()=>{if(!api.S.busy)TZ.say("看注音，成語少了哪一個字？")},300);

@@ -7,8 +7,8 @@
 <title>冰火飲料店</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261119l">
-<link rel="stylesheet" href="town/town.css?v=20261119l">
+<link rel="stylesheet" href="en.css?v=20261119m">
+<link rel="stylesheet" href="town/town.css?v=20261119m">
 <style>
 main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(12px,2.6vh,28px);
   padding:0 max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
@@ -37,12 +37,12 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
 @media (max-height:500px){.cup{--w:84px}.cup.big{--w:104px}.cup.big b{font-size:64px}.cup b{font-size:46px}.vs{margin-top:30px}.choices{margin-top:30px}.vs .arrow{font-size:28px}}
 .vs .q{width:clamp(110px,19vmin,150px);aspect-ratio:.8;border:5px dashed var(--berry);border-radius:10px 10px 34px 34px;display:grid;place-items:center;font-size:48px;color:var(--berry);background:#fff}
 </style>
-<script src="zhuyin.js?v=20261119l"></script>
-<link rel="stylesheet" href="park.css?v=20261119l">
-<script src="park.js?v=20261119l"></script>
-<script src="en.js?v=20261119l"></script>
-<script src="town/zi-data.js?v=20261119l"></script>
-<script src="town/town.js?v=20261119l"></script>
+<script src="zhuyin.js?v=20261119m"></script>
+<link rel="stylesheet" href="park.css?v=20261119m">
+<script src="park.js?v=20261119m"></script>
+<script src="en.js?v=20261119m"></script>
+<script src="town/zi-data.js?v=20261119m"></script>
+<script src="town/town.js?v=20261119m"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
 <body>
@@ -113,7 +113,7 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
         if(el.dataset.c===a){api.ok();el.classList.add("yes");const s=$("slot");
           TZ.fly(el,s,()=>{s.style.cssText="border-style:solid;border-color:#1f9d61;background:#eafff2;color:#2b2320;font-family:var(--kai);font-size:clamp(54px,9.5vmin,80px)";s.textContent=a;EN.sfx.pop();
             setTimeout(()=>TZ.flyGot(s,DRINK),400)},{dur:.6,keepHidden:true});
-          TZ.say(`答對了！${q}的相反是${a}。`,{onend:()=>api.next(500)})}
+          api.next(1500)}
         else{api.bad();el.classList.add("no");if(api.S.tries>=2)document.querySelector(`.choice[data-c="${a}"]`).classList.add("glow")}
       });
       setTimeout(()=>{if(!api.S.busy)TZ.say(`和${q}，意思相反的是哪一個字？`)},300);

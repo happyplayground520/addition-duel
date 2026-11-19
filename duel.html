@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>*,*::before,*::after{box-sizing:border-box}html,body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}</style>
-<script src="zhuyin.js?v=20261119l"></script>
+<script src="zhuyin.js?v=20261119m"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261119l">
-<script src="park.js?v=20261119l"></script>
+<link rel="stylesheet" href="park.css?v=20261119m">
+<script src="park.js?v=20261119m"></script>
 <style>:root{--theme:#8e3fb0}</style>
 </head>
 <body>
@@ -785,7 +785,6 @@ body{background:var(--bg);color:var(--ink);font-family:var(--text);overflow:hidd
       S.phase="reveal";S.score[p]++;updateScore(p,true);sfx.good();keyEl.classList.add("right");revealAll();
       band.classList.add("flash");setTimeout(()=>band.classList.remove("flash"),900);
       ui.forEach((u,i)=>setMsg(i,i===p?"答對了！+1 分":`${NAMES[p]} 搶先答對`,i===p?"good":""));
-      say(sameQ()?eq(q):`${COLOR[p]}答對了，${eq(q)}`);
       timer=setTimeout(nextRound,2800);
     }else{
       S.locked[p]=true;sfx.bad();keyEl.classList.add("wrong");ui[p].el.classList.add("locked");

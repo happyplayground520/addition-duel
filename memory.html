@@ -99,10 +99,10 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   .overlay h2{display:none} .overlay .opt small{display:none}
 }
 </style>
-<script src="zhuyin.js?v=20261119l"></script>
+<script src="zhuyin.js?v=20261119m"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261119l">
-<script src="park.js?v=20261119l"></script>
+<link rel="stylesheet" href="park.css?v=20261119m">
+<script src="park.js?v=20261119m"></script>
 <style>:root{--theme:#2b7f50}</style>
 </head>
 <body>
@@ -228,7 +228,6 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
     await sleep(450);
     if(a.v+b.v===T){
       a.el.classList.add("match");b.el.classList.add("match");sfx.good();
-      say(`${a.v}和${b.v}，湊成${T}！`);
       G.score[G.turn]++;ui[G.turn].pairs.textContent=G.score[G.turn];
       ui[G.turn].msg.textContent=`湊成 ${T}！再翻一次`;ui[G.turn].msg.className="msg good";
       await sleep(900);

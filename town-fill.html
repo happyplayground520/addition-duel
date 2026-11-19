@@ -7,8 +7,8 @@
 <title>麵包店送貨</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261119l">
-<link rel="stylesheet" href="town/town.css?v=20261119l">
+<link rel="stylesheet" href="en.css?v=20261119m">
+<link rel="stylesheet" href="town/town.css?v=20261119m">
 <style>
 main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(12px,2.6vh,28px);
   padding:0 max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
@@ -43,12 +43,12 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
 .order.done{animation:yes .5s}
 @media (max-height:500px){.road{height:90px;width:260px}.truck{width:170px}main.stage2{flex-wrap:wrap;align-content:center}}
 </style>
-<script src="zhuyin.js?v=20261119l"></script>
-<link rel="stylesheet" href="park.css?v=20261119l">
-<script src="park.js?v=20261119l"></script>
-<script src="en.js?v=20261119l"></script>
-<script src="town/zi-data.js?v=20261119l"></script>
-<script src="town/town.js?v=20261119l"></script>
+<script src="zhuyin.js?v=20261119m"></script>
+<link rel="stylesheet" href="park.css?v=20261119m">
+<script src="park.js?v=20261119m"></script>
+<script src="en.js?v=20261119m"></script>
+<script src="town/zi-data.js?v=20261119m"></script>
+<script src="town/town.js?v=20261119m"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
 <body>
@@ -117,11 +117,11 @@ main.stage2{position:relative;flex:1;min-height:0;display:flex;flex-direction:co
             const r=b.getBoundingClientRect();m.style.left=r.left+"px";m.style.top=r.top+"px";document.body.appendChild(m);
             TZ.fly(m,$("cargo"),()=>{$("cargo").insertAdjacentHTML("beforeend",EN.icon("bread"));tk.classList.remove("bump");void tk.offsetWidth;tk.classList.add("bump");EN.sfx.pop()},{dur:.6,scale:.4});
             setTimeout(()=>m.remove(),1000)},900);
-          setTimeout(()=>TZ.say(t.replace("＿",c),{onend:()=>{
+          setTimeout(()=>{
             if(!last){api.next(300);return}
             const tk=$("truck");EN.sfx.coin();setTimeout(()=>EN.sfx.coin(),220);tk.classList.remove("bump");tk.classList.add("go");
-            TZ.say("麵包全部裝好了，出發送貨囉！",{onend:()=>api.next(600)});
-          }}),1500)}
+            api.next(1800);
+          },1500)}
         else{api.bad();el.classList.remove("hop");void el.offsetWidth;el.classList.add("hop");setTimeout(()=>el.classList.add("no"),500);
           if(api.S.tries>=2)document.querySelector(`.choice[data-c="${c}"]`).classList.add("glow")}
       });
