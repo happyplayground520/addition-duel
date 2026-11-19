@@ -23,6 +23,10 @@ h1 .star{font-size:.7em;text-shadow:none}
 .ttl{gap:4px}
 .tiptx{margin:0;font-size:clamp(17px,2.8vmin,21px);font-weight:700;color:var(--ink);line-height:1.6}
 .setbtn.demo{pointer-events:none;box-shadow:0 0 0 4px #ffd23f,0 3px 0 #f5b9cc}
+/* 小提醒在窄手機上：示範按鈕可以換行，卡片才不會比畫面寬 */
+#tipp .box{max-width:100%;min-width:0;box-sizing:border-box}
+#tipp .setbtn.demo{max-width:100%;flex-wrap:wrap;justify-content:center;white-space:normal}
+#tipp .endrow{flex-wrap:wrap;justify-content:center}
 .setbtn.pulse{animation:pulse 1.2s ease-in-out infinite}
 @keyframes pulse{50%{box-shadow:0 0 0 7px #ffd23f,0 3px 0 #f5b9cc}}
 .tipchk{display:inline-flex;align-items:center;gap:8px;font-size:17px;font-weight:800;border:2px solid #e3d3b8;border-radius:14px;padding:8px 16px;cursor:pointer;background:#fff;min-height:48px}
@@ -134,7 +138,7 @@ html.phone.land .spot .icon{width:70px}
     {k:"n",name:"數糖果",tag:"筆畫",c:"#e8577a",href:"town-n.html",ic:"jar"},
     {k:"fill",name:"麵包店送貨",tag:"選詞填空",c:"#e0772b",href:"town-fill.html",ic:"bread"},
     {k:"anti",name:"冰火飲料店",tag:"相反字",c:"#2f8fdb",href:"town-anti.html",ic:"drink"},
-    {k:"say",name:"點餐櫃台",tag:"說出造詞",c:"#7a4fd6",ic:"bell"},
+    {k:"say",name:"點餐櫃台",tag:"說出造詞",c:"#7a4fd6",href:"town-say.html",ic:"bell"},
     {k:"write",href:"town-write.html",name:"蛋糕寫字",tag:"寫國字",c:"#d1478f",ic:"cake"},
     {k:"place",href:"town-place.html",name:"擺餐桌",tag:"看圖擺位置",c:"#2b7f50",ic:"table"},
     {k:"wrong",name:"挑壞蘋果",tag:"找錯字",c:"#c0392b",href:"town-wrong.html",ic:"apple"},

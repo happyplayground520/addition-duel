@@ -776,6 +776,171 @@ script="""(()=>{
   addEventListener("resize",()=>{const keep=strokes;setup();strokes=keep;draw()});
 })();""")
 
+# ---------- 點餐櫃台（說出造詞） ----------
+# 點餐單上有一個字，小朋友用這個字說一個語詞：按麥克風說，瀏覽器的語音辨識聽到含有這個字（或同音字）的詞就算對。
+# 沒有語音辨識（或麥克風不能用）時，說給大人聽，大人按 ✓。說不出來可以按 💡 看例子。
+page("town-say.html",title="點餐櫃台",icon="🛎️",sub="看點餐單上的字，用它說一個語詞！",
+style='''.counter{display:flex;align-items:flex-end;justify-content:center;gap:clamp(14px,4vmin,40px)}
+.guest{display:inline-block}.guest .ic{width:clamp(84px,15vmin,124px);height:clamp(84px,15vmin,124px);display:block}
+.guest.in{animation:gin .7s cubic-bezier(.3,1.4,.5,1) both}
+@keyframes gin{from{transform:translateX(-45vw) rotate(-8deg)}60%{transform:translateX(6px) rotate(3deg)}}
+.guest.happy{animation:ghop .5s 2}
+@keyframes ghop{50%{transform:translateY(-16px)}}
+.ticket{position:relative;background:#fff;border:5px solid var(--choc);border-radius:16px 16px 8px 8px;padding:34px 20px 12px;min-width:clamp(140px,25vmin,190px);
+  text-align:center;box-shadow:0 6px 0 rgba(0,0,0,.12);transform:rotate(2deg)}
+.ticket .tk{position:absolute;left:0;right:0;top:0;min-height:28px;padding:1px 0;background:#7a4fd6;color:#fff;font-weight:900;font-size:15px;border-radius:10px 10px 0 0;display:flex;align-items:center;justify-content:center;gap:2px}
+.ticket .tk .tz-b{color:#fff}
+.ticket b{font-family:var(--kai);font-weight:400;font-size:clamp(84px,16vmin,132px);line-height:1.05;color:var(--ink)}
+.ticket b .tz-b{font-size:max(.2em,17px)}
+.ticket.pop{animation:tpop .45s cubic-bezier(.3,1.6,.5,1)}
+@keyframes tpop{from{transform:rotate(2deg) scale(.6);opacity:0}}
+.bar{position:relative;width:min(440px,90vw);height:22px;margin-top:-14px;border-radius:10px;background:linear-gradient(#d9a467,#a86c38);border:4px solid var(--choc)}
+.bell{position:absolute;right:8%;bottom:14px;font-size:34px;line-height:1;transform-origin:50% 90%}
+.bell.ring{animation:ring .5s 2}
+@keyframes ring{25%{transform:rotate(-18deg)}75%{transform:rotate(18deg)}}
+.talkwrap{display:flex;flex-direction:column;align-items:center;gap:10px}
+.talk{display:flex;align-items:center;gap:18px;justify-content:center}
+.mic{position:relative;width:clamp(100px,17vmin,132px);aspect-ratio:1;border-radius:50%;border:5px solid var(--choc);color:#fff;cursor:pointer;padding:0;font:inherit;
+  background:radial-gradient(circle at 35% 30%,#b294ff,#7a4fd6);box-shadow:0 7px 0 #4b2a99;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.mic .mi{font-size:clamp(36px,6.5vmin,50px);line-height:1}
+.mic .ml{font-size:15px;font-weight:900;white-space:nowrap}.mic .ml .tz-b{color:#fff}
+.mic:active{transform:translateY(3px);box-shadow:0 4px 0 #4b2a99}
+.mic[data-st=on]{background:radial-gradient(circle at 35% 30%,#ff9fbd,#e8577a);box-shadow:0 7px 0 #a8324f}
+.mic[data-st=on]::after{content:"";position:absolute;inset:-12px;border-radius:50%;border:5px solid #e8577a;animation:ping 1s infinite;pointer-events:none}
+@keyframes ping{from{transform:scale(.9);opacity:1}to{transform:scale(1.28);opacity:0}}
+.tb{min-width:58px;height:58px;border-radius:18px;border:3px solid #e3d3b8;background:#fff;font:inherit;font-size:26px;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.1);color:#1f9d61;font-weight:900}
+#adult.big{padding:0 16px;background:#1f9d61;color:#fff;border-color:#1f9d61;font-size:20px;box-shadow:0 4px 0 #136b41}
+#adult.big .tz-b{color:#fff}
+.dish{display:flex;align-items:center;gap:10px;background:#fff;border:4px solid var(--choc);border-radius:999px;padding:4px 20px 4px 8px;
+  font-family:var(--kai);font-size:clamp(36px,6vmin,52px);box-shadow:0 5px 0 rgba(0,0,0,.12)}
+.dish .plate{display:inline-flex}.dish .plate .ic{width:58px;height:58px}
+.dish .hit .tz-h,.hw .hit .tz-h{color:var(--berry)}
+.dish.serve{animation:serve .6s cubic-bezier(.3,1.6,.5,1)}
+@keyframes serve{from{transform:translateY(30px) scale(.5);opacity:0}}
+.heard{background:#fff;border:3px dashed #c9b8a0;border-radius:18px;padding:6px 16px;font-weight:800;font-size:18px;text-align:center;line-height:1.6}
+.heard .kai{font-size:1.5em}
+.hints{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center}
+.hints .hl{font-weight:900;font-size:18px}
+.hw{font:inherit;font-family:var(--kai);font-size:clamp(30px,5vmin,42px);background:#fff8d6;border:3px solid var(--lemon);border-radius:16px;padding:2px 12px;cursor:pointer;
+  display:flex;align-items:center;gap:6px;color:var(--ink);box-shadow:0 4px 0 #e0b730}
+.hw .spk{font-size:18px}
+.tip{min-height:1.6em;font-weight:800;font-size:17px;color:var(--choc2);text-align:center;max-width:92vw}
+@media (max-width:420px){.qline{font-size:18px;gap:6px}.hints .hl{display:none}.hw{font-size:28px}}
+@media (orientation:portrait) and (max-height:740px){.ticket{padding-top:30px;min-width:124px}.ticket b{font-size:68px}.guest .ic{width:66px;height:66px}.counter{gap:24px}
+  .mic{width:84px}.mic .mi{font-size:30px}.mic .ml{font-size:13px}.tb{min-width:50px;height:50px;font-size:22px}.talkwrap{gap:6px}.dish{font-size:30px}.dish .plate .ic{width:44px;height:44px}
+  .heard{font-size:15px;padding:2px 12px;line-height:1.4}.hw{font-size:26px}.tip{font-size:15px;min-height:1.3em}.qcard{gap:8px}}
+@media (max-height:500px){.qline{font-size:17px;line-height:1.3}.qline .ibtn{width:42px;height:42px;font-size:20px}.qcard{gap:6px}.ticket{padding:30px 14px 6px;min-width:110px}.ticket b{font-size:56px}.heard{font-size:15px;padding:2px 12px}.guest .ic{width:68px;height:68px}.bar{width:min(300px,44vw)}
+  .mic{width:86px}.mic .mi{font-size:32px}.tb{min-width:50px;height:50px;font-size:22px}.dish{font-size:30px}.dish .plate .ic{width:44px;height:44px}.hw{font-size:28px}.talkwrap{gap:6px}.tip{font-size:15px}}''',
+main='''<div class="qcard"><div class="qline" id="q"></div>
+  <div class="counter"><span class="guest" id="guest"></span><div class="ticket" id="ticket"><span class="tk" id="tk"></span><b id="ch"></b></div></div>
+  <div class="bar"><span class="bell" id="bell">🛎️</span></div></div>
+<div class="talkwrap">
+  <div class="dish" id="dish" hidden></div>
+  <div class="heard" id="heard" hidden></div>
+  <div class="talk"><button type="button" class="tb" id="hint" aria-label="提示">💡</button>
+    <button type="button" class="mic" id="mic" data-st="idle"><span class="mi">🎤</span><span class="ml" id="micLbl"></span></button>
+    <button type="button" class="tb" id="adult" aria-label="大人聽到說對了">✓</button></div>
+  <div class="hints" id="hints" hidden></div>
+  <div class="tip" id="tip"></div>
+</div>''',
+script='''(()=>{
+  const $=id=>document.getElementById(id),Z=ZI,ZC={"日":["生日","日出"],"月":["月光","月亮[˙ㄌㄧㄤ]"],"山":["高山","山洞"],"木":["木頭[˙ㄊㄡ]","樹木"],"水":["喝水","水果"],"人":["大人","好人"],"手":["小手","招手"],"門":["開門","大門"],"小":["小船","小草"],"上":["地上","天上"],"走":["走路","走開"],"左":["左手","左邊"],"右":["右手","右邊"],"向":["向前","方向"],"魚":["金魚","小魚"],"也":["也是","我也要"],"來":["回來","來玩"],"加":["加油","加法"],"開":["張開","開心"],"出":["出去","日出"],"招":["招手","招呼[˙ㄏㄨ]"],"車":["火車","車子[˙ㄗ]"],"子":["車子[˙ㄗ]","房子[˙ㄗ]"],"地":["地上","草地"],"花":["紅花","花朵"],"朵":["花朵","雲朵"],"在":["現在","在家"],"笑":["笑臉","大笑"],"泡":["泡泡[˙ㄆㄠ]","水泡"],"玩":["好玩","玩具"],"大":["大家","大人"],"起":["一起","起來[˙ㄌㄞ]"],"好":["你好","好多"],"多":["好多","多少"],"我":["我們[˙ㄇㄣ]","我家"],"的":["我的[˙ㄉㄜ]","紅的[˙ㄉㄜ]"],"你":["你好","你們[˙ㄇㄣ]"],"抱":["抱抱","抱住"],"爸":["爸爸[˙ㄅㄚ]"],"到":["看到","到家"],"青":["青草","青菜"],"叫":["大叫","叫人"],"下":["下雨","一下子[˙ㄗ]"],"那":["那裡[˙ㄌㄧ]","那個[˙ㄍㄜ]"],"和":["和好","和平"],"要":["要去","想要"],"他":["他們[˙ㄇㄣ]","其他"],"朋":["朋友[˙ㄧㄡ]"],"友":["朋友[˙ㄧㄡ]","好友"],"外":["外面","外星人"],"住":["住家","住在"],"個":["一個[˙ㄍㄜ]","個子[˙ㄗ]"],"們":["我們[˙ㄇㄣ]","你們[˙ㄇㄣ]"],"這":["這裡[˙ㄌㄧ]","這個[˙ㄍㄜ]"],"裡":["家裡[˙ㄌㄧ]","這裡[˙ㄌㄧ]"],"有":["有人","沒有"],"沒":["沒有","沒事"],"是":["不是","是的[˙ㄉㄜ]"],"什":["什麼[˙ㄇㄜ]"],"麼":["什麼[˙ㄇㄜ]","怎麼[˙ㄇㄜ]"],"金":["金魚","黃金"],"說":["說話","小說"],"句":["句子[˙ㄗ]","一句"],"話":["說話","電話"],"兩":["兩個[˙ㄍㄜ]","兩人"],"都":["都是","全都"],"悄":["悄悄話"],"尾":["尾巴[˙ㄅㄚ]","結尾"],"巴":["尾巴[˙ㄅㄚ]","嘴巴[˙ㄅㄚ]"],"滿":["滿天","滿滿"],"紅":["紅花","紅色"],"春":["春天","春風"],"貼":["貼紙","貼上"],"呢":["你呢[˙ㄋㄜ]","我呢[˙ㄋㄜ]"],"了":["好了[˙ㄌㄜ]","走了[˙ㄌㄜ]"],"請":["請問","請坐"],"天":["天空","春天"],"家":["大家","回家"],"把":["一把","把手"],"不":["不要","不好"],"房":["房子[˙ㄗ]","房間"],"福":["幸福","福氣"],"前":["向前","前面"],"風":["大風","風車"],"吹":["吹風","吹氣"],"停":["不停","停車"],"跑":["跑步","快跑"],"火":["火車","火山"],"洞":["山洞","洞口"],"又":["又來","又是"],"堆":["一堆","沙堆"],"心":["開心","小心"],"問":["請問","問題"],"草":["小草","草地"],"高":["高山","很高"],"星":["星星[˙ㄒㄧㄥ]","星球"],"少":["多少","很少"],"太":["太陽","太多"],"去":["出去","回去"],"彩":["彩色","七彩"],"想":["想要","想家"],"爬":["爬山","爬樹"],"看":["好看","看見"],"棉":["棉花","棉花糖"],"池":["水池","池子[˙ㄗ]"],"秋":["秋天","秋千"],"千":["秋千","一千"],"空":["天空","空氣"],"早":["早上","早安"],"田":["田地","水田"],"誰":["是誰"],"陪":["陪我","陪伴[ㄅㄢˋ]"],"回":["回家","回音"],"音":["回音","音樂[ㄩㄝˋ]"],"谷":["山谷"],"嗎":["好嗎[˙ㄇㄚ]","是嗎[˙ㄇㄚ]"],"哈":["哈哈","哈哈大笑"]};
+  // 這一關說明文字用到、但題庫注音表沒有的字
+  Object.entries({語:"ㄩˇ",詞:"ㄘˊ",按:"ㄢˋ",辦:"ㄅㄢˋ",使:"ㄕˇ",克:"ㄎㄜˋ",網:"ㄨㄤˇ",板:"ㄅㄢˇ",換:"ㄏㄨㄢˋ"}).forEach(([k,v])=>{if(!Z.ZY[k])Z.ZY[k]=v});
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  let canMic=!!SR;
+  const GUESTS=["cat","dog","rabbit","bear","pig","duck","monkey","frog","tiger","elephant"];
+  const FOOD=["hamburger","noodles","pizza","juice","cake","ice cream","cookie","bread","milk","spaghetti"];
+  const GOT=EN.icon("hamburger");
+  // 「字[注音]」寫法拆成 [字, 注音]
+  const toks=w=>{const out=[],cs=[...w];for(let i=0;i<cs.length;i++){if(cs[i+1]==="["){const j=cs.indexOf("]",i);out.push([cs[i],cs.slice(i+2,j).join("")]);i=j}else out.push([cs[i],Z.ZY[cs[i]]||""])}return out};
+  const ALL=[...new Set(Object.values(ZC).flat())];
+  // 一個語詞（標好注音）：課本語詞用課本的注音，範例詞用標好的注音；要說的那個字變紅色
+  function wordHTML(w,c){const p=TZ.plain(w);let t;
+    if(Z.ciZy[p])t=[...p].map((ch,i)=>[ch,Z.ciZy[p][i]]);else t=toks(ALL.find(x=>TZ.plain(x)===p)||p);
+    return t.map(([ch,z])=>TZ.charHTML(ch,z,ch===c?"hit":"")).join("")}
+  // 提示的語詞：先找範圍裡課本的語詞，再用範例詞
+  function hintsFor(c){
+    const L=TZ.lessons(),[a,b]=TZ.range(),seen=new Set(),out=[];
+    [...L.slice(a,b+1).flatMap(l=>l.ci),...(ZC[c]||[])].forEach(w=>{const p=TZ.plain(w);if(p.includes(c)&&[...p].length>=2&&!seen.has(p)){seen.add(p);out.push(w)}});
+    return out.slice(0,2)}
+  const tip=t=>{$("tip").innerHTML=t?TZ.zy(t):""};
+  let cur="",food="",guest="",rec=null,listening=false,served=[];
+  function setMic(st){$("mic").dataset.st=st;$("micLbl").innerHTML=TZ.zy(st==="on"?"我在聽":canMic?"按我說":"說出來")}
+  function needAdult(t){canMic=false;setMic("idle");$("adult").classList.add("big");$("adult").innerHTML="✓ "+TZ.zy("說對了");if(t)tip(t)}
+  $("tk").innerHTML=TZ.zy("點餐單");
+  const prompt=()=>TZ.say(`${cur}。用${cur}，說一個語詞。`);
+
+  const api=TZ.run({key:"town-say",gotIcon:GOT,
+    finale:done=>{TZ.finale(`<div class="frow">${served.slice(-6).map(g=>EN.icon(g)).join("")}</div>`,"客人都點好餐了，謝謝光臨！",done,3000)},
+    help:"點餐櫃台。點餐單上有一個字，請你用這個字說一個語詞，例如看到「火」，可以說「火車」。按一下紫色的麥克風再說，說完等一下。說不出來可以按燈泡看例子。如果平板聽不懂，大人聽到說對了，可以按旁邊的勾勾。",
+    build:n=>{served=[];return TZ.deal(TZ.pool(false).filter(c=>hintsFor(c).length),n)},
+    show:(c)=>{
+      cur=c;food=FOOD[api.S.i%FOOD.length];guest=GUESTS[Math.floor(Math.random()*GUESTS.length)];
+      const g=$("guest");g.innerHTML=EN.icon(guest);g.className="guest";void g.offsetWidth;g.classList.add("in");
+      const tk=$("ticket");tk.classList.remove("pop");void tk.offsetWidth;tk.classList.add("pop");
+      $("ch").innerHTML=TZ.charHTML(c,Z.ZY[c]||"");
+      $("q").innerHTML=TZ.zy("用這個字，說一個語詞。")+`<button type="button" class="ibtn" id="say" aria-label="念題目">🔊</button>`;
+      $("say").onclick=prompt;
+      ["dish","heard","hints"].forEach(id=>$(id).hidden=true);
+      if(canMic){$("adult").classList.remove("big");$("adult").textContent="✓"}
+      setMic("idle");tip(canMic?"按麥克風，說出一個有這個字的語詞。":"說出來給大人聽，說對了請大人按 ✓。");
+      setTimeout(()=>{if(!api.S.busy&&cur===c)prompt()},700);
+    }});
+
+  // 聽到的話裡有沒有這個字（或同音字）
+  function judge(alts){
+    if(api.S.busy)return;
+    const c=cur,cands=alts.map(t=>(t.match(/[\\u4e00-\\u9fff]/g)||[]).join("")).filter(Boolean);
+    if(!cands.length){tip("沒有聽到，再按一次麥克風說說看。");TZ.say("沒有聽到，再說一次");return}
+    const trim=t=>{const a=[...t];if(a.length<=5)return t;const i=a.indexOf(c);return a.slice(Math.max(0,i-2),Math.max(0,i-2)+5).join("")};
+    for(const t of cands)if([...t].length>=2&&t.includes(c))return success(trim(t));
+    // 平板常把字聽成同音的別字，同音也算對（顯示成正確的字）
+    const zc=Z.ZY[c];
+    if(zc)for(const t of cands){const a=[...t],i=a.findIndex(ch=>Z.ZY[ch]===zc);if(a.length>=2&&i>=0){a[i]=c;return success(trim(a.join("")))}}
+    const t0=cands[0];api.bad();
+    $("heard").innerHTML=TZ.zy("我聽到：")+`<span class="kai">${TZ.zy(t0)}</span>`;$("heard").hidden=false;
+    if([...t0].length<2&&(t0===c||Z.ZY[t0]===zc)){tip("要說兩個字以上的語詞喔！");TZ.say(`要說兩個字以上的語詞喔，${c}什麼？`)}
+    else{tip(`裡面沒有「${c}」喔，再說一次！`);TZ.say(`裡面沒有${c}喔，再說一次`)}
+    if(api.S.tries>=2)setTimeout(()=>{if(!api.S.busy)showHints()},1600);
+  }
+  function success(word){
+    if(api.S.busy)return;api.ok();listening=false;try{rec&&rec.abort()}catch(e){}setMic("idle");served.push(guest);
+    const d=$("dish");d.innerHTML=`<span class="plate">${EN.icon(food)}</span><span class="dw">${word?wordHTML(word,cur):TZ.charHTML(cur,Z.ZY[cur]||"","hit")}</span>`;
+    d.hidden=false;d.classList.remove("serve");void d.offsetWidth;d.classList.add("serve");
+    ["heard","hints"].forEach(id=>$(id).hidden=true);tip("");
+    const b=$("bell");b.classList.remove("ring");void b.offsetWidth;b.classList.add("ring");EN.sfx.coin();
+    const g=$("guest");g.classList.remove("in","happy");void g.offsetWidth;g.classList.add("happy");
+    setTimeout(()=>TZ.flyGot(d.querySelector(".plate"),GOT),700);
+    TZ.say(word?`${TZ.plain(word)}，說得真好！`:"說得真好！",{onend:()=>api.next(600)});
+  }
+  function showHints(){
+    if(api.S.busy)return;const hs=hintsFor(cur);if(!hs.length)return;api.S.tries=Math.max(api.S.tries,1);
+    $("hints").innerHTML=`<span class="hl">${TZ.zy("可以說：")}</span>`+hs.map(w=>`<button type="button" class="hw" data-w="${TZ.plain(w)}">${wordHTML(w,cur)}<span class="spk">🔊</span></button>`).join("");
+    $("hints").hidden=false;$("hints").querySelectorAll(".hw").forEach(x=>x.onclick=()=>TZ.say(x.dataset.w));
+    tip(canMic?"聽一聽，再按麥克風說一次！":"說出來給大人聽，說對了請大人按 ✓。");
+    TZ.say("可以說，"+hs.map(w=>TZ.plain(w)).join("，或是")+"。換你說說看！");
+  }
+  $("hint").onclick=()=>showHints();
+  $("adult").onclick=()=>{if(!api.S.busy&&cur)success(null)};
+  $("mic").onclick=()=>{
+    if(api.S.busy||!cur)return;EN.unlock();
+    if(!canMic){tip("說出來給大人聽，說對了請大人按 ✓。");TZ.say("說出來給大人聽，說對了請大人按勾勾");$("adult").classList.add("big");return}
+    if(listening){try{rec.stop()}catch(e){}return}
+    EN.stop();
+    let got=false;
+    try{rec=new SR();rec.lang="zh-TW";rec.interimResults=false;rec.maxAlternatives=5;rec.continuous=false}catch(e){needAdult("這台平板不能聽，說給大人聽，說對了請大人按 ✓。");return}
+    rec.onresult=e=>{got=true;const alts=[];for(const r of e.results)for(let k=0;k<r.length;k++)alts.push(r[k].transcript);judge(alts)};
+    rec.onerror=e=>{const er=e.error;
+      if(er==="not-allowed"||er==="service-not-allowed"||er==="audio-capture")needAdult("沒辦法使用麥克風。說給大人聽，說對了請大人按 ✓。");
+      else if(er==="network")needAdult("連不上網路，聽不到。說給大人聽，說對了請大人按 ✓。");
+      else if(er==="no-speech")tip("沒有聽到聲音，再按一次麥克風說說看。")};
+    rec.onend=()=>{listening=false;if(!api.S.busy)setMic("idle");if(!got&&canMic&&!api.S.busy&&!$("tip").textContent)tip("沒有聽到聲音，再按一次麥克風說說看。")};
+    try{rec.start();listening=true;setMic("on");tip("")}catch(e){needAdult("這台平板不能聽，說給大人聽，說對了請大人按 ✓。")}
+  };
+  setMic("idle");
+})();''')
+
 for fn,k in PAGES.items():
     html=HEAD.format(V=V,title=k["title"],icon=k["icon"],sub=k["sub"],style=COMMON_STYLE+"\n"+k["style"],main=k["main"],script=k["script"])
     open(os.path.join(ROOT,fn),"w",encoding="utf-8").write(html)
