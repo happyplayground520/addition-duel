@@ -48,7 +48,7 @@ HEAD='''<!doctype html>
     </div>
     <span class="note" id="note" data-zy></span>
     <button type="button" class="big" id="go">READY</button>
-    <p class="source">字型：全字庫正楷體（數位發展部「CNS11643中文標準交換碼全字庫」，依政府資料開放授權條款第1版使用）<br>生字：教育部教育百科「生字詞彙表」；部首、讀音：教育部《國語辭典簡編本》；筆畫：教育部《國字標準字體筆順學習網》</p>
+    <p class="source">字型：全字庫正楷體（數位發展部「CNS11643中文標準交換碼全字庫」，依政府資料開放授權條款第1版使用）<br>生字：教育部教育百科「生字詞彙表」；部首、讀音：教育部《國語辭典簡編本》；筆畫：教育部《國字標準字體筆順學習網》<br>本網站與各教科書出版社無關。生字依教育部教育百科公開資料整理，僅供孩子非營利學習使用。</p>
   </div>
 </section>
 <section class="panel" id="end" hidden>
