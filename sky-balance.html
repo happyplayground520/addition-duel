@@ -104,10 +104,12 @@ main{justify-content:flex-start;padding-top:4px}
   .ask{grid-area:ask}.known{grid-area:known}.scale{grid-area:scale;width:100%;height:100%}.sides{grid-area:sides;margin:0}.choices{grid-area:choices}.msg{grid-area:msg}}
 @media (prefers-reduced-motion:reduce){#beam,.pan{transition:none}}
 </style>
-<script src="zhuyin.js?v=20261119j"></script>
+<script src="zhuyin.js?v=20261119l"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261119j">
-<script src="park.js?v=20261119j"></script>
+<link rel="stylesheet" href="park.css?v=20261119l">
+<script src="park.js?v=20261119l"></script>
+<link rel="stylesheet" href="duo.css?v=20261119l">
+<script src="duo.js?v=20261119l"></script>
 </head>
 <body data-park>
 <header class="top">
@@ -127,13 +129,18 @@ main{justify-content:flex-start;padding-top:4px}
     <div class="box">
       <h2>⚖️ 宇宙天秤</h2>
       <p data-zy>比較重的那一邊會往下沉。<br>想一想要放多少，天秤才會平衡！</p>
-      <span class="lbl">難度</span>
+      <span class="lbl">玩法</span>
+      <div class="row" id="modes">
+        <button type="button" class="opt" data-m="1" aria-label="一個人"><span class="lvst">👤</span><small>一個人</small></button>
+        <button type="button" class="opt" data-m="3" aria-label="兩人搶答"><span class="lvst">⚡</span><small>兩人搶答</small></button>
+      </div>
+      <span class="lbl" id="lvLbl">難度</span>
       <div class="row" id="levels">
         <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small>⭐⭐⭐ ⚖️ ⭐ ?</small></button>
         <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small>3+4 ⚖️ 5+?</small></button>
         <button type="button" class="opt" data-lv="3" aria-label="高級"><span class="lvst">⭐⭐⭐</span><small>🪐=⭐⭐⭐</small></button>
       </div>
-      <span class="lbl">題數</span>
+      <span class="lbl" id="cntLbl">題數</span>
       <div class="row" id="counts"><button type="button" class="opt" data-n="5" aria-label="5 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button><button type="button" class="opt" data-n="10" aria-label="10 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>10</small></button><button type="button" class="opt" data-n="15" aria-label="15 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>15</small></button></div>
       <button type="button" class="big" id="go" aria-label="開始">READY</button>
     </div>
@@ -161,6 +168,11 @@ main{justify-content:flex-start;padding-top:4px}
   const syncLv=()=>document.querySelectorAll("#levels button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
   document.querySelectorAll("#levels button").forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("sky-balance-lv",S.lv);syncLv()}));
   syncLv();
+  S.duo=pref("sky-balance-mode")==="3";
+  const syncMode=()=>{document.querySelectorAll("#modes button").forEach(b=>b.setAttribute("aria-pressed",(b.dataset.m==="3")===S.duo));
+    $("levels").hidden=$("lvLbl").hidden=$("counts").hidden=$("cntLbl").hidden=S.duo};
+  document.querySelectorAll("#modes button").forEach(b=>b.addEventListener("click",()=>{S.duo=b.dataset.m==="3";pref("sky-balance-mode",b.dataset.m);syncMode()}));
+  syncMode();
   {const n0=+pref("sky-balance-total");if([5,10,15].includes(n0))S.total=n0;
    const cs=[...document.querySelectorAll("#counts button")],sync=()=>cs.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===S.total));
    sync();cs.forEach(b=>b.addEventListener("click",()=>{S.total=+b.dataset.n;pref("sky-balance-total",S.total);sync()}))}
@@ -304,7 +316,29 @@ main{justify-content:flex-start;padding-top:4px}
     }
   }
   const upd=()=>{$("score").textContent=`⭐ ${S.score} / ${S.total}`};
-  function start(){unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.score=0;S.last="";upd();next();
+  // ---- 兩人搶答：小小的天秤，選了答案就放上去看會不會平衡 ----
+  const its=list=>list.map(x=>x.blank?`<span class="bx q">?</span>`:x.n!=null?`<span class="bx">${x.n}</span>`:`<i>${x.e}</i>`).join("");
+  const ang=(L,R,lv)=>Math.max(-14,Math.min(14,(R-L)*(lv===2?1.6:3.2)));
+  function mini(q,el,right){
+    const L=weight(q.left),R=weight(right),a=ang(L,R,q.lv);
+    el.classList.add("col");
+    el.innerHTML=(q.known?`<div class="known">${q.known.e} = ${"⭐".repeat(q.known.k)}</div>`:"")+
+      `<div class="msc"><div class="pole"></div><div class="base"></div><div class="beam" style="--a:${a}deg"><div class="pan l"><div class="its">${its(q.left)}</div><div class="dish"></div></div><div class="pan r"><div class="its">${its(right)}</div><div class="dish"></div></div></div><div class="boss">${Math.abs(a)<.01?"👽":"😵"}</div></div>`;
+  }
+  function duo(){
+    $("start").hidden=true;
+    Duo.start({key:"sky-balance",levels:{1:"⭐ 數星星",2:"⭐⭐ 3+4",3:"⭐⭐⭐ 🪐=⭐⭐"},revealMs:1300,
+      gen:lv=>{const o=S.lv;S.lv=lv;const q=newQ();S.lv=o;return q},
+      options:q=>{const o=new Set([q.ans]);[q.ans+1,q.ans-1,q.ans+2,q.ans-2,q.ans+3].forEach(v=>{if(o.size<q.opts&&v>=1)o.add(v)});while(o.size<q.opts)o.add(q.ans+o.size+1);return shuffle([...o]).map(v=>({v,label:v}))},
+      ask:q=>q.ask,
+      render:(q,el)=>mini(q,el,q.right),
+      reveal:(q,el,v)=>mini(q,el,rightWith(q,+v,false)),
+      unreveal:(q,el)=>mini(q,el,q.right),
+      wrongMsg:(q,v)=>weight(rightWith(q,+v,false))>weight(q.left)?"太多了，右邊比較重":"太少了，左邊比較重",
+      onExit:()=>{$("start").hidden=false}});
+  }
+  function start(){if(S.duo){unlock();duo();return}
+    unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.score=0;S.last="";upd();next();
     try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}}
   function finish(){
     S.phase="end";sfx.win();

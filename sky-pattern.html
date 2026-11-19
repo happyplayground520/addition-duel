@@ -128,10 +128,12 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
   #mkpal{gap:6px}#mkpal .ch{width:48px;font-size:26px;border-radius:14px}.mkrow{gap:8px}.mkb{font-size:15px;min-height:42px;padding:.25em .8em}}
 @media (prefers-reduced-motion:reduce){.train{transition:none}.car.blank{animation:none}}
 </style>
-<script src="zhuyin.js?v=20261119j"></script>
+<script src="zhuyin.js?v=20261119l"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261119j">
-<script src="park.js?v=20261119j"></script>
+<link rel="stylesheet" href="park.css?v=20261119l">
+<script src="park.js?v=20261119l"></script>
+<link rel="stylesheet" href="duo.css?v=20261119l">
+<script src="duo.js?v=20261119l"></script>
 </head>
 <body data-park>
 <header class="top">
@@ -161,6 +163,7 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
       <div class="row" id="modes">
         <button type="button" class="opt" data-m="1" aria-label="一個人"><span class="lvst">👤</span><small>一個人</small></button>
         <button type="button" class="opt" data-m="2" aria-label="出題給對方"><span class="lvst">👥</span><small>出題給對方</small></button>
+        <button type="button" class="opt" data-m="3" aria-label="兩人搶答"><span class="lvst">⚡</span><small>兩人搶答</small></button>
       </div>
       <span class="lbl" id="lvLbl">難度</span>
       <div class="row" id="levels">
@@ -168,7 +171,7 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
         <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small>🌙⭐🪐🌙</small></button>
         <button type="button" class="opt" data-lv="3" aria-label="高級"><span class="lvst">⭐⭐⭐</span><small>2 4 6 8</small></button>
       </div>
-      <span class="lbl">題數</span>
+      <span class="lbl" id="cntLbl">題數</span>
       <div class="row" id="counts"><button type="button" class="opt" data-n="5" aria-label="5 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button><button type="button" class="opt" data-n="10" aria-label="10 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>10</small></button><button type="button" class="opt" data-n="15" aria-label="15 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>15</small></button></div>
       <button type="button" class="big" id="go" aria-label="開始">READY</button>
     </div>
@@ -192,14 +195,16 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
   const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
   const pick=a=>a[rnd(0,a.length-1)];
   const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
-  const S={lv:[1,2,3].includes(+pref("sky-pattern-lv"))?+pref("sky-pattern-lv"):1,total:10,round:0,score:0,tries:0,phase:"start",q:null,two:pref("sky-pattern-mode")==="2",turn:0,pts:[0,0],build:[],blank:-1,last:""};
+  const S={lv:[1,2,3].includes(+pref("sky-pattern-lv"))?+pref("sky-pattern-lv"):1,total:10,round:0,score:0,tries:0,phase:"start",q:null,two:pref("sky-pattern-mode")==="2",duo:pref("sky-pattern-mode")==="3",turn:0,pts:[0,0],build:[],blank:-1,last:""};
   const syncLv=()=>document.querySelectorAll("#levels button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
   document.querySelectorAll("#levels button").forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("sky-pattern-lv",S.lv);syncLv()}));
   syncLv();
   // 玩法：一個人／出題給對方（出題時只用圖案，所以不用選難度）
   const PN=["藍色","橘色"];
-  const syncMode=()=>{document.querySelectorAll("#modes button").forEach(b=>b.setAttribute("aria-pressed",(b.dataset.m==="2")===S.two));$("levels").hidden=$("lvLbl").hidden=S.two};
-  document.querySelectorAll("#modes button").forEach(b=>b.addEventListener("click",()=>{S.two=b.dataset.m==="2";pref("sky-pattern-mode",S.two?"2":"1");syncMode()}));
+  const mode=()=>S.duo?"3":S.two?"2":"1";
+  const syncMode=()=>{document.querySelectorAll("#modes button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===mode()));
+    $("levels").hidden=$("lvLbl").hidden=mode()!=="1";$("counts").hidden=$("cntLbl").hidden=S.duo};
+  document.querySelectorAll("#modes button").forEach(b=>b.addEventListener("click",()=>{S.two=b.dataset.m==="2";S.duo=b.dataset.m==="3";pref("sky-pattern-mode",b.dataset.m);syncMode()}));
   syncMode();
   // on：分數條上亮起來的人（出題時是出題的人，猜的時候是猜的人）
   function updTurn(on){$("turnbar").hidden=!S.two;[0,1].forEach(k=>{$("pt"+k).textContent=S.pts[k];$("tb"+k).classList.toggle("on",S.two&&on===k)})}
@@ -390,7 +395,19 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
     }
   }
   const upd=()=>{$("score").textContent=S.two?`🧩 ${S.round} / ${S.total}`:`⭐ ${S.score} / ${S.total}`};
-  function start(){unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.score=0;S.last="";S.turn=0;S.pts=[0,0];
+  // ---- 兩人搶答：用共用的 Duo（每個人各答各的，可以各選難度、打開慢 3 秒） ----
+  function duo(){
+    $("start").hidden=true;
+    Duo.start({key:"sky-pattern",levels:{1:"⭐ 🌙⭐🌙⭐",2:"⭐⭐ 🌙⭐🪐",3:"⭐⭐⭐ 2 4 6"},
+      gen:lv=>{const o=S.lv;S.lv=lv;const q=newQ();S.lv=o;return q},
+      options:q=>q.opts.map(v=>({v,label:v})),
+      ask:q=>q.kind==="num"?"空的車廂是哪個數字？":"空的車廂要放什麼？",
+      render:(q,el)=>{el.innerHTML=`<div class="mtrain">${q.seq.map((v,i)=>i===q.blank?`<span class="mcar blank"></span>`:`<span class="mcar" style="--c:${CARC[i%CARC.length]}">${q.kind==="num"?`<b>${v}</b>`:v}</span>`).join("")}<span class="mloco">${LOCO}</span></div>`},
+      reveal:(q,el,v,ok)=>{if(!ok)return;const c=el.querySelector(".mcar.blank");c.classList.add("filled");c.innerHTML=q.kind==="num"?`<b>${q.ans}</b>`:q.ans},
+      onExit:()=>{$("start").hidden=false}});
+  }
+  function start(){if(S.duo){unlock();duo();return}
+    unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.score=0;S.last="";S.turn=0;S.pts=[0,0];
     $("maker").hidden=true;$("choices").hidden=false;updTurn(-1);upd();next();
     try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}}
   function finish(){

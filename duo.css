@@ -1,0 +1,73 @@
+/* 兩人搶答（共用）：上下兩半，上面轉 180 度。大小都用 cqw/cqh（跟著半邊畫面的大小縮放） */
+body.duo-on{overflow:hidden}
+.duo{position:fixed;inset:0;z-index:60;display:grid;grid-template-rows:1fr 1fr;
+  background:radial-gradient(circle,rgba(255,255,255,.75) 1px,transparent 1.6px) 0 0/57px 63px,linear-gradient(#26256a,#3b3290 55%,#5a4aa8)}
+.duo .half{position:relative;container-type:size;overflow:hidden}
+.duo .in{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;gap:1.5cqh;
+  padding:max(8px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) 8px max(12px,env(safe-area-inset-left,0px))}
+.duo .half.p1{transform:rotate(180deg);border-bottom:4px solid rgba(255,255,255,.5)}
+.duo .half.p0{--pc:#4d8dff}.duo .half.p1{--pc:#ff9a4d}
+.duo .hd{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%}
+.duo .nm{background:#fff;border-radius:999px;padding:2px 14px;font-weight:900;font-size:clamp(15px,4.4cqh,24px);box-shadow:0 0 0 4px var(--pc)}
+.duo .prog{font-size:clamp(14px,4.4cqh,24px);letter-spacing:.06em;white-space:nowrap}
+.duo .ask{background:#fff;border-radius:999px;padding:.2em 1em;font-weight:800;font-size:clamp(14px,min(4.6cqw,6cqh),26px);text-align:center;max-width:100%}
+.duo .vis{flex:1;min-height:0;width:100%;display:grid;place-items:center}
+.duo .opts{display:flex;gap:min(3cqw,16px);justify-content:center;flex-wrap:wrap;transition:opacity .3s}
+.duo .opts.wait{opacity:.25;pointer-events:none}
+.duo .dch{width:min(19cqw,19cqh,96px);aspect-ratio:1;border-radius:18px;border:4px solid #fff;background:#fff;cursor:pointer;line-height:1;display:grid;place-items:center;
+  font-family:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;font-weight:800;font-size:min(9cqw,10cqh,46px);color:#1f2b33;box-shadow:0 5px 0 var(--pc);touch-action:manipulation}
+.duo .dch:active{transform:translateY(3px)}
+.duo .dch.right{background:#eafff2;border-color:#1f9d61;box-shadow:0 5px 0 #1f9d61}
+.duo .dch.wrong{animation:dshake .4s}
+@keyframes dshake{25%{translate:-7px 0}75%{translate:7px 0}}
+.duo .dmsg{min-height:1.3em;font-weight:800;font-size:clamp(14px,4cqh,22px);color:#fff}
+.duo .dmsg.good{color:#8ff0b5}.duo .dmsg.bad{color:#ffd0d0}
+.duo .dmsg .zy .b,.duo .dmsg .tz-b{color:#e6e0ff}
+/* 準備畫面（蓋在每一半上面） */
+.duo .ready{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.4cqh;background:rgba(38,37,106,.94);padding:10px;overflow-y:auto}
+.duo .ready h2{margin:0;color:#fff;font-size:clamp(20px,8cqh,40px)}
+.duo .ready h2 .zy .b{color:#e6e0ff}
+.duo .lvs,.duo .ready .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.duo .dopt{font:inherit;font-weight:800;font-size:clamp(14px,4.6cqh,20px);border:3px solid #fff;background:rgba(255,255,255,.15);color:#fff;border-radius:14px;padding:6px 14px;cursor:pointer}
+.duo .dopt[aria-pressed="true"]{background:#fff;color:#1f2b33}
+.duo .dopt[aria-pressed="true"] .zy .b{color:#3d5a8a}
+.duo .dopt .zy .b{color:#e6e0ff}
+.duo .dgo{font:inherit;font-weight:900;font-size:clamp(18px,7cqh,32px);border:0;border-radius:999px;padding:.35em 1.4em;background:var(--pc);color:#fff;cursor:pointer;box-shadow:0 5px 0 rgba(0,0,0,.3)}
+.duo .dgo.on{background:#1f9d61}
+.duo .dhome{font-size:22px;width:48px;height:48px;border-radius:14px;border:0;background:#fff;cursor:pointer}
+.duo .note{margin:0;color:#e6e0ff;font-weight:700;font-size:clamp(13px,4cqh,18px)}
+.duo .note .zy .b{color:#cfc8ff}
+.duo .ready.over{background:rgba(38,37,106,.86)}
+.duo .count{position:fixed;inset:0;z-index:70;display:grid;place-items:center;pointer-events:none;font-family:"Baloo 2",system-ui,sans-serif;font-weight:800;font-size:min(30vw,30vh);color:#fff;text-shadow:0 6px 0 rgba(0,0,0,.3)}
+/* 半邊很扁（手機橫放、平板橫放）：圖在左邊，題目和選項在右邊 */
+@container (min-aspect-ratio:2/1){
+  .duo .dch{width:min(14cqw,30cqh,96px);font-size:min(7cqw,15cqh,46px)}
+  .duo .in{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);grid-template-rows:auto auto 1fr auto;grid-template-areas:"hd hd" "vis ask" "vis opts" "vis msg";align-items:center;justify-items:center;column-gap:12px}
+}
+.duo .hd{grid-area:hd}.duo .ask{grid-area:ask}.duo .vis{grid-area:vis}.duo .opts{grid-area:opts}.duo .dmsg{grid-area:msg}
+/* 太空列車（小）：一排車廂 */
+.duo .mtrain{display:flex;gap:min(1.2cqw,6px);align-items:flex-end;flex-wrap:nowrap}
+.duo .mcar{width:min(10.5cqw,15cqh,70px);aspect-ratio:1;border-radius:10px 10px 6px 6px;background:var(--c);border:3px solid #2b2240;display:grid;place-items:center;
+  font-size:min(6cqw,9cqh,40px);line-height:1;position:relative}
+.duo .mcar b{font-family:"Baloo 2",system-ui,sans-serif;font-weight:800;font-size:min(4.8cqw,7cqh,30px);color:#2b2240;background:#fff;border-radius:8px;padding:0 .2em}
+.duo .mcar.blank{background:#fff7e0;border:3px dashed #ff8a3d}
+.duo .mcar.blank::after{content:"?";font-family:"Baloo 2",system-ui,sans-serif;font-weight:800;font-size:min(6cqw,9cqh,40px);color:#ff8a3d}
+.duo .mcar.blank.filled{background:#eafff2;border-color:#1f9d61}.duo .mcar.blank.filled::after{content:none}
+.duo .mloco{font-size:min(9cqw,13cqh,60px);line-height:1}
+/* 宇宙天秤（小）：橫桿會傾斜，兩個盤子一直保持水平 */
+.duo .msc{position:relative;width:min(92cqw,170cqh,520px);aspect-ratio:2.4/1}
+.duo .msc .pole{position:absolute;left:50%;top:22%;bottom:4%;width:3.2%;transform:translateX(-50%);background:#c9a2ff;border:3px solid #2b2240;border-radius:6px}
+.duo .msc .base{position:absolute;left:38%;right:38%;bottom:0;height:8%;background:#9c8cff;border:3px solid #2b2240;border-radius:6px}
+.duo .msc .beam{position:absolute;left:8%;right:8%;top:20%;height:5%;background:#ffd23f;border:3px solid #2b2240;border-radius:6px;transform:rotate(var(--a,0deg));transition:transform .7s cubic-bezier(.3,1.4,.5,1)}
+.duo .msc .pan{position:absolute;top:50%;width:34%;transform-origin:50% 0;transform:rotate(calc(var(--a,0deg) * -1));transition:transform .7s cubic-bezier(.3,1.4,.5,1)}
+.duo .msc .pan.l{left:-12%}.duo .msc .pan.r{right:-12%}
+.duo .msc .pan .its{display:flex;flex-wrap:wrap-reverse;justify-content:center;align-items:flex-end;gap:1px;min-height:1em;font-size:min(4.6cqw,8cqh,28px);line-height:1;padding:0 4%}
+.duo .msc .pan .its i{font-style:normal}
+.duo .msc .pan .its .bx{font-family:"Baloo 2",system-ui,sans-serif;font-weight:800;font-size:.9em;background:#ffb36b;border:2px solid #2b2240;border-radius:6px;padding:0 .25em;margin:0 1px}
+.duo .msc .pan .its .bx.q{background:#fff7e0;border:2px dashed #ff8a3d;color:#ff8a3d}
+.duo .msc .pan .dish{height:.5em;border-radius:0 0 50% 50%/0 0 100% 100%;background:#7cc7ff;border:3px solid #2b2240;font-size:min(4.6cqw,8cqh,28px)}
+.duo .msc .boss{position:absolute;left:50%;top:-6%;transform:translateX(-50%);font-size:min(7cqw,12cqh,44px);line-height:1}
+.duo .known{background:#fff8d6;border-radius:12px;padding:1px 10px;font-size:min(4.4cqw,6cqh,24px);margin-bottom:2px;white-space:nowrap}
+.duo .vis.col{display:flex;flex-direction:column;align-items:center;justify-content:center}
+@media (prefers-reduced-motion:reduce){.duo .msc .beam,.duo .msc .pan{transition:none}}
+.duo .mloco svg{width:min(12cqw,17cqh,84px);height:auto;display:block}
