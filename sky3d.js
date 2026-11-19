@@ -7,7 +7,7 @@ import * as THREE from "three";
 const SPOTS=window.SKY_SPOTS||[];
 const wrap=document.getElementById("w3d"),labs=document.getElementById("labs");
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:"low-power"});
-renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 wrap.appendChild(renderer.domElement);
 const scene=new THREE.Scene();
@@ -179,7 +179,7 @@ function enter(it){
   if(!it.open){it.shake=1;window.skyToast&&skyToast("這顆星球快要開放囉！");return}
   flying={it,t0:performance.now(),from:camera.position.clone()};
   try{window.parkBurst&&parkBurst()}catch(e){}
-  setTimeout(()=>{location.href=it.s.href},reduce?50:850);
+  setTimeout(()=>{location.href=it.s.href},reduce?50:520);
 }
 addEventListener("pageshow",()=>{flying=null;resize()});
 
@@ -202,7 +202,7 @@ function frame(now){
   // 小火箭沿著航道來回飛
   if(curve){u=(u+dt*.045)%2;const k=u<1?u:2-u,p=curve.getPointAt(k),q=curve.getPointAt(Math.min(1,Math.max(0,k+(u<1?.01:-.01))));
     ship.position.copy(p).add(v.set(0,.38+Math.sin(t*3)*.04,.25));const dir=q.sub(p).normalize();if(dir.lengthSq()>0)shipRk.quaternion.setFromUnitVectors(up,dir)}
-  if(flying){const k=Math.min(1,(now-flying.t0)/800),e=k*k*(3-2*k),p=flying.it.g.getWorldPosition(v.set(0,0,0));
+  if(flying){const k=Math.min(1,(now-flying.t0)/500),e=k*k*(3-2*k),p=flying.it.g.getWorldPosition(v.set(0,0,0));
     camera.position.lerpVectors(flying.from,p.clone().add(new THREE.Vector3(0,.3,2.2)),e);camera.lookAt(p)}
   renderer.render(scene,camera);placeLabels();
   requestAnimationFrame(frame);

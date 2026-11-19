@@ -5,7 +5,7 @@ import * as THREE from "three";
 
 const wrap=document.getElementById("w3d"),labs=document.getElementById("labs");
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:"low-power"});
-renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 wrap.appendChild(renderer.domElement);
 const scene=new THREE.Scene();
@@ -137,7 +137,7 @@ cv.addEventListener("pointerleave",()=>{hover=null});
 function enter(it){
   if(flying)return;flying={it,t0:performance.now(),from:camera.position.clone()};
   try{window.parkBurst&&parkBurst()}catch(e){}
-  setTimeout(()=>{location.href=it.href},reduce?50:850);
+  setTimeout(()=>{location.href=it.href},reduce?50:520);
 }
 // 從地圖按「回選地圖」回來時（瀏覽器快取的頁面），鏡頭要回原位
 addEventListener("pageshow",()=>{flying=null;resize()});
@@ -156,7 +156,7 @@ function frame(now){
     it.tick(t);
   });
   clouds.forEach((c,i)=>{c.position.x+=dt*(.18+i*.03);if(c.position.x>14)c.position.x=-14});
-  if(flying){const k=Math.min(1,(now-flying.t0)/800),e=k*k*(3-2*k),p=flying.it.g.getWorldPosition(v.set(0,0,0));
+  if(flying){const k=Math.min(1,(now-flying.t0)/500),e=k*k*(3-2*k),p=flying.it.g.getWorldPosition(v.set(0,0,0));
     camera.position.lerpVectors(flying.from,p.clone().add(new THREE.Vector3(0,.6,3.2)),e);camera.lookAt(p)}
   renderer.render(scene,camera);
   // 名稱標籤跟著小島（放在小島下面）
