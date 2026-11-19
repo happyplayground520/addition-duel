@@ -1,7 +1,7 @@
 # 產生甜點小鎮的四關頁面：python pages.py（每一關共用標題列、開始畫面、結束畫面，只有題目區和玩法不同）
 import os
 HERE=os.path.dirname(os.path.abspath(__file__));ROOT=os.path.dirname(HERE)
-V="20261119n"
+V="20261119o"
 HEAD='''<!doctype html>
 <html lang="zh-Hant">
 <head>
@@ -17,6 +17,7 @@ HEAD='''<!doctype html>
 {style}
 </style>
 <script src="zhuyin.js?v={V}"></script>
+<script src="rest.js?v={V}"></script>
 <link rel="stylesheet" href="park.css?v={V}">
 <script src="park.js?v={V}"></script>
 <script src="en.js?v={V}"></script>
