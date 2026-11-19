@@ -20,10 +20,13 @@ header .home{position:absolute;left:0;top:50%;transform:translateY(-50%)}
 header .home:active{transform:translateY(calc(-50% + 3px))}
 header .home2{position:absolute;left:62px;top:50%;transform:translateY(-50%)}
 header .home2:active{transform:translateY(calc(-50% + 3px))}
-@media (max-width:600px){header{display:grid!important;grid-template-columns:auto auto 1fr auto;gap:8px;align-items:center}
-  header .home,header .home2,header .right{position:static!important;transform:none!important;grid-row:1}
-  header .home{grid-column:1}header .home2{grid-column:2}header .right{grid-column:4}
-  header .ttl{grid-column:1/-1;grid-row:2;padding:0!important}}
+/* 手機直放：跟數學遊樂園一樣，左右兩邊是捷徑按鈕，標題在中間同一排 */
+@media (max-width:600px){header{display:grid!important;grid-template-columns:46px minmax(0,1fr) 46px;column-gap:8px;row-gap:6px;align-items:center}
+  header .home,header .home2,header .right{position:static!important;transform:none!important;grid-row:1;width:46px;height:46px;font-size:24px}
+  header .home{grid-column:1}header .home2{grid-column:3}header .home2 svg{width:36px;height:36px}header .right{display:none}
+  header .ttl{display:contents}header .ttl h1{grid-column:2;grid-row:1;justify-self:center;font-size:21px!important;padding:.16em .6em .2em!important;border-width:3px;letter-spacing:.04em}
+  header .ttl h1 .star,header .ttl h1 .flag{display:none}
+  header .ttl>:not(h1){grid-column:1/-1;grid-row:2;justify-self:center}}
 header .right{position:absolute;right:0;top:50%;transform:translateY(-50%);display:flex;gap:8px;align-items:center}
 .ttl{display:flex;flex-direction:column;align-items:center;gap:2px}
 h1{margin:0;font-size:clamp(26px,5vmin,52px);line-height:1.15;font-weight:800;letter-spacing:.08em;color:#fff;
