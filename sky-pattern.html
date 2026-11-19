@@ -366,7 +366,7 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
       // 兩人：猜的人第一次就猜對得 1 分，然後換人出題
       const g=1-S.turn;S.phase="reveal";if(S.tries===0)S.pts[g]++;updTurn(g);b.classList.add("right");sfx.good();
       const car=t.querySelector(".car.blank");car.classList.add("filled");car.querySelector(".win").innerHTML=`<span>${q.ans}</span>`;
-      const tx=S.tries===0?`${PN[g]}猜對了！得 1 分`:`${PN[g]}猜對了！`;$("msg").textContent=tx;$("msg").className="msg good";say(tx);
+      const tx=S.tries===0?`${PN[g]}猜對了！得 1 分`:`${PN[g]}猜對了！`;$("msg").textContent=tx;$("msg").className="msg good";
       setTimeout(()=>{if(S.q!==q)return;sfx.toot();t.classList.add("leave")},2200);
       setTimeout(()=>{if(S.q===q){S.turn=1-S.turn;next()}},3300);
       return;
@@ -377,8 +377,8 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
       S.phase="reveal";if(S.tries===0)S.score++;upd();b.classList.add("right");sfx.good();
       const car=t.querySelector(".car.blank");car.classList.add("filled");car.querySelector(".win").innerHTML=q.kind==="num"?`<b>${q.ans}</b>`:`<span>${q.ans}</span>`;
       t.classList.add("hint");
-      $("rule").innerHTML=q.kind==="num"?q.ruleTx:`${q.ruleShow}　${q.ruleTx}`;$("msg").textContent="答對了！";$("msg").className="msg good";
-      say(`答對了！${q.kind==="num"?q.say:q.ruleTx}`);
+      // 答對了：只有音效，不念說明
+      $("msg").textContent="答對了！";$("msg").className="msg good";
       // 車廂一節一節跳一下，再嘟嘟開走
       const cars=[...t.querySelectorAll(".car")].sort((a,b2)=>a.dataset.i-b2.dataset.i);
       cars.forEach((c,i)=>setTimeout(()=>{c.classList.remove("hop");void c.offsetWidth;c.classList.add("hop");sfx.pip(i)},700+i*230));
