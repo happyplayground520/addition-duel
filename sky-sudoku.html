@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>星際數獨</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
+<style>
+/* 謎題星空第 3 關：星際數獨。4×4 的格子，每一橫排、每一直排、每一個 2×2 小方塊裡，四種外星人和星球都只能出現一次 */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --ink:#1f2b33; --muted:#5d6b72; --good:#1f9d61; --bad:#d23c3c;
+  --accent:#ff8a3d; --accent-dark:#c95f16; --track:#9c8cff;
+  --num:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
+  --text:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{margin:0;height:100%}
+body{color:var(--ink);font-family:var(--text);overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  background:radial-gradient(circle,rgba(255,255,255,.8) 1px,transparent 1.6px) 0 0/57px 63px,radial-gradient(circle,rgba(255,240,190,.7) 1.3px,transparent 2px) 23px 31px/97px 83px,
+    radial-gradient(ellipse at 80% 0%,#5a49b8 0,transparent 55%),linear-gradient(#26256a,#3b3290 55%,#5a4aa8);
+  display:flex;flex-direction:column}
+[hidden]{display:none!important}
+.top{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;
+  padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 6px max(16px,env(safe-area-inset-left,0px))}
+.ibtn{width:48px;height:48px;border-radius:14px;border:0;background:rgba(255,255,255,.92);font-size:24px;cursor:pointer;
+  display:grid;place-items:center;text-decoration:none;color:inherit;box-shadow:0 3px 0 rgba(0,0,0,.25)}
+.ibtn:active{transform:translateY(2px)}
+.title{justify-self:center;font-weight:800;font-size:clamp(18px,3.2vmin,28px);color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+.title .tz-b,.title .zy .b{color:#e6e0ff}
+.right{display:flex;gap:10px;align-items:center}
+.score{font-family:var(--num);font-weight:800;font-size:clamp(18px,3.2vmin,28px);background:rgba(255,255,255,.92);border-radius:999px;padding:4px 14px;white-space:nowrap}
+main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(10px,2.4vh,26px);
+  padding:0 max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
+.ask{background:#fff;border-radius:999px;padding:.3em 1.1em;font-weight:800;font-size:clamp(19px,3.4vmin,30px);box-shadow:0 5px 0 rgba(0,0,0,.2)}
+
+:root{--accent:#3cb371;--accent-dark:#23804c}
+main{justify-content:center}
+.ask{font-size:clamp(16px,2.8vmin,24px);text-align:center;border-radius:20px}
+/* 數獨格子 */
+.board{--g:min(86vw,calc(100dvh - 330px),560px);width:var(--g);aspect-ratio:1;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:10px;border-radius:24px;
+  background:rgba(255,255,255,.12);border:4px solid rgba(255,255,255,.6);box-shadow:0 0 30px rgba(140,255,200,.25);position:relative}
+.board::before,.board::after{content:"";position:absolute;background:rgba(255,255,255,.75);border-radius:3px;pointer-events:none}
+.board::before{left:50%;top:8px;bottom:8px;width:4px;transform:translateX(-50%)}
+.board::after{top:50%;left:8px;right:8px;height:4px;transform:translateY(-50%)}
+.cell{position:relative;border:0;border-radius:16px;background:#fff;display:grid;place-items:center;font-size:calc(var(--g)*.13);line-height:1;cursor:pointer;padding:0;
+  box-shadow:inset 0 -5px 0 rgba(0,0,0,.08);transition:background .2s,transform .12s}
+.cell.c1{margin-right:4px}.cell.c2{margin-left:4px}.cell.r1{margin-bottom:4px}.cell.r2{margin-top:4px}
+.cell.given{background:#e7e2ff;cursor:default}
+.cell.empty::after{content:"";width:26%;aspect-ratio:1;border-radius:50%;border:3px dashed #b9b2e0}
+.cell.zone{background:#fff7d0}
+.cell.given.zone{background:#ece3b8}
+.cell.sel{background:#ffe27a;box-shadow:0 0 0 4px #fff,0 0 0 8px #ffb347}
+.cell.kid{animation:pop .4s cubic-bezier(.3,1.6,.5,1)}
+.cell.bad{background:#ffd0d0;animation:shake .4s}
+.cell.clash{background:#ff9b9b;animation:flash .5s 2}
+.cell.done{animation:wave .6s ease both}
+@keyframes pop{40%{transform:scale(1.18)}}
+@keyframes flash{50%{background:#fff}}
+@keyframes wave{40%{transform:translateY(-10px) rotate(-6deg)}}
+/* 下面的圖案按鈕 */
+.pal{display:flex;gap:clamp(10px,2.4vmin,20px);justify-content:center}
+.pb{width:clamp(70px,12vmin,100px);aspect-ratio:1;border-radius:22px;border:4px solid #fff;background:#fff;cursor:pointer;font-size:clamp(38px,6.6vmin,56px);line-height:1;
+  display:grid;place-items:center;box-shadow:0 6px 0 #8ee08a,0 10px 18px rgba(0,0,0,.25);transition:transform .12s}
+.pb:active{transform:translateY(4px)}
+.pb[aria-pressed="true"]{background:#ffe27a;box-shadow:0 0 0 4px #ffb347,0 6px 0 #8ee08a}
+.pb.glow{animation:glow 1s infinite}
+@keyframes glow{50%{box-shadow:0 0 0 7px #ffe27a,0 6px 0 #8ee08a}}
+@keyframes shake{25%{translate:-6px 0}75%{translate:6px 0}}
+.msg{min-height:1.4em;font-weight:800;font-size:clamp(17px,2.8vmin,24px);color:#fff;text-align:center}
+.msg.good{color:#8ff0b5}.msg.bad{color:#ffd0d0}
+.msg .tz-b,.msg .zy .b{color:#e6e0ff}
+.legend{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;font-size:14px;color:#e6e0ff;font-weight:700}
+/* 開始／結束畫面 */
+.cover{position:fixed;inset:0;z-index:20;display:grid;place-items:start center;overflow-y:auto;-webkit-overflow-scrolling:touch;background:rgba(38,37,106,.6);
+  padding:max(12px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.cover>.box{margin:auto 0}
+.box{background:#fff;border-radius:24px;padding:clamp(18px,4vmin,32px);width:min(500px,100%);box-shadow:0 12px 40px rgba(0,0,0,.3);
+  display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center}
+.box h2{margin:0;font-size:clamp(26px,5.5vmin,42px)}
+.box p{margin:0;color:var(--muted);font-size:clamp(15px,2.5vmin,19px);line-height:1.5}
+.row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.lbl{font-size:14px;font-weight:700;color:var(--muted);margin-top:4px}
+.opt{font:inherit;font-size:17px;font-weight:700;border:2px solid #cfd8dc;background:#fff;border-radius:14px;padding:9px 14px;cursor:pointer;color:inherit}
+.opt small{display:block;font-size:13px;font-weight:600;opacity:.8;margin-top:2px}
+.opt[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:#fff}
+.big{font-family:var(--text);font-weight:800;font-size:clamp(20px,4vmin,30px);border:0;border-radius:999px;padding:.45em 1.6em;
+  background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 5px 0 var(--accent-dark);text-decoration:none;display:inline-block}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 var(--accent-dark)}
+.big.alt{background:#fff;color:var(--ink);box-shadow:0 5px 0 #cfd8dc;border:2px solid #cfd8dc}
+.stars{font-size:clamp(40px,9vmin,72px);letter-spacing:.1em;line-height:1}
+#start .box>.big{position:sticky;bottom:0;z-index:1}
+@media (max-height:560px){.cover>.box{gap:8px;padding:14px 18px}.cover>.box h2{font-size:24px}#start .box>p{display:none}.cover .stars{font-size:36px}}
+
+/* 手機橫放：格子在左邊，說明和按鈕在右邊 */
+@media (max-height:500px) and (orientation:landscape){
+  main{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto 1fr auto;grid-template-areas:"board ask" "board pal" "board msg";column-gap:20px;align-items:center;justify-items:center}
+  .board{grid-area:board;--g:min(calc(100dvh - 90px),48vw)}.ask{grid-area:ask;font-size:15px}.pal{grid-area:pal;display:grid;grid-template-columns:repeat(2,auto);gap:12px}.msg{grid-area:msg;font-size:15px}
+  .pb{width:62px;font-size:34px;border-radius:16px}}
+@media (max-width:400px) and (orientation:portrait){.pal{gap:10px}.pb{width:66px;font-size:36px}.board{gap:5px;padding:8px}}
+@media (prefers-reduced-motion:reduce){.cell,.pb{animation:none!important}}
+</style>
+<script src="zhuyin.js?v=20261119h"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="park.css?v=20261119h">
+<script src="park.js?v=20261119h"></script>
+</head>
+<body data-park>
+<header class="top">
+  <a class="ibtn" href="sky.html" aria-label="回謎題星空">🏠</a>
+  <div class="title">👽<span class="tx"> 星際數獨</span></div>
+  <div class="right"><span class="score" id="score">🧩 0</span><button type="button" class="ibtn" id="again" aria-label="再聽一次說明">🔊</button></div>
+</header>
+<main>
+  <div class="ask" id="ask" data-zy>每一排、每一直排、每一個小方塊，<br>四種圖案都只能出現一次！</div>
+  <div class="board" id="board" role="grid" aria-label="數獨"></div>
+  <div class="pal" id="pal"></div>
+  <div class="msg" id="msg" data-zy aria-live="polite"></div>
+
+  <section class="cover" id="start">
+    <div class="box">
+      <h2>👽 星際數獨</h2>
+      <p data-zy>每一橫排、每一直排、每一個小方塊裡，<br>四種外星人和星球都只能出現一次。<br>點空格，再點下面的圖案！</p>
+      <span class="lbl">難度</span>
+      <div class="row" id="levels">
+        <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small>空 4 格</small></button>
+        <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small>空 7 格</small></button>
+        <button type="button" class="opt" data-lv="3" aria-label="高級"><span class="lvst">⭐⭐⭐</span><small>空 10 格</small></button>
+      </div>
+      <span class="lbl">幾題</span>
+      <div class="row" id="counts">
+        <button type="button" class="opt" data-n="3" aria-label="3 題"><span class="dots"><i></i><i></i><i></i></span><small>3</small></button>
+        <button type="button" class="opt" data-n="5" aria-label="5 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button>
+        <button type="button" class="opt" data-n="8" aria-label="8 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>8</small></button>
+      </div>
+      <button type="button" class="big" id="go" aria-label="開始">READY</button>
+    </div>
+  </section>
+  <section class="cover" id="end" hidden>
+    <div class="box">
+      <div class="stars" id="stars"></div>
+      <h2 id="endTitle"></h2>
+      <p id="endText" data-zy></p>
+      <div class="row">
+        <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+        <a class="big alt ico-btn" href="sky.html" aria-label="回謎題星空">🏠</a>
+      </div>
+    </div>
+  </section>
+</main>
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
+  const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+  const BLANKS={1:4,2:7,3:10};
+  const S={lv:[1,2,3].includes(+pref("sky-sudoku-lv"))?+pref("sky-sudoku-lv"):1,total:3,round:0,first:0,cells:0,phase:"start",sel:-1,sym:-1,miss:{}};
+  const syncLv=()=>document.querySelectorAll("#levels button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
+  document.querySelectorAll("#levels button").forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("sky-sudoku-lv",S.lv);syncLv()}));
+  syncLv();
+  {const n0=+pref("sky-sudoku-total");if([3,5,8].includes(n0))S.total=n0;
+   const cs=[...document.querySelectorAll("#counts button")],sync=()=>cs.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===S.total));
+   sync();cs.forEach(b=>b.addEventListener("click",()=>{S.total=+b.dataset.n;pref("sky-sudoku-total",S.total);sync()}))}
+
+  // ---- 語音與音效（和遊樂園一樣） ----
+  const synth=window.speechSynthesis;let voice=null;const rate=+(pref("duel-rate")||.9)||.9;
+  const quality=v=>{const u=v.voiceURI||"";return /eloquence|speech\.synthesis\.voice/i.test(u)?0:/\.premium\./i.test(u)?3:/enhanced|-premium/i.test(u)?2:1};
+  function pickVoice(){if(!synth)return;const vs=synth.getVoices().filter(v=>/^(zh|cmn)/i.test(v.lang));const want=pref("duel-voice");
+    const tw=vs.filter(v=>/TW|Hant/i.test(v.lang)&&quality(v)>0).sort((a,b)=>quality(b)-quality(a));
+    voice=(want&&vs.find(v=>(v.voiceURI||v.name)===want))||tw[0]||vs.find(v=>quality(v)>0)||vs[0]||null}
+  if(synth){pickVoice();try{synth.addEventListener("voiceschanged",pickVoice)}catch(e){}}
+  function say(t){if(!synth)return;try{const u=new SpeechSynthesisUtterance(t);u.lang=voice?voice.lang.replace("_","-"):"zh-TW";if(voice)u.voice=voice;u.rate=rate;u.pitch=1.1;
+    if(synth.speaking||synth.pending){synth.cancel();setTimeout(()=>{try{synth.speak(u)}catch(e){}},90)}else synth.speak(u)}catch(e){}}
+  let ac=null;
+  function tone(fs,dur=.12,type="triangle",vol=.15){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume();
+    fs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*dur;o.type=type;o.frequency.value=f;
+      g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)})}catch(e){}}
+  const sfx={good:()=>tone([784,1175],.14,"sine",.3),bad:()=>tone([150],.3,"square",.16),pip:i=>tone([520+i*70],.07,"sine",.12),
+    toot:()=>tone([392,523],.18,"square",.07),win:()=>tone([523,659,784,1047],.16)};
+  {const _g=sfx.good;sfx.good=(...a)=>{try{window.parkBurst&&parkBurst()}catch(err){}return _g(...a)}}
+  function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
+    try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}}
+
+
+  // ---- 四種圖案：外星人和星球 ----
+  const SYM=[["👽","外星人"],["👾","小怪獸"],["🪐","土星"],["🌍","地球"]];
+  // ---- 出題：先做一個完整的答案，再挖空格（挖完一定只有一種填法） ----
+  const row=i=>Math.floor(i/4),col=i=>i%4,box=i=>Math.floor(row(i)/2)*2+Math.floor(col(i)/2);
+  const peers=i=>[...Array(16).keys()].filter(j=>j!==i&&(row(j)===row(i)||col(j)===col(i)||box(j)===box(i)));
+  function solved(){
+    let g=[[0,1,2,3],[2,3,0,1],[1,0,3,2],[3,2,1,0]];
+    const sw=(a,b,c)=>{if(c){[g[a],g[b]]=[g[b],g[a]]}};
+    sw(0,1,Math.random()<.5);sw(2,3,Math.random()<.5);if(Math.random()<.5)g=[g[2],g[3],g[0],g[1]];
+    const T=()=>{g=g[0].map((_,c)=>g.map(r=>r[c]))};
+    if(Math.random()<.5)T();sw(0,1,Math.random()<.5);sw(2,3,Math.random()<.5);if(Math.random()<.5)g=[g[2],g[3],g[0],g[1]];if(Math.random()<.5)T();
+    const perm=shuffle([0,1,2,3]);return g.flat().map(v=>perm[v]);
+  }
+  function countSol(a,limit=2){
+    const i=a.indexOf(-1);if(i<0)return 1;let n=0;
+    for(let v=0;v<4&&n<limit;v++){if(peers(i).some(j=>a[j]===v))continue;a[i]=v;n+=countSol(a,limit-n);a[i]=-1}
+    return n;
+  }
+  function makePuzzle(){
+    for(let t=0;t<50;t++){
+      const sol=solved(),puz=sol.slice();let removed=0;
+      for(const i of shuffle([...Array(16).keys()])){if(removed>=BLANKS[S.lv])break;const k=puz[i];puz[i]=-1;if(countSol(puz.slice())===1)removed++;else puz[i]=k}
+      if(removed===BLANKS[S.lv])return{sol,puz};
+    }
+    return makePuzzle();
+  }
+
+  // ---- 畫面 ----
+  const board=$("board"),pal=$("pal");
+  pal.innerHTML=SYM.map(([e,n],k)=>`<button type="button" class="pb" data-v="${k}" aria-label="${n}" aria-pressed="false">${e}</button>`).join("");
+  const pbs=[...pal.querySelectorAll(".pb")];
+  let G=null;
+  function drawBoard(){
+    board.innerHTML=G.cur.map((v,i)=>{const r=row(i),c=col(i);
+      const cls=["cell",G.puz[i]>=0?"given":v<0?"empty":"kid","c"+c,"r"+r].join(" ");
+      return `<button type="button" class="${cls}" data-i="${i}" aria-label="第${r+1}排第${c+1}格${v>=0?"："+SYM[v][1]:"，空格"}">${v>=0?SYM[v][0]:""}</button>`}).join("");
+    board.querySelectorAll(".cell").forEach(b=>b.addEventListener("click",()=>tapCell(+b.dataset.i)));
+  }
+  const cellEl=i=>board.querySelector(`.cell[data-i="${i}"]`);
+  function markZone(i){board.querySelectorAll(".cell").forEach(b=>{const j=+b.dataset.i;b.classList.toggle("zone",i>=0&&j!==i&&(row(j)===row(i)||col(j)===col(i)||box(j)===box(i)));b.classList.toggle("sel",j===i)})}
+  function setSym(k){S.sym=k;pbs.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.v===k))}
+  function tapCell(i){
+    if(S.phase!=="play"||G.puz[i]>=0||G.cur[i]>=0)return;
+    S.sel=i;markZone(i);sfx.pip(1);
+    if(S.sym>=0)place(i,S.sym);
+    else{$("msg").textContent="這一格要放哪一個？";$("msg").className="msg"}
+  }
+  pbs.forEach(b=>b.addEventListener("click",()=>{
+    if(S.phase!=="play")return;const k=+b.dataset.v;
+    if(S.sel>=0&&G.cur[S.sel]<0)place(S.sel,k);
+    else{setSym(k);$("msg").textContent=`點一個空格，放${SYM[k][1]}`;$("msg").className="msg";say(SYM[k][1])}
+  }));
+  function place(i,k){
+    const c=cellEl(i);
+    if(G.sol[i]===k){
+      G.cur[i]=k;S.cells++;if(!S.miss[i])S.first++;upd();
+      c.className=c.className.replace("empty","kid");c.textContent=SYM[k][0];c.classList.remove("kid");void c.offsetWidth;c.classList.add("kid");
+      tone([660,880],.08,"sine",.15);S.sel=-1;markZone(-1);setSym(-1);pbs.forEach(b=>b.classList.remove("glow"));
+      $("msg").textContent="";$("msg").className="msg";
+      if(G.cur.every((v,j)=>v===G.sol[j]))win();
+      return;
+    }
+    // 放錯：找出是哪裡已經有這個圖案（同一橫排、直排或小方塊）
+    S.miss[i]=(S.miss[i]||0)+1;sfx.bad();
+    const cl=peers(i).find(j=>G.cur[j]===k);let tip;
+    if(cl!=null){const where=row(cl)===row(i)?"這一橫排":col(cl)===col(i)?"這一直排":"這個小方塊";tip=`${where}已經有${SYM[k][1]}了`;
+      const e=cellEl(cl);e.classList.remove("clash");void e.offsetWidth;e.classList.add("clash");setTimeout(()=>e.classList.remove("clash"),1100)}
+    else tip=`這裡不是${SYM[k][1]}，看看別的格子再想想`;
+    c.classList.remove("bad");void c.offsetWidth;c.classList.add("bad");setTimeout(()=>c.classList.remove("bad"),500);
+    $("msg").textContent=tip;$("msg").className="msg bad";say(tip);setSym(-1);
+    if(S.miss[i]>=2)pal.querySelector(`.pb[data-v="${G.sol[i]}"]`).classList.add("glow");
+  }
+  function win(){
+    S.phase="win";sfx.good();
+    board.querySelectorAll(".cell").forEach((b,j)=>{b.style.animationDelay=(row(b.dataset.i)+col(b.dataset.i))*.08+"s";b.classList.add("done")});
+    $("msg").textContent="完成了！每一排都不一樣！";$("msg").className="msg good";say("完成了！好棒！");
+    setTimeout(next,2600);
+  }
+  function next(){
+    if(S.round>=S.total)return finish();
+    S.round++;S.phase="play";S.sel=-1;S.miss={};setSym(-1);
+    const p=makePuzzle();G={sol:p.sol,puz:p.puz,cur:p.puz.slice()};drawBoard();upd();
+    $("msg").textContent="點一個空格，再點下面的圖案";$("msg").className="msg";pbs.forEach(b=>b.classList.remove("glow"));
+    if(S.round===1)say("每一橫排、每一直排、每一個小方塊裡，四種圖案都只能出現一次。點空格，再點下面的圖案。");
+  }
+  const upd=()=>{$("score").textContent=`🧩 ${S.round} / ${S.total}`};
+  function start(){unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.first=0;S.cells=0;next();
+    try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}}
+  function finish(){
+    S.phase="end";sfx.win();
+    const r=S.cells?S.first/S.cells:0,st=r>=.9?3:r>=.6?2:1;
+    $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);
+    $("endTitle").textContent=st===3?"太厲害了！":st===2?"做得很好！":"再練習一下！";
+    $("endText").textContent=`完成 ${S.total} 題數獨，${S.cells} 格裡面有 ${S.first} 格一次就放對。`;
+    $("end").hidden=false;say(`${$("endTitle").textContent}完成${S.total}題數獨`);
+  }
+  $("go").addEventListener("click",start);$("replay").addEventListener("click",start);
+  $("again").addEventListener("click",()=>say("每一橫排、每一直排、每一個小方塊裡，四種圖案都只能出現一次。點空格，再點下面的圖案。"));
+  // 開始畫面後面先擺一個示範的格子
+  {const p=makePuzzle();G={sol:p.sol,puz:p.puz,cur:p.puz.slice()};drawBoard();upd()}
+})();
+</script>
+</body>
+</html>
