@@ -73,12 +73,34 @@ html.phone.land .spot .icon{width:66px} html.phone.land .spot .icon .emo{font-si
 @media (max-width:600px){header{display:grid;grid-template-columns:46px minmax(0,1fr) 46px;column-gap:8px;align-items:center}
   header .home{position:static;transform:none;grid-column:1;width:46px;height:46px;font-size:24px}header .home:active{transform:translateY(3px)}
   h1{grid-column:2;justify-self:center;font-size:21px;padding:.16em .6em .2em;border-width:3px;letter-spacing:.04em}h1 .star{display:none}}
+/* ---- 3D 地圖（sky3d.js 載入成功才換成這個，不然維持上面的 2D 地圖） ---- */
+.w3d,#labs{display:none}
+html.is3d,html.is3d body{height:100%;overflow:hidden}
+html.is3d .map{display:none}
+html.is3d header{position:fixed;left:max(14px,env(safe-area-inset-left,0px));right:max(14px,env(safe-area-inset-right,0px));top:max(10px,env(safe-area-inset-top,0px));width:auto;max-width:none;margin:0 auto}
+html.is3d .w3d{display:block;position:fixed;left:0;right:0;bottom:0;top:80px;z-index:1}
+html.is3d .w3d canvas{width:100%;height:100%;display:block}
+html.is3d #labs{display:block;position:fixed;left:0;right:0;bottom:0;top:80px;z-index:2;pointer-events:none;overflow:hidden}
+.lab{position:absolute;left:0;top:0;pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;will-change:transform;
+  border:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
+.lab b{display:flex;align-items:center;gap:2px;background:var(--c);color:#fff;border:2px solid #fff;border-radius:12px;padding:0 10px;font-weight:800;white-space:nowrap;
+  box-shadow:0 3px 0 rgba(0,0,0,.25);font-size:clamp(14px,2.2vmin,22px);text-shadow:0 1px 0 rgba(0,0,0,.25);transition:scale .15s}
+.lab b .zy .b{color:#fff}
+.lab b em{font-style:normal;font-size:.8em;text-shadow:none}
+.lab i{font-style:normal;white-space:nowrap;font-weight:800;color:#2b2470;background:rgba(255,255,255,.92);border-radius:999px;padding:0 8px;font-size:clamp(11px,1.6vmin,16px)}
+.lab.lock b{background:#7d7a9e}
+.lab.sl{align-items:flex-start}.lab.sr{align-items:flex-end}
+.lab.lock i{opacity:.75}
+.lab.on b,.lab:hover b{scale:1.08}
+@media (max-width:600px){.lab b{font-size:13.5px;padding:0 6px}.lab i{font-size:11px;padding:0 6px}}
+@media (max-height:500px) and (orientation:landscape){.lab b{font-size:13px;padding:0 6px;white-space:normal;flex-wrap:wrap;justify-content:center;text-align:center;max-width:min(150px,17vw);line-height:1.1;font-size:12px}.lab i{display:none}}
+@media (max-width:360px){.lab b{font-size:12.5px;padding:0 4px}}
 .toast{position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:9;background:#fff;color:var(--ink);
   padding:10px 20px;border-radius:999px;font-size:18px;font-weight:800;box-shadow:0 6px 20px rgba(0,0,0,.35);transition:opacity .25s;white-space:nowrap}
 .toast[hidden]{display:block!important;opacity:0;pointer-events:none}
 @media (prefers-reduced-motion:reduce){.tw,.shoot,.spot .icon{animation:none!important}}
 </style>
-<script src="zhuyin.js?v=20261119m"></script>
+<script src="zhuyin.js?v=20261119n"></script>
 </head>
 <body>
 <div class="stars" aria-hidden="true"><span class="tw" style="left:8%;top:14%">✦</span><span class="tw" style="left:30%;top:6%;animation-delay:-.8s">✦</span>
@@ -91,6 +113,8 @@ html.phone.land .spot .icon{width:66px} html.phone.land .spot .icon .emo{font-si
 <div class="map" id="map" role="navigation" aria-label="謎題星空地圖">
   <svg id="art" aria-hidden="true"></svg>
 </div>
+<div class="w3d" id="w3d" aria-hidden="true"></div>
+<div id="labs" role="navigation" aria-label="謎題星空地圖"></div>
 <div class="toast" id="toast" role="status" data-zy hidden></div>
 <script>
 (()=>{
@@ -112,6 +136,7 @@ html.phone.land .spot .icon{width:66px} html.phone.land .spot .icon .emo{font-si
     {k:"tangram",name:"拼火箭",tag:"七巧板",c:"#e0a800",emo:"🚀",ic:planet("#ffe27a","#ff8fc7",false,STRIPE("#f5c400"))},
     {k:"pyramid",name:"星星金字塔",tag:"數字金字塔",c:"#e0559a",emo:"🔺",ic:planet("#ff9fd0","#9fe8ff",true,CRATER("#f070b0"))}
   ];
+  window.SKY_SPOTS=SPOTS;
   const map=$("map");
   SPOTS.forEach(s=>{
     const a=document.createElement(s.href?"a":"button");a.className="spot "+(s.href?"open":"lock");a.style.setProperty("--c",s.c);a.dataset.k=s.k;
@@ -142,7 +167,10 @@ html.phone.land .spot .icon{width:66px} html.phone.land .spot .icon .emo{font-si
   matchMedia("(orientation:portrait)").addEventListener?.("change",layout);phoneMQ.addEventListener?.("change",layout);
   let rz=0;addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(layout,150)});addEventListener("load",layout);
   let tt=0;function toast(t){const e=$("toast");e.textContent=t;e.hidden=false;clearTimeout(tt);tt=setTimeout(()=>e.hidden=true,1800)}
+  window.skyToast=toast;
 })();
 </script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js"}}</script>
+<script type="module" src="sky3d.js?v=20261119n"></script>
 </body>
 </html>

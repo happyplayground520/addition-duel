@@ -104,12 +104,12 @@ main{justify-content:flex-start;padding-top:4px}
   .ask{grid-area:ask}.known{grid-area:known}.scale{grid-area:scale;width:100%;height:100%}.sides{grid-area:sides;margin:0}.choices{grid-area:choices}.msg{grid-area:msg}}
 @media (prefers-reduced-motion:reduce){#beam,.pan{transition:none}}
 </style>
-<script src="zhuyin.js?v=20261119m"></script>
+<script src="zhuyin.js?v=20261119n"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261119m">
-<script src="park.js?v=20261119m"></script>
-<link rel="stylesheet" href="duo.css?v=20261119m">
-<script src="duo.js?v=20261119m"></script>
+<link rel="stylesheet" href="park.css?v=20261119n">
+<script src="park.js?v=20261119n"></script>
+<link rel="stylesheet" href="duo.css?v=20261119n">
+<script src="duo.js?v=20261119n"></script>
 </head>
 <body data-park>
 <header class="top">
@@ -184,7 +184,7 @@ main{justify-content:flex-start;padding-top:4px}
     const tw=vs.filter(v=>/TW|Hant/i.test(v.lang)&&quality(v)>0).sort((a,b)=>quality(b)-quality(a));
     voice=(want&&vs.find(v=>(v.voiceURI||v.name)===want))||tw[0]||vs.find(v=>quality(v)>0)||vs[0]||null}
   if(synth){pickVoice();try{synth.addEventListener("voiceschanged",pickVoice)}catch(e){}}
-  function say(t){if(!synth)return;try{const u=new SpeechSynthesisUtterance(t);u.lang=voice?voice.lang.replace("_","-"):"zh-TW";if(voice)u.voice=voice;u.rate=rate;u.pitch=1.1;
+  function say(t){if(!synth)return;try{const u=new SpeechSynthesisUtterance(String(t).replace(/天秤/g,"天平"));u.lang=voice?voice.lang.replace("_","-"):"zh-TW";if(voice)u.voice=voice;u.rate=rate;u.pitch=1.1;
     if(synth.speaking||synth.pending){synth.cancel();setTimeout(()=>{try{synth.speak(u)}catch(e){}},90)}else synth.speak(u)}catch(e){}}
   let ac=null;
   function tone(fs,dur=.12,type="triangle",vol=.15){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume();

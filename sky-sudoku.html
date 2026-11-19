@@ -110,10 +110,10 @@ body.two .ask{display:none}
 @media (max-width:400px) and (orientation:portrait){.pal{gap:10px}.pb{width:66px;font-size:36px}.board{gap:5px;padding:8px}}
 @media (prefers-reduced-motion:reduce){.cell,.pb{animation:none!important}}
 </style>
-<script src="zhuyin.js?v=20261119m"></script>
+<script src="zhuyin.js?v=20261119n"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261119m">
-<script src="park.js?v=20261119m"></script>
+<link rel="stylesheet" href="park.css?v=20261119n">
+<script src="park.js?v=20261119n"></script>
 </head>
 <body data-park>
 <header class="top">
@@ -207,8 +207,22 @@ body.two .ask{display:none}
     try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}}
 
 
-  // ---- 四種圖案：外星人和星球 ----
-  const SYM=[["👽","外星人"],["👾","小怪獸"],["🪐","土星"],["🌍","地球"]];
+  // ---- 四種圖案：每一題換一組（外星人、太空、天空、動物、水果…），一輪裡不會重複 ----
+  const THEMES=[
+    [["👽","外星人"],["👾","小怪獸"],["🪐","土星"],["🌍","地球"]],
+    [["🚀","火箭"],["🛸","飛碟"],["🌙","月亮"],["⭐","星星"]],
+    [["☀️","太陽"],["☁️","雲朵"],["🌈","彩虹"],["⚡","閃電"]],
+    [["🐶","小狗"],["🐱","小貓"],["🐰","兔子"],["🐼","熊貓"]],
+    [["🍎","蘋果"],["🍌","香蕉"],["🍇","葡萄"],["🍓","草莓"]],
+    [["🐟","小魚"],["🐙","章魚"],["🐢","烏龜"],["🦀","螃蟹"]],
+    [["🍩","甜甜圈"],["🍦","冰淇淋"],["🍪","餅乾"],["🧁","杯子蛋糕"]],
+    [["🚗","汽車"],["🚂","火車"],["✈️","飛機"],["🚲","腳踏車"]]
+  ];
+  let SYM=THEMES[0],themeOrder=[];
+  function nextTheme(){if(S.round===1)themeOrder=[0,...shuffle([...Array(THEMES.length-1).keys()].map(k=>k+1))];
+    SYM=THEMES[themeOrder[(S.round-1)%themeOrder.length]];
+    pal.innerHTML=SYM.map(([e,n],k)=>`<button type="button" class="pb" data-v="${k}" aria-label="${n}" aria-pressed="false">${e}</button>`).join("");
+    pbs=[...pal.querySelectorAll(".pb")];pbs.forEach(b=>b.addEventListener("click",()=>tapPal(+b.dataset.v)))}
   // ---- 出題：先做一個完整的答案，再挖空格（挖完一定只有一種填法） ----
   const row=i=>Math.floor(i/4),col=i=>i%4,box=i=>Math.floor(row(i)/2)*2+Math.floor(col(i)/2);
   const peers=i=>[...Array(16).keys()].filter(j=>j!==i&&(row(j)===row(i)||col(j)===col(i)||box(j)===box(i)));
@@ -236,8 +250,7 @@ body.two .ask{display:none}
 
   // ---- 畫面 ----
   const board=$("board"),pal=$("pal");
-  pal.innerHTML=SYM.map(([e,n],k)=>`<button type="button" class="pb" data-v="${k}" aria-label="${n}" aria-pressed="false">${e}</button>`).join("");
-  const pbs=[...pal.querySelectorAll(".pb")];
+  let pbs=[];
   let G=null;
   function drawBoard(){
     board.innerHTML=G.cur.map((v,i)=>{const r=row(i),c=col(i);
@@ -254,11 +267,11 @@ body.two .ask{display:none}
     if(S.sym>=0)place(i,S.sym);
     else{$("msg").textContent="這一格要放哪一個？";$("msg").className="msg"}
   }
-  pbs.forEach(b=>b.addEventListener("click",()=>{
-    if(S.phase!=="play")return;const k=+b.dataset.v;
+  function tapPal(k){
+    if(S.phase!=="play")return;
     if(S.sel>=0&&G.cur[S.sel]<0)place(S.sel,k);
     else{setSym(k);$("msg").textContent=`點一個空格，放${SYM[k][1]}`;$("msg").className="msg";say(SYM[k][1])}
-  }));
+  }
   function place(i,k){
     const c=cellEl(i);
     if(G.sol[i]===k){
@@ -292,7 +305,7 @@ body.two .ask{display:none}
   function next(){
     if(S.round>=S.total)return finish();
     S.round++;S.phase="play";S.sel=-1;S.miss={};setSym(-1);
-    const p=makePuzzle();G={sol:p.sol,puz:p.puz,cur:p.puz.slice()};drawBoard();upd();
+    nextTheme();const p=makePuzzle();G={sol:p.sol,puz:p.puz,cur:p.puz.slice()};drawBoard();upd();
     $("msg").textContent=S.two?`輪到${PN[S.turn]}：點一個空格，再點圖案`:"點一個空格，再點下面的圖案";$("msg").className="msg";pbs.forEach(b=>b.classList.remove("glow"));updTurn();
     if(S.round===1)say("每一橫排、每一直排、每一個小方塊裡，四種圖案都只能出現一次。點空格，再點下面的圖案。");
   }
