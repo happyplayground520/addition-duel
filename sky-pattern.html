@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>太空列車排排看</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
+<style>
+/* 謎題星空第 1 關：太空列車開進站，每節車廂載著一個圖案或數字，找出規律，選出空車廂要放什麼 */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --ink:#1f2b33; --muted:#5d6b72; --good:#1f9d61; --bad:#d23c3c;
+  --accent:#ff8a3d; --accent-dark:#c95f16; --track:#9c8cff;
+  --num:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
+  --text:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{margin:0;height:100%}
+body{color:var(--ink);font-family:var(--text);overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  background:radial-gradient(circle,rgba(255,255,255,.8) 1px,transparent 1.6px) 0 0/57px 63px,radial-gradient(circle,rgba(255,240,190,.7) 1.3px,transparent 2px) 23px 31px/97px 83px,
+    radial-gradient(ellipse at 80% 0%,#5a49b8 0,transparent 55%),linear-gradient(#26256a,#3b3290 55%,#5a4aa8);
+  display:flex;flex-direction:column}
+[hidden]{display:none!important}
+.top{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;
+  padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 6px max(16px,env(safe-area-inset-left,0px))}
+.ibtn{width:48px;height:48px;border-radius:14px;border:0;background:rgba(255,255,255,.92);font-size:24px;cursor:pointer;
+  display:grid;place-items:center;text-decoration:none;color:inherit;box-shadow:0 3px 0 rgba(0,0,0,.25)}
+.ibtn:active{transform:translateY(2px)}
+.title{justify-self:center;font-weight:800;font-size:clamp(18px,3.2vmin,28px);color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+.title .tz-b,.title .zy .b{color:#e6e0ff}
+.right{display:flex;gap:10px;align-items:center}
+.score{font-family:var(--num);font-weight:800;font-size:clamp(18px,3.2vmin,28px);background:rgba(255,255,255,.92);border-radius:999px;padding:4px 14px;white-space:nowrap}
+main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(10px,2.4vh,26px);
+  padding:0 max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
+.ask{background:#fff;border-radius:999px;padding:.3em 1.1em;font-weight:800;font-size:clamp(19px,3.4vmin,30px);box-shadow:0 5px 0 rgba(0,0,0,.2)}
+/* 列車和軌道 */
+.station{position:relative;width:100%;display:flex;justify-content:center;overflow:visible;padding-bottom:16px}
+.station::after{content:"";position:absolute;left:0;right:0;bottom:2px;height:10px;border-radius:5px;
+  background:repeating-linear-gradient(90deg,#d8d0ff 0 6px,transparent 6px 22px) 0 0/100% 6px no-repeat,linear-gradient(transparent 6px,#9c8cff 6px)}
+.train{display:flex;align-items:flex-end;gap:5px;transition:transform 1s cubic-bezier(.3,.6,.3,1)}
+.train.away{transform:translateX(-115vw)}
+/* 兩排的列車：每排底下都有一段軌道 */
+.train.wrap{flex-wrap:wrap;justify-content:flex-start;width:calc(var(--cw)*4 + 24px);row-gap:calc(var(--cw)*.5);column-gap:8px}
+.train.wrap .car{box-shadow:inset 0 -6px 0 rgba(0,0,0,.12),0 calc(var(--cw)*.22) 0 -2px #9c8cff}
+.train.wrap .loco{width:var(--cw);height:var(--cw)}
+.train.leave{transition:transform 1.1s cubic-bezier(.6,0,.8,.4);transform:translateX(125vw)}
+.loco{width:calc(var(--cw)*1.25);height:calc(var(--cw)*1.15);flex:none}
+.loco svg{width:100%;height:100%;display:block;overflow:visible}
+.car{position:relative;width:var(--cw);height:calc(var(--cw)*1.05);flex:none;border-radius:14px 14px 8px 8px;background:var(--c,#ffb36b);border:3px solid #2b2240;
+  display:grid;place-items:center;font-size:calc(var(--cw)*.56);line-height:1;box-shadow:inset 0 -6px 0 rgba(0,0,0,.12)}
+.car::before,.car::after{content:"";position:absolute;bottom:calc(var(--cw)*-.16);width:calc(var(--cw)*.24);aspect-ratio:1;border-radius:50%;background:#3b3560;border:3px solid #2b2240}
+.car::before{left:14%}.car::after{right:14%}
+.car .win{width:82%;height:72%;border-radius:10px;background:#fff;display:grid;place-items:center;box-shadow:inset 0 0 0 2px rgba(43,34,64,.15)}
+.car .win b{font-family:var(--num);font-weight:800;font-size:calc(var(--cw)*.42);color:#2b2240}
+.car.blank .win{background:#fff7e0;border:3px dashed var(--accent);box-shadow:none}
+.car.blank .win::after{content:"?";font-family:var(--num);font-weight:800;font-size:calc(var(--cw)*.46);color:var(--accent)}
+.car.blank.filled .win{background:#eafff2;border-color:var(--good)}
+.car.blank.filled .win::after{content:none}
+.car.blank{animation:wait 1.4s ease-in-out infinite}
+.car.blank.filled{animation:pop .5s cubic-bezier(.3,1.6,.5,1)}
+@keyframes wait{50%{transform:translateY(-4px)}}
+@keyframes pop{40%{transform:scale(1.18)}}
+.car.hop{animation:hop .4s}
+@keyframes hop{50%{transform:translateY(-10px)}}
+/* 提示：同一組的車廂底下一條彩帶；數字規律在兩節車廂中間標 +2 */
+.car .grp{position:absolute;left:-5px;right:-5px;bottom:calc(var(--cw)*-.42);height:6px;border-radius:3px;background:var(--gc);opacity:0;transition:opacity .3s}
+.train.hint .car .grp{opacity:1}
+.step{position:absolute;top:calc(var(--cw)*-.5);left:calc(100% + 2px);transform:translateX(-50%);z-index:2;background:#ffe27a;color:#5a3b00;border:2px solid #fff;border-radius:999px;
+  font-family:var(--num);font-weight:800;font-size:calc(var(--cw)*.26);padding:0 .45em;white-space:nowrap;opacity:0;transition:opacity .3s}
+.train.hint .step{opacity:1}
+.rule{min-height:1.5em;font-weight:800;font-size:clamp(17px,2.8vmin,24px);color:#fff;text-align:center;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+.rule .tz-b,.rule .zy .b{color:#e6e0ff}
+/* 選項 */
+.choices{display:flex;gap:clamp(10px,2.4vmin,22px);flex-wrap:wrap;justify-content:center}
+.ch{width:clamp(76px,13vmin,112px);aspect-ratio:1;border-radius:22px;border:4px solid #fff;background:#fff;cursor:pointer;font-size:clamp(38px,7vmin,60px);line-height:1;
+  display:grid;place-items:center;box-shadow:0 6px 0 #9c8cff,0 10px 18px rgba(0,0,0,.25);color:var(--ink);transition:transform .12s}
+.ch.num{font-family:var(--num);font-weight:800;font-size:clamp(32px,6vmin,50px)}
+.ch:active{transform:translateY(4px)}
+.ch.wrong{animation:shake .4s;opacity:.4;pointer-events:none}
+.ch.right{background:#eafff2;border-color:var(--good);box-shadow:0 6px 0 var(--good)}
+.ch.glow{animation:glow 1s infinite}
+@keyframes shake{25%{translate:-8px 0}75%{translate:8px 0}}
+@keyframes glow{50%{box-shadow:0 0 0 6px #ffe27a,0 6px 0 #9c8cff}}
+.msg{min-height:1.4em;font-weight:800;font-size:clamp(17px,2.8vmin,24px);color:#fff;text-align:center}
+.msg.good{color:#8ff0b5}.msg.bad{color:#ffd0d0}
+/* 開始／結束畫面 */
+.cover{position:fixed;inset:0;z-index:20;display:grid;place-items:start center;overflow-y:auto;-webkit-overflow-scrolling:touch;background:rgba(38,37,106,.6);
+  padding:max(12px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.cover>.box{margin:auto 0}
+.box{background:#fff;border-radius:24px;padding:clamp(18px,4vmin,32px);width:min(500px,100%);box-shadow:0 12px 40px rgba(0,0,0,.3);
+  display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center}
+.box h2{margin:0;font-size:clamp(26px,5.5vmin,42px)}
+.box p{margin:0;color:var(--muted);font-size:clamp(15px,2.5vmin,19px);line-height:1.5}
+.row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.lbl{font-size:14px;font-weight:700;color:var(--muted);margin-top:4px}
+.opt{font:inherit;font-size:17px;font-weight:700;border:2px solid #cfd8dc;background:#fff;border-radius:14px;padding:9px 14px;cursor:pointer;color:inherit}
+.opt small{display:block;font-size:13px;font-weight:600;opacity:.8;margin-top:2px}
+.opt[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:#fff}
+.big{font-family:var(--text);font-weight:800;font-size:clamp(20px,4vmin,30px);border:0;border-radius:999px;padding:.45em 1.6em;
+  background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 5px 0 var(--accent-dark);text-decoration:none;display:inline-block}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 var(--accent-dark)}
+.big.alt{background:#fff;color:var(--ink);box-shadow:0 5px 0 #cfd8dc;border:2px solid #cfd8dc}
+.stars{font-size:clamp(40px,9vmin,72px);letter-spacing:.1em;line-height:1}
+#start .box>.big{position:sticky;bottom:0;z-index:1}
+@media (max-height:560px){.cover>.box{gap:8px;padding:14px 18px}.cover>.box h2{font-size:24px}#start .box>p{display:none}.cover .stars{font-size:36px}}
+/* 手機橫放：排得緊一點 */
+@media (max-height:500px){main{gap:6px}.ask{font-size:17px;padding:.2em .9em}.rule,.msg{font-size:15px;min-height:1.2em}.ch{width:62px;border-radius:16px;font-size:34px}.ch.num{font-size:28px}.station{padding-bottom:12px}}
+@media (max-width:400px) and (orientation:portrait){.choices{gap:9px}.ch{width:68px;border-radius:18px;font-size:36px}.ch.num{font-size:30px}.ask{font-size:18px}}
+@media (max-width:340px){.ch{width:60px;font-size:32px}.ch.num{font-size:26px}main{gap:8px}}
+@media (prefers-reduced-motion:reduce){.train{transition:none}.car.blank{animation:none}}
+</style>
+<script src="zhuyin.js?v=20261119f"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="park.css?v=20261119f">
+<script src="park.js?v=20261119f"></script>
+</head>
+<body data-park>
+<header class="top">
+  <a class="ibtn" href="sky.html" aria-label="回謎題星空">🏠</a>
+  <div class="title">🚃<span class="tx"> 太空列車排排看</span></div>
+  <div class="right"><span class="score" id="score">⭐ 0</span><button type="button" class="ibtn" id="again" aria-label="再念一次題目">🔊</button></div>
+</header>
+<main>
+  <div class="ask" id="ask" data-zy>空的車廂要放什麼？</div>
+  <div class="station"><div class="train away" id="train"></div></div>
+  <div class="rule" id="rule" data-zy aria-live="polite"></div>
+  <div class="choices" id="choices"></div>
+  <div class="msg" id="msg" data-zy aria-live="polite"></div>
+
+  <section class="cover" id="start">
+    <div class="box">
+      <h2>🚃 太空列車排排看</h2>
+      <p data-zy>太空列車的車廂有一個是空的，<br>找出排列的規律，選出空車廂要放什麼！</p>
+      <span class="lbl">難度</span>
+      <div class="row" id="levels">
+        <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small>🌙⭐🌙⭐</small></button>
+        <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small>🌙⭐🪐🌙</small></button>
+        <button type="button" class="opt" data-lv="3" aria-label="高級"><span class="lvst">⭐⭐⭐</span><small>2 4 6 8</small></button>
+      </div>
+      <span class="lbl">題數</span>
+      <div class="row" id="counts"><button type="button" class="opt" data-n="5" aria-label="5 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button><button type="button" class="opt" data-n="10" aria-label="10 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>10</small></button><button type="button" class="opt" data-n="15" aria-label="15 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>15</small></button></div>
+      <button type="button" class="big" id="go" aria-label="開始">READY</button>
+    </div>
+  </section>
+  <section class="cover" id="end" hidden>
+    <div class="box">
+      <div class="stars" id="stars"></div>
+      <h2 id="endTitle"></h2>
+      <p id="endText" data-zy></p>
+      <div class="row">
+        <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+        <a class="big alt ico-btn" href="sky.html" aria-label="回謎題星空">🏠</a>
+      </div>
+    </div>
+  </section>
+</main>
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
+  const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  const pick=a=>a[rnd(0,a.length-1)];
+  const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+  const S={lv:[1,2,3].includes(+pref("sky-pattern-lv"))?+pref("sky-pattern-lv"):1,total:10,round:0,score:0,tries:0,phase:"start",q:null,last:""};
+  const syncLv=()=>document.querySelectorAll("#levels button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
+  document.querySelectorAll("#levels button").forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("sky-pattern-lv",S.lv);syncLv()}));
+  syncLv();
+  {const n0=+pref("sky-pattern-total");if([5,10,15].includes(n0))S.total=n0;
+   const cs=[...document.querySelectorAll("#counts button")],sync=()=>cs.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===S.total));
+   sync();cs.forEach(b=>b.addEventListener("click",()=>{S.total=+b.dataset.n;pref("sky-pattern-total",S.total);sync()}))}
+
+  // ---- 語音與音效（和遊樂園一樣） ----
+  const synth=window.speechSynthesis;let voice=null;const rate=+(pref("duel-rate")||.9)||.9;
+  const quality=v=>{const u=v.voiceURI||"";return /eloquence|speech\.synthesis\.voice/i.test(u)?0:/\.premium\./i.test(u)?3:/enhanced|-premium/i.test(u)?2:1};
+  function pickVoice(){if(!synth)return;const vs=synth.getVoices().filter(v=>/^(zh|cmn)/i.test(v.lang));const want=pref("duel-voice");
+    const tw=vs.filter(v=>/TW|Hant/i.test(v.lang)&&quality(v)>0).sort((a,b)=>quality(b)-quality(a));
+    voice=(want&&vs.find(v=>(v.voiceURI||v.name)===want))||tw[0]||vs.find(v=>quality(v)>0)||vs[0]||null}
+  if(synth){pickVoice();try{synth.addEventListener("voiceschanged",pickVoice)}catch(e){}}
+  function say(t){if(!synth)return;try{const u=new SpeechSynthesisUtterance(t);u.lang=voice?voice.lang.replace("_","-"):"zh-TW";if(voice)u.voice=voice;u.rate=rate;u.pitch=1.1;
+    if(synth.speaking||synth.pending){synth.cancel();setTimeout(()=>{try{synth.speak(u)}catch(e){}},90)}else synth.speak(u)}catch(e){}}
+  let ac=null;
+  function tone(fs,dur=.12,type="triangle",vol=.15){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume();
+    fs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*dur;o.type=type;o.frequency.value=f;
+      g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)})}catch(e){}}
+  const sfx={good:()=>tone([784,1175],.14,"sine",.3),bad:()=>tone([150],.3,"square",.16),pip:i=>tone([520+i*70],.07,"sine",.12),
+    toot:()=>tone([392,523],.18,"square",.07),win:()=>tone([523,659,784,1047],.16)};
+  {const _g=sfx.good;sfx.good=(...a)=>{try{window.parkBurst&&parkBurst()}catch(err){}return _g(...a)}}
+  function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
+    try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}}
+
+  // ---- 題目 ----
+  const SYM=[["🌙","月亮"],["⭐","星星"],["🪐","土星"],["☄️","彗星"],["👽","外星人"],["🚀","火箭"],["🌍","地球"],["☀️","太陽"],["🛸","飛碟"]];
+  const NAME=Object.fromEntries(SYM);
+  const CARC=["#ffb36b","#7cc7ff","#8ee08a","#ff8fc7","#c9a2ff","#ffe27a","#ff9f8a","#7ee8d8"];
+  const GRP=["#ffe27a","#7cf0d8","#ff9fd0","#9fd3ff"];
+  // 圖案規律：unit 是重複的那一組（例如 ABB），重複排到長度 L；blank 是空車廂的位置
+  function picQ(units,L,blankAny){
+    const u=pick(units),syms=shuffle(SYM.slice()).slice(0,new Set(u).size),map={};let k=0;
+    [...u].forEach(ch=>{if(!(ch in map))map[ch]=syms[k++][0]});
+    const seq=[...Array(L)].map((_,i)=>map[u[i%u.length]]);
+    const blank=blankAny?rnd(u.length,L-1):L-1;
+    const ans=seq[blank];
+    // 選項：答案、規律裡的其他圖案、再補一個沒出現的
+    const opts=new Set([ans,...Object.values(map)]);
+    shuffle(SYM.map(s=>s[0])).forEach(s=>{if(opts.size<(S.lv===1?3:4))opts.add(s)});
+    return{kind:"pic",seq,blank,ans,opts:shuffle([...opts].slice(0,S.lv===1?3:4)),unit:u.length,
+      ruleTx:[...new Set([...u])].length?[...u].map(ch=>NAME[map[ch]]).join("、")+"，一直重複":"",ruleShow:[...u].map(ch=>map[ch]).join("")};
+  }
+  // 數字規律：每次加或減一樣多
+  function numQ(){
+    const R=[[1,0,20],[2,0,20],[5,0,30],[10,0,9],[3,0,12],[-1,10,30],[-2,14,30],[-5,30,60],[-10,60,100]];
+    const [d,a,b]=pick(R),L=6;let s;
+    if(Math.abs(d)===5)s=rnd(a/5,b/5)*5+(Math.random()<.4?rnd(1,4):0);else s=rnd(a,b);
+    if(d<0)s=Math.max(s,-d*(L-1));
+    const seq=[...Array(L)].map((_,i)=>s+d*i);
+    if(seq.some(v=>v<0||v>100))return numQ();
+    const blank=Math.random()<.5?L-1:rnd(1,L-2),ans=seq[blank];
+    const opts=new Set([ans]);
+    [ans+d,ans-d,ans+1,ans-1,ans+2*d,ans+(d>0?-1:1)*10].forEach(v=>{if(opts.size<4&&v>=0&&v<=100&&v!==ans)opts.add(v)});
+    while(opts.size<4)opts.add(ans+rnd(-9,9)>=0?ans+rnd(-9,9):ans+rnd(1,9));
+    return{kind:"num",seq,blank,ans,opts:shuffle([...opts]),d,
+      ruleTx:`每次${d>0?"加":"減"} ${Math.abs(d)}`,say:`每次${d>0?"加":"減"}${Math.abs(d)}`};
+  }
+  function newQ(){
+    let q,t=0;
+    do{q=S.lv===1?picQ(["AB","AB","AAB","ABB"],6,false):S.lv===2?picQ(["ABC","AABB","ABB","AAB","ABCC"],7,true):numQ();t++}
+    while(q.seq.join()===S.last&&t<10);
+    S.last=q.seq.join();return q;
+  }
+
+  // ---- 畫面 ----
+  const LOCO=`<svg viewBox="0 0 120 110" aria-hidden="true"><g stroke="#2b2240" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M30 18h46q30 0 38 34v34H18V40q0-22 12-22z" fill="#ff8a3d"/><rect x="38" y="30" width="34" height="26" rx="8" fill="#bfe8ff"/>
+    <circle cx="55" cy="43" r="8" fill="#ffe0c2" stroke-width="3"/><path d="M44 38q11-12 22 0" fill="#9c8cff" stroke-width="3"/>
+    <path d="M104 60h12" stroke-width="6"/><circle cx="111" cy="70" r="5" fill="#ffe27a" stroke-width="3"/>
+    <path d="M14 86h104" stroke-width="5"/><path d="M26 18V6h14v12" fill="#c9a2ff"/>
+    <circle cx="36" cy="90" r="11" fill="#3b3560"/><circle cx="90" cy="90" r="11" fill="#3b3560"/></g></svg>`;
+  function size(n){
+    const W=Math.min(innerWidth-28,1000),land=innerHeight<=500;
+    // 一節車廂多寬：車頭（1.25 節）加上所有車廂要放得下；手機橫放時也不能太高
+    let cw=Math.floor((W-(n+1)*5)/(n+1.25));
+    // 手機直放太窄：車廂排成兩排（一排 4 節），車廂才夠大
+    const wrap=!land&&innerWidth<560&&cw<64;
+    if(wrap)cw=Math.min(84,Math.floor((W-3*8)/4),Math.floor((innerHeight-400)/2.4));
+    cw=Math.min(cw,land?Math.floor((innerHeight-60)/3.3):Math.floor(innerHeight/6.2),130);
+    document.documentElement.style.setProperty("--cw",Math.max(38,cw)+"px");
+    $("train").classList.toggle("wrap",wrap);
+  }
+  function drawTrain(q){
+    const t=$("train");size(q.seq.length);
+    t.innerHTML=q.seq.map((v,i)=>{
+      const c=CARC[i%CARC.length],isBlank=i===q.blank;
+      const inner=q.kind==="num"?`<b>${v}</b>`:`<span>${v}</span>`;
+      const grp=q.kind==="pic"?`<i class="grp" style="--gc:${GRP[Math.floor(i/q.unit)%GRP.length]}"></i>`:"";
+      const step=q.kind==="num"&&i<q.seq.length-1?`<i class="step">${q.d>0?"+":"−"}${Math.abs(q.d)}</i>`:"";
+      return `<div class="car${isBlank?" blank":""}" style="--c:${c}" data-i="${i}"><span class="win">${isBlank?"":inner}</span>${grp}${step}</div>`;
+    }).join("")+`<div class="loco">${LOCO}</div>`;
+    // 車頭在右邊、往右開：車廂由左到右照順序排，小朋友從左邊讀到右邊
+  }
+  const sayQ=()=>say(S.q.kind==="num"?"找出數字的規律，空的車廂要放哪個數字？":"找出圖案的規律，空的車廂要放什麼？");
+  function next(){
+    if(S.round>=S.total)return finish();
+    S.round++;S.tries=0;S.phase="arrive";const q=S.q=newQ();upd();
+    const t=$("train");t.classList.remove("hint","leave");t.classList.add("away");t.style.transition="none";drawTrain(q);
+    $("rule").innerHTML="";$("msg").textContent="";$("msg").className="msg";
+    $("ask").textContent=q.kind==="num"?"空的車廂要放哪個數字？":"空的車廂要放什麼？";
+    $("choices").innerHTML=q.opts.map(v=>`<button type="button" class="ch${q.kind==="num"?" num":""}" data-v="${v}" aria-label="${v}">${v}</button>`).join("");
+    $("choices").querySelectorAll(".ch").forEach(b=>b.addEventListener("click",()=>choose(b)));
+    // 列車開進站
+    void t.offsetWidth;setTimeout(()=>{t.style.transition="";t.classList.remove("away");sfx.toot()},40);
+    setTimeout(()=>{if(S.q===q){S.phase="play";sayQ()}},700);
+  }
+  function choose(b){
+    if(S.phase!=="play"&&S.phase!=="arrive")return;
+    const q=S.q,v=q.kind==="num"?+b.dataset.v:b.dataset.v,t=$("train");
+    if(v===q.ans){
+      S.phase="reveal";if(S.tries===0)S.score++;upd();b.classList.add("right");sfx.good();
+      const car=t.querySelector(".car.blank");car.classList.add("filled");car.querySelector(".win").innerHTML=q.kind==="num"?`<b>${q.ans}</b>`:`<span>${q.ans}</span>`;
+      t.classList.add("hint");
+      $("rule").innerHTML=q.kind==="num"?q.ruleTx:`${q.ruleShow}　${q.ruleTx}`;$("msg").textContent="答對了！";$("msg").className="msg good";
+      say(`答對了！${q.kind==="num"?q.say:q.ruleTx}`);
+      // 車廂一節一節跳一下，再嘟嘟開走
+      const cars=[...t.querySelectorAll(".car")].sort((a,b2)=>a.dataset.i-b2.dataset.i);
+      cars.forEach((c,i)=>setTimeout(()=>{c.classList.remove("hop");void c.offsetWidth;c.classList.add("hop");sfx.pip(i)},700+i*230));
+      const go=700+cars.length*230+900;
+      setTimeout(()=>{if(S.q!==q)return;sfx.toot();t.classList.add("hint","leave")},go);
+      setTimeout(()=>{if(S.q===q)next()},go+1100);
+    }else{
+      S.tries++;sfx.bad();b.classList.add("wrong");
+      // 第一次錯：顯示提示（同一組的車廂底下有同顏色的彩帶，或兩節車廂之間標出加幾）
+      t.classList.add("hint");
+      const tip=q.kind==="num"?"看看車廂上面的提示，數字每次怎麼變？":"看看車廂底下的彩帶，哪幾個是一組？";
+      $("msg").textContent=tip;$("msg").className="msg bad";say(tip);
+      if(S.tries>=2)$("choices").querySelector(`.ch[data-v="${q.ans}"]`)?.classList.add("glow");
+    }
+  }
+  const upd=()=>{$("score").textContent=`⭐ ${S.score} / ${S.total}`};
+  function start(){unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.score=0;S.last="";upd();next();
+    try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}}
+  function finish(){
+    S.phase="end";sfx.win();
+    const r=S.score/S.total,st=r>=.9?3:r>=.6?2:1;
+    $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);
+    $("endTitle").textContent=st===3?"太厲害了！":st===2?"做得很好！":"再練習一下！";
+    $("endText").textContent=`${S.total} 題裡面，有 ${S.score} 題第一次就答對。`;
+    $("end").hidden=false;say(`${$("endTitle").textContent}${S.total}題裡面，有${S.score}題第一次就答對`);
+  }
+  $("go").addEventListener("click",start);$("replay").addEventListener("click",start);
+  $("again").addEventListener("click",()=>{if(S.q&&S.phase!=="end")sayQ()});
+  addEventListener("resize",()=>{if(S.q)size(S.q.seq.length)});
+  upd();
+})();
+</script>
+</body>
+</html>
