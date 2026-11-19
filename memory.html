@@ -8,8 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
 <style>
-/* 雙人輪流：中間牌桌蓋著一堆數字牌，輪到的人翻兩張，加起來剛好湊成目標數（5 或 10）就拿走、再翻一次；
-   沒湊成就蓋回去換人。牌上的數字上下各印一次，兩邊的人看都是正的。 */
+/* 雙人輪流：中間牌桌蓋著一堆數字牌，輪到的人翻兩張，加起來剛好湊成目標數（5 或 10）就拿走；
+   沒湊成就蓋回去。不管有沒有湊成，都換對手翻（輪流）。牌上的數字上下各印一次，兩邊的人看都是正的。 */
 *,*::before,*::after{box-sizing:border-box}
 :root{
   --ink:#1f2b33; --muted:#66757d; --good:#1f9d61; --bad:#d23c3c;
@@ -230,7 +230,7 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
     if(a.v+b.v===T){
       a.el.classList.add("match");b.el.classList.add("match");sfx.good();
       G.score[G.turn]++;ui[G.turn].pairs.textContent=G.score[G.turn];
-      ui[G.turn].msg.textContent=`湊成 ${T}！再翻一次`;ui[G.turn].msg.className="msg good";
+      ui[G.turn].msg.textContent=`湊成 ${T}！換對手`;ui[G.turn].msg.className="msg good";
       await sleep(900);
       // 兩張牌一起飛到這位玩家的牌堆
       const pile=ui[G.turn].el.querySelector(".pairs .mini");
@@ -243,6 +243,8 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
       await sleep(600);[a,b].forEach(x=>x.el.classList.add("gone"));
       G.left--;G.busy=false;
       if(G.left<=0)return finish();
+      // 湊成了也換對手翻，兩個人輪流
+      await sleep(300);if(G.phase==="play")setTurn(1-G.turn);
     }else{
       a.el.classList.add("miss");b.el.classList.add("miss");sfx.bad();
       say(`${a.v}加${b.v}是${a.v+b.v}，不是${T}`);
