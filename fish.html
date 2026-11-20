@@ -121,26 +121,39 @@ body{background:radial-gradient(circle,rgba(255,255,255,.35) 2px,transparent 2.5
 }
 /* 直放時上方擠：目標和水桶各一行 */
 @media (orientation:portrait){.top{grid-template-columns:auto 1fr auto auto}.mid{flex-direction:column;gap:6px}}
-/* ---- 雙人比賽：上下兩個水池，上面那一半轉過來給對面的人；各撈各的，時間到比誰撈得多 ---- */
-.duo{position:fixed;inset:0;z-index:15;display:grid;grid-template-rows:1fr auto 1fr;background:linear-gradient(#c9f0ff,#d9f2c9);
+/* ---- 雙人比賽：兩個人撈同一池金魚。水池中間有一條線，下半邊是玩家一、上半邊是玩家二；
+   金魚會慢慢上下游，游過中間的線。魚在誰那一邊，就是誰撈得到。兩個人找同一個數字，搶著撈，時間到比誰撈得多 ---- */
+.duo{position:fixed;inset:0;z-index:15;display:grid;grid-template-rows:auto 1fr auto auto;gap:6px;background:linear-gradient(#c9f0ff,#d9f2c9);
   padding:max(6px,env(safe-area-inset-top,0px)) max(8px,env(safe-area-inset-right,0px)) max(6px,env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
-.dhalf{position:relative;display:flex;flex-direction:column;gap:6px;min-height:0;padding:4px 2px}
-.dhalf.p2{transform:rotate(180deg)}
-.dbar{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
-.dbar .who{font-weight:900;font-size:clamp(15px,2.4vmin,20px);color:#fff;border-radius:999px;padding:2px 12px;background:var(--pc)}
-.dhalf.p1{--pc:#3d9bff}.dhalf.p2{--pc:#ff6f9f}
-.dtg{display:flex;align-items:center;gap:.3em;background:#fff;border-radius:18px;padding:0 14px;box-shadow:0 3px 0 rgba(0,0,0,.08);font-weight:800;font-size:clamp(15px,2.4vmin,20px)}
+.dbar{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:nowrap}
+.dbar.p2{transform:rotate(180deg)}
+.p1{--pc:#3d9bff}.p2{--pc:#ff5c93}
+.dbar .who{font-weight:900;font-size:clamp(15px,2.4vmin,20px);color:#fff;border-radius:999px;padding:2px 12px;background:var(--pc);white-space:nowrap}
+.dtg{display:flex;align-items:center;gap:.3em;background:#fff;border-radius:18px;padding:0 14px;box-shadow:0 3px 0 rgba(0,0,0,.08);font-weight:800;font-size:clamp(15px,2.4vmin,20px);white-space:nowrap}
 .dtg b{font-family:var(--num);font-size:clamp(30px,5.6vmin,48px);line-height:1.1;color:var(--accent);min-width:1.1em;text-align:center}
 .dtg b.bump{animation:bump .35s}
-.dbk{display:flex;align-items:center;gap:4px;background:#fff;border-radius:999px;padding:2px 12px 2px 6px;font-weight:800;font-size:clamp(14px,2.2vmin,18px);box-shadow:0 3px 0 rgba(0,0,0,.08)}
+.dbk{display:flex;align-items:center;gap:4px;background:#fff;border-radius:999px;padding:2px 12px 2px 6px;font-weight:800;font-size:clamp(14px,2.2vmin,18px);box-shadow:0 3px 0 rgba(0,0,0,.08);white-space:nowrap}
 .dbk b{font-family:var(--num);font-size:1.3em;color:var(--accent)}
-.dsc{font-family:var(--num);font-weight:800;font-size:clamp(22px,4vmin,34px);background:#fff;border-radius:999px;padding:0 14px;box-shadow:0 3px 0 rgba(0,0,0,.08);color:var(--pc)}
+.dsc{font-family:var(--num);font-weight:800;font-size:clamp(22px,4vmin,34px);background:#fff;border-radius:999px;padding:0 14px;box-shadow:0 0 0 3px var(--pc),0 3px 0 rgba(0,0,0,.08);color:var(--pc)}
 .dsc.bump{animation:bump .35s}
-.dhalf .pond{flex:1;min-height:0;border-width:clamp(6px,1.2vmin,10px);border-radius:clamp(22px,5vmin,48px)}
-.dhalf.lock .pond{filter:grayscale(.6) brightness(.9)}
-.dwait{position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);z-index:5;background:#fff;color:var(--bad);font-weight:900;border-radius:999px;padding:4px 16px;
-  font-size:clamp(18px,3vmin,26px);pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.18)}
-.dmid{display:flex;align-items:center;gap:10px;padding:4px 4px}
+.dwrap{position:relative;min-height:0}
+.dwrap>.pond{position:absolute;inset:0;width:auto;height:auto;border-width:clamp(6px,1.2vmin,10px);border-radius:clamp(22px,5vmin,48px)}
+/* 中間的線、兩邊淡淡的顏色 */
+.dside{position:absolute;left:0;right:0;height:50%;pointer-events:none;z-index:0;transition:background .2s}
+.dside.s2{top:0;background:rgba(255,92,147,.10)}.dside.s1{bottom:0;background:rgba(61,155,255,.10)}
+.dside.lock{background:rgba(60,60,80,.32)}
+.dline{position:absolute;left:0;right:0;top:50%;border-top:4px dashed rgba(255,255,255,.85);pointer-events:none;z-index:0}
+.dwait{position:absolute;left:50%;transform:translate(-50%,-50%);z-index:5;background:#fff;color:var(--bad);font-weight:900;border-radius:999px;padding:4px 16px;
+  font-size:clamp(18px,3vmin,26px);pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.18);white-space:nowrap}
+.dwait.w1{top:75%}.dwait.w2{top:25%;transform:translate(-50%,-50%) rotate(180deg)}
+/* 金魚在上半邊時，算式轉過去給對面的人看 */
+.dwrap .fish .tx{transition:rotate .35s}
+.dwrap .fish.up .tx{rotate:180deg}
+.dwrap .fish.caught{transition:transform .5s ease-in,opacity .5s;opacity:0}
+.dfloat{position:absolute;font-family:var(--num);font-weight:800;font-size:30px;pointer-events:none;z-index:4;color:#fff;text-shadow:0 2px 0 var(--pc),0 0 8px var(--pc);animation:up .8s forwards}
+.dfloat.f2{rotate:180deg;animation-name:down}
+@keyframes down{to{transform:translateY(50px);opacity:0}}
+.dmid{display:flex;align-items:center;gap:10px;padding:0 4px}
 .dmid .ibtn{width:44px;height:44px;font-size:22px;flex:none}
 .dtime{position:relative;flex:1;height:14px;border-radius:999px;background:rgba(255,255,255,.85);overflow:hidden}
 .dtime i{position:absolute;inset:0;transform-origin:left;background:linear-gradient(90deg,#1f9d61,#f2c12e);border-radius:999px}
@@ -148,14 +161,15 @@ body{background:radial-gradient(circle,rgba(255,255,255,.35) 2px,transparent 2.5
 .dtt{font-family:var(--num);font-weight:800;font-size:22px;min-width:2.2em;text-align:center;color:var(--muted)}
 .dcount{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--num);font-weight:800;font-size:clamp(70px,16vmin,150px);color:#fff;
   text-shadow:0 6px 0 var(--accent-dark);pointer-events:none;z-index:6}
-.dover{position:absolute;inset:0;z-index:7;display:grid;place-items:center;background:rgba(255,255,255,.6);border-radius:24px;overflow:hidden}
-.dover .box{width:min(420px,96%);gap:8px;padding:16px}
-.dover h2{font-size:clamp(24px,4.4vmin,36px)}
-.dover .result{font-size:clamp(44px,9vmin,80px)}
-.dover .row .big{font-size:clamp(18px,3.2vmin,24px)}
-.dhalf .fish.caught{transition:transform .5s ease-in,opacity .5s;opacity:0}
-@media (max-height:640px){.dhalf{gap:3px}.dtg b{font-size:28px}.dbar .who{display:none}}
-@media (max-width:440px){.dbar{gap:5px;flex-wrap:nowrap}.dbar .who{display:none}.dtg{padding:0 8px}.dtg b{font-size:30px}.dbk{padding:2px 8px 2px 4px;font-size:14px}.dsc{padding:0 10px;font-size:24px}}
+.dover{position:absolute;left:0;right:0;height:50%;z-index:7;display:grid;place-items:center;background:rgba(255,255,255,.55);overflow:hidden}
+.dover.o1{bottom:0}.dover.o2{top:0;transform:rotate(180deg)}
+.dover .box{width:min(420px,94%);gap:6px;padding:12px 14px}
+.dover h2{font-size:clamp(22px,4.2vmin,34px)}
+.dover .result{font-size:clamp(38px,8vmin,72px)}
+.dover p{font-size:15px}
+.dover .row .big{font-size:clamp(17px,3vmin,22px);padding:.4em 1.2em}
+@media (max-height:640px){.duo{gap:3px}.dtg b{font-size:28px}.dbar .who{display:none}.dover .result{font-size:34px}.dover h2{font-size:20px}.dover p{display:none}}
+@media (max-width:440px){.dbar{gap:5px}.dbar .who{display:none}.dtg{padding:0 8px}.dtg b{font-size:30px}.dbk{padding:2px 8px 2px 4px;font-size:14px}.dsc{padding:0 10px;font-size:24px}}
 @media (prefers-reduced-motion:reduce){.pond::before,.bub,.fish .tl{animation:none}}
 
 /* 手機直放：上方分兩排，第一排 🏠、分數、🔊，第二排整排給題目 */
@@ -194,7 +208,7 @@ body{background:radial-gradient(circle,rgba(255,255,255,.35) 2px,transparent 2.5
   <section class="panel" id="start">
     <div class="box">
       <h2>🎣 撈金魚</h2>
-      <p>水池裡的金魚身上都有算式。<br>把答案等於上面數字的金魚，全部撈進水桶！<br>兩個人比賽：時間內看誰撈得多。</p>
+      <p>水池裡的金魚身上都有算式。<br>把答案等於上面數字的金魚，全部撈進水桶！<br>兩個人比賽：一起撈同一池，時間內看誰撈得多。</p>
       <span class="lbl2">人數</span>
       <div class="row" id="players">
         <button type="button" class="opt" data-p="1" aria-label="一個人">🙋 <span data-zy>一個人</span></button>
@@ -239,23 +253,20 @@ body{background:radial-gradient(circle,rgba(255,255,255,.35) 2px,transparent 2.5
 </main>
 
 <section class="duo" id="duo" hidden>
-  <div class="dhalf p2" id="dh2">
-    <div class="dbar"><span class="who" data-zy>玩家二</span><div class="dtg" data-zy><span>撈</span><b id="dt2">?</b></div>
-      <div class="dbk" data-zy><span aria-hidden="true">🪣</span><span>還有</span><b id="dl2">?</b><span>條</span></div><div class="dsc" id="ds2">0</div></div>
-    <div class="pond" id="dp2"><span class="pad" style="left:2%;top:4%">🪷</span><span class="pad" style="right:3%;bottom:4%">🪷</span></div>
-    <div class="dcount" id="dc2" hidden></div>
-    <div class="dover" id="do2" hidden><div class="box"><h2 id="dh22"></h2><div class="result" id="dr2"></div><p id="de2"></p>
+  <div class="dbar p2"><span class="who" data-zy>玩家二</span><div class="dtg" data-zy><span>撈</span><b class="dtv">?</b></div>
+    <div class="dbk" data-zy><span aria-hidden="true">🪣</span><span>還有</span><b class="dlv">?</b><span>條</span></div><div class="dsc" id="ds2">0</div></div>
+  <div class="dwrap" id="dwrap">
+    <div class="pond" id="dpond"><div class="dside s2" id="side2"></div><div class="dside s1" id="side1"></div><div class="dline"></div>
+      <span class="pad" style="left:2%;top:4%">🪷</span><span class="pad" style="right:3%;bottom:4%">🪷</span></div>
+    <div class="dcount" id="dcount" hidden></div>
+    <div class="dover o2 p2" id="do2" hidden><div class="box"><h2 id="dh22"></h2><div class="result" id="dr2"></div><p id="de2"></p>
+      <div class="row"><button type="button" class="big ico-btn dreplay" aria-label="再玩一次">🔁</button><button type="button" class="big alt dchange" data-zy>換設定</button></div></div></div>
+    <div class="dover o1 p1" id="do1" hidden><div class="box"><h2 id="dh21"></h2><div class="result" id="dr1"></div><p id="de1"></p>
       <div class="row"><button type="button" class="big ico-btn dreplay" aria-label="再玩一次">🔁</button><button type="button" class="big alt dchange" data-zy>換設定</button></div></div></div>
   </div>
   <div class="dmid"><a class="ibtn" href="park.html" aria-label="回遊樂園地圖">🏠</a><div class="dtime" id="dtime"><i id="dtf"></i></div><span class="dtt" id="dtt"></span></div>
-  <div class="dhalf p1" id="dh1">
-    <div class="dbar"><span class="who" data-zy>玩家一</span><div class="dtg" data-zy><span>撈</span><b id="dt1">?</b></div>
-      <div class="dbk" data-zy><span aria-hidden="true">🪣</span><span>還有</span><b id="dl1">?</b><span>條</span></div><div class="dsc" id="ds1">0</div></div>
-    <div class="pond" id="dp1"><span class="pad" style="left:2%;top:4%">🪷</span><span class="pad" style="right:3%;bottom:4%">🪷</span></div>
-    <div class="dcount" id="dc1" hidden></div>
-    <div class="dover" id="do1" hidden><div class="box"><h2 id="dh21"></h2><div class="result" id="dr1"></div><p id="de1"></p>
-      <div class="row"><button type="button" class="big ico-btn dreplay" aria-label="再玩一次">🔁</button><button type="button" class="big alt dchange" data-zy>換設定</button></div></div></div>
-  </div>
+  <div class="dbar p1"><span class="who" data-zy>玩家一</span><div class="dtg" data-zy><span>撈</span><b class="dtv">?</b></div>
+    <div class="dbk" data-zy><span aria-hidden="true">🪣</span><span>還有</span><b class="dlv">?</b><span>條</span></div><div class="dsc" id="ds1">0</div></div>
 </section>
 <script>
 (()=>{
@@ -485,83 +496,94 @@ body{background:radial-gradient(circle,rgba(255,255,255,.35) 2px,transparent 2.5
     const L=layout();rows.forEach((r,i)=>{r.y=(i+.5)*L.H/L.nRows-L.fw*.26;r.loop=Math.max(L.W+L.fw*1.3,L.perRow*L.fw*1.5)});
     fish.forEach(f=>{f.fw=L.fw;f.el.style.setProperty("--w",L.fw+"px")});
   },200)});
-  // ================= 雙人比賽 =================
-  // 兩個人各有一個水池、各自的目標數字；同一個計時器。撈對 +1 條，撈錯要停 1 秒才能再撈。時間到比誰撈得多。
-  const D=[1,2].map(k=>({k,half:$("dh"+k),pond:$("dp"+k),fish:[],rows:[],target:0,need:0,score:0,lockUntil:0,busy:false,miss:0}));
-  let draf=0,dlast=0,dclock=0;
+  // ================= 雙人比賽：兩個人撈同一池 =================
+  // 下半邊是玩家一、上半邊是玩家二（用手指按在哪一邊來分是誰撈的）。兩個人找同一個數字，對的魚被誰撈到就算誰的；
+  // 撈錯的人那一邊停 1 秒。整群魚會慢慢往上、往下游，每一條都會游過中間的線。
+  const D=[{k:1,score:0,lockUntil:0,miss:0},{k:2,score:0,lockUntil:0,miss:0}];
+  const dp=$("dpond");let dfish=[],drows=[],dtarget=0,dneed=0,dbusy=false,draf=0,dlast=0,dclock=0;
   const sGood=()=>tone([784,1175],.14,"sine",.3);
-  function duoRound(P){
-    P.busy=false;P.fish.forEach(f=>f.el.remove());P.fish=[];
-    const L=layout(P.pond,64);P.target=newTarget(P.target);
+  const dsize=()=>({W:dp.clientWidth,H:dp.clientHeight});
+  function dRound(){
+    dbusy=false;dfish.forEach(f=>f.el.remove());dfish=[];
+    const L=layout(dp,64);dtarget=newTarget(dtarget);
+    // 同一池要多放幾條，兩個人才有得搶
     const total=L.nRows*L.perRow;
-    const goods=shuffle(exprsFor(P.target)).slice(0,Math.min(total-2,rnd(3,5)));
-    const all=shuffle([...goods,...decoys(total-goods.length,P.target)]);
-    P.rows=[];
+    const goods=shuffle(exprsFor(dtarget)).slice(0,Math.min(total-2,rnd(4,6)));
+    const all=shuffle([...goods,...decoys(total-goods.length,dtarget)]);
+    drows=[];
     for(let r=0;r<L.nRows;r++){const dir=r%2?-1:1,loop=Math.max(L.W+L.fw*1.3,L.perRow*L.fw*1.5);
-      P.rows.push({y:(r+.5)*L.H/L.nRows-L.fw*.26,dir,loop,speed:(S.lv===1?28:S.lv===2?36:44)*(0.85+Math.random()*.3),phase:Math.random()*loop})}
+      drows.push({base:(r+.5)*L.H/L.nRows,dir,loop,speed:(S.lv===1?28:S.lv===2?36:44)*(0.85+Math.random()*.3),phase:Math.random()*loop})}
     all.forEach((e,i)=>{
-      const r=i%L.nRows,slot=Math.floor(i/L.nRows),row=P.rows[r];
+      const r=i%L.nRows,slot=Math.floor(i/L.nRows),row=drows[r];
       const el=document.createElement("button");el.type="button";el.className="fish"+(row.dir<0?" l":"");
       const [c,c2]=COLORS[rnd(0,COLORS.length-1)];
       el.style.setProperty("--w",L.fw+"px");el.style.setProperty("--c",c);el.style.setProperty("--c2",c2);
       el.innerHTML=`<span class="shape"><i class="tl"></i><i class="fn"></i><i class="bd"></i><i class="ey"></i></span><span class="tx">${e.text}</span>`;
       el.setAttribute("aria-label",e.text);
       const f={el,val:e.val,row,off:slot*row.loop/L.perRow,bob:Math.random()*6,done:false,fw:L.fw};
-      el.addEventListener("pointerdown",ev=>{ev.preventDefault();duoHit(P,f)});
-      el.addEventListener("keydown",ev=>{if(ev.key==="Enter"||ev.key===" ")duoHit(P,f)});
-      P.pond.appendChild(el);P.fish.push(f);
+      el.addEventListener("pointerdown",ev=>{ev.preventDefault();const r=dp.getBoundingClientRect();dHit(f,ev.clientY-r.top<r.height/2?1:0,ev)});
+      dp.appendChild(el);dfish.push(f);
     });
-    P.need=goods.length;
-    const b=$("dt"+P.k);b.textContent=P.target;b.classList.remove("bump");void b.offsetWidth;b.classList.add("bump");
-    $("dl"+P.k).textContent=P.need;duoPlace(P);
+    dneed=goods.length;
+    document.querySelectorAll(".dtv").forEach(b=>{b.textContent=dtarget;b.classList.remove("bump");void b.offsetWidth;b.classList.add("bump")});
+    document.querySelectorAll(".dlv").forEach(b=>b.textContent=dneed);
+    dPlace();
   }
-  function duoPlace(P){P.fish.forEach(f=>{if(f.done)return;const r=f.row,p=((r.phase+f.off+r.dir*r.speed*dclock)%r.loop+r.loop)%r.loop;
-    f.x=p-f.fw*1.15;f.y=r.y+Math.sin(dclock*1.6+f.bob)*6;f.el.style.transform=`translate(${f.x}px,${f.y}px)`})}
-  function duoHit(P,f){
-    const now=performance.now();
-    if(S.phase!=="duo"||f.done||P.busy||now<P.lockUntil)return;
-    if(f.val===P.target){
-      f.done=true;P.score++;P.need--;sGood();setTimeout(sfx.splash,120);
-      f.el.classList.add("caught");f.el.style.transform=`translate(${f.x}px,${f.y-60}px) scale(.3)`;setTimeout(()=>f.el.remove(),550);
+  // 整群魚一起上下移動（超過下緣就從上緣出來），所以不會互相疊在一起
+  function dPlace(){
+    const {H}=dsize(),shift=H*.5*Math.sin(dclock*.38);
+    dfish.forEach(f=>{if(f.done)return;const r=f.row,p=((r.phase+f.off+r.dir*r.speed*dclock)%r.loop+r.loop)%r.loop;
+      const fh=f.fw*.52,span=H+fh;let cy=(((r.base+shift)%span)+span)%span;
+      f.x=p-f.fw*1.15;f.y=cy-fh/2+Math.sin(dclock*1.6+f.bob)*5;f.cy=cy;
+      f.el.style.transform=`translate(${f.x}px,${f.y}px)`;f.el.classList.toggle("up",cy<H/2)})}
+  function dFloat(P,x,y){const e=document.createElement("span");e.className="dfloat "+(P.k===2?"f2 p2":"p1");e.textContent="+1";e.style.left=x+"px";e.style.top=y+"px";dp.appendChild(e);setTimeout(()=>e.remove(),800)}
+  function dHit(f,who,ev){
+    const P=D[who],now=performance.now();
+    if(S.phase!=="duo"||f.done||dbusy||now<P.lockUntil)return;
+    if(f.val===dtarget){
+      f.done=true;P.score++;dneed--;sGood();setTimeout(sfx.splash,120);
+      dFloat(P,f.x+f.fw*.4,f.y);
+      // 魚飛向撈到的那個人
+      const {H}=dsize();f.el.classList.add("caught");f.el.style.transform=`translate(${f.x}px,${P.k===2?-f.fw:H+f.fw*.2}px) scale(.35)`;setTimeout(()=>f.el.remove(),550);
       const sc=$("ds"+P.k);sc.textContent=P.score;sc.classList.remove("bump");void sc.offsetWidth;sc.classList.add("bump");
-      $("dl"+P.k).textContent=P.need;
-      if(P.need<=0){P.busy=true;sfx.clear();P.fish.forEach(o=>{if(!o.done){o.done=true;o.el.classList.add("gone")}});
-        setTimeout(()=>{if(S.phase==="duo")duoRound(P)},900)}
+      document.querySelectorAll(".dlv").forEach(b=>b.textContent=dneed);
+      if(dneed<=0){dbusy=true;sfx.clear();dfish.forEach(o=>{if(!o.done){o.done=true;o.el.classList.add("gone")}});setTimeout(()=>{if(S.phase==="duo")dRound()},900)}
     }else{
-      // 撈錯：這一邊停 1 秒
       P.miss++;sfx.bad();f.el.classList.remove("wrong");void f.el.offsetWidth;f.el.classList.add("wrong");
-      P.lockUntil=now+1000;P.half.classList.add("lock");
-      const w=document.createElement("div");w.className="dwait";w.textContent="✋ 等一下";P.half.appendChild(w);
-      setTimeout(()=>{w.remove();P.half.classList.remove("lock")},1000);
+      P.lockUntil=now+1000;const sd=$("side"+P.k);sd.classList.add("lock");
+      const w=document.createElement("div");w.className="dwait w"+P.k;w.textContent="✋ 等一下";$("dwrap").appendChild(w);
+      setTimeout(()=>{w.remove();sd.classList.remove("lock")},1000);
     }
   }
-  function duoTick(now){
+  function dTick(now){
     const dt=Math.min(.05,(now-dlast)/1000);dlast=now;
     if(S.phase!=="duo")return;
-    dclock+=dt;D.forEach(duoPlace);
+    dclock+=dt;dPlace();
     const left=Math.max(0,(S.endAt-now)/1000);
     $("dtf").style.transform=`scaleX(${left/S.time})`;$("dtime").classList.toggle("low",left<=10);
     const sec=Math.ceil(left);if(sec!==S.lastSec){S.lastSec=sec;$("dtt").textContent=sec;if(sec<=5&&sec>0)sfx.tick()}
-    if(left<=0)return duoFinish();
-    draf=requestAnimationFrame(duoTick);
+    if(left<=0)return dFinish();
+    draf=requestAnimationFrame(dTick);
   }
-  function duoClear(){D.forEach(P=>{P.fish.forEach(f=>f.el.remove());P.fish=[];P.half.classList.remove("lock");P.half.querySelectorAll(".dwait").forEach(e=>e.remove());$("do"+P.k).hidden=true})}
+  function duoClear(){dfish.forEach(f=>f.el.remove());dfish=[];dp.querySelectorAll(".dfloat").forEach(e=>e.remove());$("dwrap").querySelectorAll(".dwait").forEach(e=>e.remove());
+    [1,2].forEach(k=>{$("side"+k).classList.remove("lock");$("do"+k).hidden=true})}
   function duoStart(){
     $("start").hidden=true;$("end").hidden=true;$("duo").hidden=false;clearPond();duoClear();cancelAnimationFrame(draf);
-    D.forEach(P=>{P.score=0;P.miss=0;P.target=0;P.lockUntil=0;$("ds"+P.k).textContent="0";$("dt"+P.k).textContent="?";$("dl"+P.k).textContent="?"});
+    D.forEach(P=>{P.score=0;P.miss=0;P.lockUntil=0;$("ds"+P.k).textContent="0"});dtarget=0;
+    document.querySelectorAll(".dtv,.dlv").forEach(b=>b.textContent="?");
     $("dtf").style.transform="scaleX(1)";$("dtime").classList.remove("low");$("dtt").textContent=S.time;S.lastSec=-1;dclock=0;
-    S.phase="count";let n=3;const cs=D.map(P=>$("dc"+P.k));cs.forEach(c=>{c.hidden=false;c.textContent=n});sfx.tick();
+    S.phase="count";let n=3;const c=$("dcount");c.hidden=false;c.textContent=n;sfx.tick();
     const iv=setInterval(()=>{n--;
-      if(n>0){cs.forEach(c=>c.textContent=n);sfx.tick();return}
-      clearInterval(iv);cs.forEach(c=>c.hidden=true);sfx.go();
+      if(n>0){c.textContent=n;sfx.tick();return}
+      clearInterval(iv);c.hidden=true;sfx.go();
       S.phase="duo";S.endAt=performance.now()+S.time*1000;dlast=performance.now();
-      D.forEach(duoRound);draf=requestAnimationFrame(duoTick);
+      dRound();draf=requestAnimationFrame(dTick);
     },800);
     try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}
   }
-  function duoFinish(){
+  function dFinish(){
     S.phase="duoEnd";cancelAnimationFrame(draf);sfx.end();
-    D.forEach(P=>{P.fish.forEach(f=>f.el.remove());P.fish=[]});
+    dfish.forEach(f=>f.el.remove());dfish=[];
     $("dtf").style.transform="scaleX(0)";$("dtt").textContent="0";
     const [a,b]=D.map(P=>P.score),w=a===b?-1:a>b?0:1;
     D.forEach((P,i)=>{
@@ -573,10 +595,9 @@ body{background:radial-gradient(circle,rgba(255,255,255,.35) 2px,transparent 2.5
     if(w>=0)try{window.parkWin&&parkWin($("do"+D[w].k))}catch(e){}
     say(w<0?`時間到！平手，兩個人都撈到${a}條`:`時間到！${w===0?"玩家一":"玩家二"}撈到${D[w].score}條，贏了！`);
   }
-  // 轉向或改變大小：重新排兩個水池（題目不變）
   let drt=0;addEventListener("resize",()=>{clearTimeout(drt);drt=setTimeout(()=>{if(S.phase!=="duo")return;
-    D.forEach(P=>{const L=layout(P.pond,64);P.rows.forEach((r,i)=>{r.y=(i+.5)*L.H/L.nRows-L.fw*.26;r.loop=Math.max(L.W+L.fw*1.3,L.perRow*L.fw*1.5)});
-      P.fish.forEach(f=>{f.fw=L.fw;f.el.style.setProperty("--w",L.fw+"px")})})},200)});
+    const L=layout(dp,64);drows.forEach((r,i)=>{r.base=(i+.5)*L.H/L.nRows;r.loop=Math.max(L.W+L.fw*1.3,L.perRow*L.fw*1.5)});
+    dfish.forEach(f=>{f.fw=L.fw;f.el.style.setProperty("--w",L.fw+"px")})},200)});
   document.querySelectorAll(".dreplay").forEach(b=>b.addEventListener("click",()=>{unlock();duoStart()}));
   document.querySelectorAll(".dchange").forEach(b=>b.addEventListener("click",()=>{duoClear();$("duo").hidden=true;$("start").hidden=false;S.phase="start"}));
   $("go").addEventListener("click",start);
