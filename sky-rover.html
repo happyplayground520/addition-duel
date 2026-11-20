@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>火星探險車</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
+<style>
+/* 謎題星空第 4 關：火星探險車（共用的版面樣式） */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --ink:#1f2b33; --muted:#5d6b72; --good:#1f9d61; --bad:#d23c3c;
+  --accent:#ff8a3d; --accent-dark:#c95f16; --track:#9c8cff;
+  --num:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
+  --text:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{margin:0;height:100%}
+body{color:var(--ink);font-family:var(--text);overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  background:radial-gradient(circle,rgba(255,255,255,.8) 1px,transparent 1.6px) 0 0/57px 63px,radial-gradient(circle,rgba(255,240,190,.7) 1.3px,transparent 2px) 23px 31px/97px 83px,
+    radial-gradient(ellipse at 80% 0%,#5a49b8 0,transparent 55%),linear-gradient(#26256a,#3b3290 55%,#5a4aa8);
+  display:flex;flex-direction:column}
+[hidden]{display:none!important}
+.top{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;
+  padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 6px max(16px,env(safe-area-inset-left,0px))}
+.ibtn{width:48px;height:48px;border-radius:14px;border:0;background:rgba(255,255,255,.92);font-size:24px;cursor:pointer;
+  display:grid;place-items:center;text-decoration:none;color:inherit;box-shadow:0 3px 0 rgba(0,0,0,.25)}
+.ibtn:active{transform:translateY(2px)}
+.title{justify-self:center;font-weight:800;font-size:clamp(18px,3.2vmin,28px);color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+.title .tz-b,.title .zy .b{color:#e6e0ff}
+.right{display:flex;gap:10px;align-items:center}
+.score{font-family:var(--num);font-weight:800;font-size:clamp(18px,3.2vmin,28px);background:rgba(255,255,255,.92);border-radius:999px;padding:4px 14px;white-space:nowrap}
+main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(10px,2.4vh,26px);
+  padding:0 max(14px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
+.ask{background:#fff;border-radius:999px;padding:.3em 1.1em;font-weight:800;font-size:clamp(19px,3.4vmin,30px);box-shadow:0 5px 0 rgba(0,0,0,.2)}
+
+/* 開始／結束畫面 */
+.cover{position:fixed;inset:0;z-index:20;display:grid;place-items:start center;overflow-y:auto;-webkit-overflow-scrolling:touch;background:rgba(38,37,106,.6);
+  padding:max(12px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.cover>.box{margin:auto 0}
+.box{background:#fff;border-radius:24px;padding:clamp(18px,4vmin,32px);width:min(500px,100%);box-shadow:0 12px 40px rgba(0,0,0,.3);
+  display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center}
+.box h2{margin:0;font-size:clamp(26px,5.5vmin,42px)}
+.box p{margin:0;color:var(--muted);font-size:clamp(15px,2.5vmin,19px);line-height:1.5}
+.row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.lbl{font-size:14px;font-weight:700;color:var(--muted);margin-top:4px}
+.opt{font:inherit;font-size:17px;font-weight:700;border:2px solid #cfd8dc;background:#fff;border-radius:14px;padding:9px 14px;cursor:pointer;color:inherit}
+.opt small{display:block;font-size:13px;font-weight:600;opacity:.8;margin-top:2px}
+.opt[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:#fff}
+.big{font-family:var(--text);font-weight:800;font-size:clamp(20px,4vmin,30px);border:0;border-radius:999px;padding:.45em 1.6em;
+  background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 5px 0 var(--accent-dark);text-decoration:none;display:inline-block}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 var(--accent-dark)}
+.big.alt{background:#fff;color:var(--ink);box-shadow:0 5px 0 #cfd8dc;border:2px solid #cfd8dc}
+.stars{font-size:clamp(40px,9vmin,72px);letter-spacing:.1em;line-height:1}
+#start .box>.big{position:sticky;bottom:0;z-index:1}
+@media (max-height:560px){.cover>.box{gap:8px;padding:14px 18px}.cover>.box h2{font-size:24px}#start .box>p{display:none}.cover .stars{font-size:36px}}
+</style>
+<style>
+/* 謎題星空第 4 關：火星探險車。火星地面上有石頭，先用箭頭排好一串指令，按「出發」，探險車照著指令一步一步開到旗子那裡（高級要先撿完水晶） */
+:root{--accent:#e8584f;--accent-dark:#a8352e}
+body{background:radial-gradient(circle,rgba(255,255,255,.8) 1px,transparent 1.6px) 0 0/57px 63px,radial-gradient(ellipse at 80% 0%,#6a3a8a 0,transparent 55%),linear-gradient(#2a1f5a,#4a2a6a 55%,#7a3a4a)}
+main{gap:clamp(8px,1.8vh,18px)}
+.ask{font-size:clamp(16px,2.8vmin,24px);text-align:center;border-radius:20px}
+/* 火星地面 */
+.grid{--cols:5;--rows:5;--g:min(88vw,calc(100dvh - 400px),560px);position:relative;width:var(--g);aspect-ratio:var(--cols)/var(--rows);display:grid;
+  grid-template-columns:repeat(var(--cols),1fr);grid-template-rows:repeat(var(--rows),1fr);gap:4px;padding:8px;border-radius:22px;background:#a8452e;border:4px solid #ffcf9e;box-shadow:0 0 30px rgba(255,120,80,.35)}
+.tile{position:relative;min-height:0;overflow:hidden;border-radius:12px;background:radial-gradient(circle at 30% 30%,#f59a62,#e07a44);display:grid;place-items:center;font-size:calc(var(--g)/var(--cols)*.5);line-height:1;
+  box-shadow:inset 0 -4px 0 rgba(0,0,0,.12)}
+.tile:nth-child(3n){background:radial-gradient(circle at 60% 40%,#f2925a,#d9703d)}
+.tile.rock{background:radial-gradient(circle at 30% 30%,#c9683f,#a8502f)}
+.tile .dot{width:22%;aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.75);box-shadow:0 0 8px #fff}
+.tile.hint::after{content:"";position:absolute;width:24%;aspect-ratio:1;border-radius:50%;border:3px dashed rgba(255,255,255,.9)}
+.tile.got{filter:saturate(.6)}
+.rover{position:absolute;left:0;top:0;width:calc((100% - 16px - (var(--cols) - 1) * 4px)/var(--cols));height:calc((100% - 16px - (var(--rows) - 1) * 4px)/var(--rows));display:grid;place-items:center;
+  font-size:calc(var(--g)/var(--cols)*.62);line-height:1;pointer-events:none;transition:transform .42s ease-in-out;z-index:2}
+.rover span{display:inline-block;transition:transform .2s;filter:drop-shadow(0 4px 2px rgba(0,0,0,.3))}
+.rover span{width:100%;display:grid;place-items:center}
+.rover.l span{transform:scaleX(-1)}
+.rover.bump span{animation:bump .5s}
+.rover.yay span{animation:yay .7s 2}
+@keyframes bump{30%{translate:var(--bx) var(--by)}60%{rotate:-12deg}}
+@keyframes yay{50%{transform:translateY(-18%) rotate(-10deg)}}
+.rover.l.yay span{animation:yayr .7s 2}
+@keyframes yayr{0%,100%{transform:scaleX(-1)}50%{transform:scaleX(-1) translateY(-18%) rotate(10deg)}}
+/* 指令列 */
+.prog{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center;min-height:52px;max-width:min(96vw,640px);padding:6px 10px;border-radius:18px;
+  background:rgba(255,255,255,.14);border:3px dashed rgba(255,255,255,.5)}
+.card,.slot{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;flex:none}
+.slot{border:3px dashed rgba(255,255,255,.35)}
+.card{background:#fff;border:0;cursor:pointer;padding:0;box-shadow:0 3px 0 rgba(0,0,0,.25);animation:cin .25s cubic-bezier(.3,1.6,.5,1)}
+.card svg,.ctl .ar svg{width:64%;height:64%;display:block}
+.card.now{background:#ffe27a;box-shadow:0 0 0 4px #ffb347}
+.card.err{background:#ffb3b3;box-shadow:0 0 0 4px #d23c3c;animation:shake .4s}
+.card.done{opacity:.55}
+@keyframes cin{from{transform:scale(.3)}}
+@keyframes shake{25%{translate:-6px 0}75%{translate:6px 0}}
+.prog .cnt{font-family:var(--num);font-weight:800;color:#fff;font-size:16px;margin-left:4px;opacity:.85}
+/* 控制：方向鍵、刪掉、出發 */
+.ctl{display:flex;align-items:center;gap:clamp(14px,3vmin,30px)}
+.pad{display:grid;grid-template-columns:repeat(3,auto);grid-template-areas:". u ." "l d r";gap:6px}
+.ar{width:clamp(60px,10vmin,78px);aspect-ratio:1;border-radius:18px;border:0;background:#fff;cursor:pointer;display:grid;place-items:center;padding:0;box-shadow:0 5px 0 #c9b8ff}
+.ar:active{transform:translateY(4px);box-shadow:0 1px 0 #c9b8ff}
+.ar[data-d="U"]{grid-area:u}.ar[data-d="L"]{grid-area:l}.ar[data-d="D"]{grid-area:d}.ar[data-d="R"]{grid-area:r}
+.side{display:flex;flex-direction:column;gap:10px;align-items:center}
+.del{width:clamp(60px,10vmin,72px);height:52px;border-radius:16px;border:0;background:rgba(255,255,255,.9);font-size:26px;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.25)}
+.del:active{transform:translateY(3px)}
+.gob{font:inherit;font-weight:900;font-size:clamp(20px,3.6vmin,28px);border:0;border-radius:999px;padding:.4em 1em;background:#3cb371;color:#fff;cursor:pointer;box-shadow:0 5px 0 #23804c;white-space:nowrap}
+.gob:active{transform:translateY(3px);box-shadow:0 2px 0 #23804c}
+.gob .zy .b,.gob .tz-b{color:#fff}
+.gob:disabled{opacity:.45}
+.ctl.off .ar,.ctl.off .del{opacity:.45;pointer-events:none}
+.msg{min-height:1.4em;font-weight:800;font-size:clamp(17px,2.8vmin,24px);color:#fff;text-align:center}
+.msg.good{color:#8ff0b5}.msg.bad{color:#ffd0d0}
+.msg .tz-b,.msg .zy .b{color:#e6e0ff}
+.legend{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;font-size:clamp(14px,2.2vmin,17px);color:#fff;font-weight:800}
+.legend .tz-b,.legend .zy .b{color:#e6e0ff}
+/* 手機直放 */
+@media (max-width:440px) and (orientation:portrait){.grid{--g:min(92vw,calc(100dvh - 380px))}.card,.slot{width:38px;height:38px}.ar{width:58px}.gob{font-size:19px}.legend{font-size:13px;gap:8px}}
+/* 橫放：地圖在左邊，指令和按鈕在右邊 */
+@media (orientation:landscape) and (max-height:820px){
+  main{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto auto auto 1fr;grid-template-areas:"grid ask" "grid legend" "grid prog" "grid ctl" "grid msg";
+    column-gap:clamp(14px,3vw,40px);align-content:center;align-items:center;justify-items:center}
+  .grid{grid-area:grid;--g:min(calc((100dvh - 96px) * var(--cols) / var(--rows)),52vw)}
+  .ask{grid-area:ask}.legend{grid-area:legend}.prog{grid-area:prog;max-width:100%}.ctl{grid-area:ctl}.msg{grid-area:msg;align-self:start}}
+@media (orientation:landscape) and (max-height:500px){.ask{font-size:14px;padding:.2em .8em}.legend{display:none}.card,.slot{width:34px;height:34px;border-radius:9px}.prog{min-height:40px;padding:4px 6px;gap:4px}
+  .ar{width:48px;border-radius:13px}.pad{gap:4px}.del{width:52px;height:42px;font-size:22px}.gob{font-size:17px}.msg{font-size:15px}.side{gap:6px}main{row-gap:6px}}
+@media (orientation:portrait) and (max-height:700px){.legend{display:none}.ask{font-size:14px;padding:.2em .8em}main{gap:6px}
+  .grid{--g:min(86vw,calc(100dvh - 360px))}.card,.slot{width:32px;height:32px;border-radius:9px}.prog{min-height:40px;padding:4px 6px;gap:4px}
+  .ar{width:50px;border-radius:14px}.pad{gap:4px}.del{width:54px;height:44px;font-size:22px}.gob{font-size:17px}.msg{font-size:15px}.side{gap:6px}}
+@media (prefers-reduced-motion:reduce){.rover{transition:none}.rover span,.card{animation:none!important}}
+</style>
+<script src="zhuyin.js?v=20261119r"></script>
+<script src="rest.js?v=20261119r"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="park.css?v=20261119r">
+<script src="park.js?v=20261119r"></script>
+</head>
+<body data-park>
+<header class="top">
+  <a class="ibtn" href="sky.html" aria-label="回謎題星空">🏠</a>
+  <div class="title">🚙<span class="tx"> 火星探險車</span></div>
+  <div class="right"><span class="score" id="score">🚩 0</span><button type="button" class="ibtn" id="again" aria-label="再聽一次說明">🔊</button></div>
+</header>
+<main>
+  <div class="ask" id="ask" data-zy>排好箭頭，讓探險車開到旗子！</div>
+  <div class="legend" id="legend"><span data-zy>🚙 探險車</span><span data-zy>🚩 終點</span><span data-zy>🪨 不能走</span><span id="lgem" data-zy hidden>💎 要先撿</span></div>
+  <div class="grid" id="grid" aria-label="火星地圖"></div>
+  <div class="prog" id="prog" aria-label="指令"></div>
+  <div class="ctl" id="ctl">
+    <div class="pad">
+      <button type="button" class="ar" data-d="U" aria-label="往上"></button>
+      <button type="button" class="ar" data-d="L" aria-label="往左"></button>
+      <button type="button" class="ar" data-d="D" aria-label="往下"></button>
+      <button type="button" class="ar" data-d="R" aria-label="往右"></button>
+    </div>
+    <div class="side">
+      <button type="button" class="del" id="del" aria-label="刪掉最後一個">⌫</button>
+      <button type="button" class="gob" id="run" data-zy>▶ 出發</button>
+    </div>
+  </div>
+  <div class="msg" id="msg" data-zy aria-live="polite"></div>
+
+  <section class="cover" id="start">
+    <div class="box">
+      <h2>🚙 火星探險車</h2>
+      <p data-zy>先用箭頭排好要走的路，<br>再按「出發」，探險車會照著走。<br>不要撞到石頭，開到旗子就成功了！</p>
+      <span class="lbl">難度</span>
+      <div class="row" id="levels">
+        <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small>小地圖</small></button>
+        <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small>要轉彎</small></button>
+        <button type="button" class="opt" data-lv="3" aria-label="高級"><span class="lvst">⭐⭐⭐</span><small>撿水晶</small></button>
+      </div>
+      <span class="lbl">幾題</span>
+      <div class="row" id="counts">
+        <button type="button" class="opt" data-n="3" aria-label="3 題"><span class="dots"><i></i><i></i><i></i></span><small>3</small></button>
+        <button type="button" class="opt" data-n="5" aria-label="5 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button>
+        <button type="button" class="opt" data-n="8" aria-label="8 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>8</small></button>
+      </div>
+      <button type="button" class="big" id="go" aria-label="開始">READY</button>
+    </div>
+  </section>
+  <section class="cover" id="end" hidden>
+    <div class="box">
+      <div class="stars" id="stars"></div>
+      <h2 id="endTitle"></h2>
+      <p id="endText" data-zy></p>
+      <div class="row">
+        <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+        <a class="big alt ico-btn" href="sky.html" aria-label="回謎題星空">🏠</a>
+      </div>
+    </div>
+  </section>
+</main>
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
+  const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+  // 每個難度：地圖大小、石頭數、最短要走幾步、至少轉幾次彎、水晶數；指令可以比最短多排幾個
+  const LV={1:{c:4,r:4,rocks:2,min:2,max:4,turns:0,gems:0,extra:2},
+            2:{c:5,r:5,rocks:5,min:4,max:7,turns:1,gems:0,extra:3},
+            3:{c:5,r:5,rocks:5,min:6,max:10,turns:2,gems:2,extra:3}};
+  const S={lv:[1,2,3].includes(+pref("sky-rover-lv"))?+pref("sky-rover-lv"):1,total:5,round:0,first:0,phase:"start",fails:0,prog:[],q:null,running:false};
+  const syncLv=()=>document.querySelectorAll("#levels button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
+  document.querySelectorAll("#levels button").forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("sky-rover-lv",S.lv);syncLv();demo()}));
+  syncLv();
+  {const n0=+pref("sky-rover-total");if([3,5,8].includes(n0))S.total=n0;
+   const cs=[...document.querySelectorAll("#counts button")],sync=()=>cs.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===S.total));
+   sync();cs.forEach(b=>b.addEventListener("click",()=>{S.total=+b.dataset.n;pref("sky-rover-total",S.total);sync()}))}
+
+  // ---- 語音與音效（和遊樂園一樣） ----
+  const synth=window.speechSynthesis;let voice=null;const rate=+(pref("duel-rate")||.9)||.9;
+  const quality=v=>{const u=v.voiceURI||"";return /eloquence|speech\.synthesis\.voice/i.test(u)?0:/\.premium\./i.test(u)?3:/enhanced|-premium/i.test(u)?2:1};
+  function pickVoice(){if(!synth)return;const vs=synth.getVoices().filter(v=>/^(zh|cmn)/i.test(v.lang));const want=pref("duel-voice");
+    const tw=vs.filter(v=>/TW|Hant/i.test(v.lang)&&quality(v)>0).sort((a,b)=>quality(b)-quality(a));
+    voice=(want&&vs.find(v=>(v.voiceURI||v.name)===want))||tw[0]||vs.find(v=>quality(v)>0)||vs[0]||null}
+  if(synth){pickVoice();try{synth.addEventListener("voiceschanged",pickVoice)}catch(e){}}
+  function say(t){if(!synth)return;try{const u=new SpeechSynthesisUtterance(t);u.lang=voice?voice.lang.replace("_","-"):"zh-TW";if(voice)u.voice=voice;u.rate=rate;u.pitch=1.1;
+    if(synth.speaking||synth.pending){synth.cancel();setTimeout(()=>{try{synth.speak(u)}catch(e){}},90)}else synth.speak(u)}catch(e){}}
+  let ac=null;
+  function tone(fs,dur=.12,type="triangle",vol=.15){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume();
+    fs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*dur;o.type=type;o.frequency.value=f;
+      g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)})}catch(e){}}
+  const sfx={good:()=>tone([784,1175],.14,"sine",.3),bad:()=>tone([150],.3,"square",.16),pip:i=>tone([440+i*40],.06,"sine",.12),
+    step:()=>tone([300],.05,"square",.05),gem:()=>tone([988,1319],.08,"sine",.2),win:()=>tone([523,659,784,1047],.16)};
+  {const _g=sfx.good;sfx.good=(...a)=>{try{window.parkBurst&&parkBurst()}catch(err){}return _g(...a)}}
+  function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
+    try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}}
+
+  // ---- 方向 ----
+  const DIR={U:[0,-1],D:[0,1],L:[-1,0],R:[1,0]},ROT={U:0,R:90,D:180,L:270},NAME={U:"上",D:"下",L:"左",R:"右"};
+  const arrow=d=>`<svg viewBox="0 0 40 40" aria-hidden="true" style="transform:rotate(${ROT[d]}deg)"><path d="M20 4L34 20H25V36H15V20H6z" fill="#7a5cf0" stroke="#3a2a8a" stroke-width="2.5" stroke-linejoin="round"/></svg>`;
+  document.querySelectorAll(".ar").forEach(b=>b.innerHTML=arrow(b.dataset.d));
+
+  // ---- 出題：放石頭、起點、終點（和水晶），用 BFS 找最短的路，步數和轉彎次數要在範圍內 ----
+  function bfs(q){
+    // 狀態：位置＋撿到哪些水晶
+    const {c,r}=q,full=(1<<q.gems.length)-1,key=(p,m)=>p*8+m;
+    const start=key(q.start,0),prev=new Map([[start,null]]),queue=[start];
+    while(queue.length){const k=queue.shift(),p=k>>3,m=k&7;
+      if(p===q.goal&&m===full){const path=[];let x=k;while(prev.get(x)){const [pk,d]=prev.get(x);path.unshift(d);x=pk}return path}
+      for(const d of "URDL"){const x=p%c+DIR[d][0],y=Math.floor(p/c)+DIR[d][1];if(x<0||y<0||x>=c||y>=r)continue;const np=y*c+x;if(q.rocks.has(np))continue;
+        const gi=q.gems.indexOf(np),nm=gi>=0?m|(1<<gi):m;
+        // 還沒撿完水晶不能先停在終點（可以經過）
+        const nk=key(np,nm);if(!prev.has(nk)){prev.set(nk,[k,d]);queue.push(nk)}}}
+    return null;
+  }
+  const turnsOf=p=>p.reduce((n,d,i)=>n+(i&&d!==p[i-1]?1:0),0);
+  function makeQ(){
+    const L=LV[S.lv];
+    for(let t=0;t<400;t++){
+      const n=L.c*L.r,cells=shuffle([...Array(n).keys()]);
+      const q={c:L.c,r:L.r,start:cells[0],goal:cells[1],gems:cells.slice(2,2+L.gems),rocks:new Set(cells.slice(2+L.gems,2+L.gems+L.rocks))};
+      const p=bfs(q);if(!p)continue;
+      if(p.length<L.min||p.length>L.max||turnsOf(p)<L.turns)continue;
+      if(S.q&&q.start===S.q.start&&q.goal===S.q.goal)continue;
+      q.sol=p;q.max=p.length+L.extra;return q;
+    }
+    return makeQ();
+  }
+
+  // ---- 畫面 ----
+  const grid=$("grid");let rover=null,pos=0,got=new Set(),facing="L";
+  function draw(q,showHint){
+    grid.style.setProperty("--cols",q.c);grid.style.setProperty("--rows",q.r);
+    grid.innerHTML=[...Array(q.c*q.r).keys()].map(i=>{
+      const k=q.rocks.has(i)?"rock":"",e=q.rocks.has(i)?"🪨":i===q.goal?"🚩":q.gems.includes(i)&&!got.has(i)?"💎":"";
+      return `<div class="tile ${k}" data-i="${i}">${e}</div>`}).join("")+`<div class="rover" id="rover"><span><svg viewBox="0 0 100 80" width="86%" aria-hidden="true"><g stroke="#3a2a22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><path d="M62 20V8" fill="none"/><circle cx="62" cy="7" r="5" fill="#ffd23f"/><rect x="14" y="14" width="40" height="8" rx="3" fill="#4dc3ff"/><path d="M34 22v6" fill="none"/><rect x="10" y="28" width="72" height="24" rx="8" fill="#fff"/><rect x="64" y="32" width="14" height="10" rx="3" fill="#7cc7ff"/><path d="M82 40h8" fill="none"/><circle cx="91" cy="40" r="3" fill="#e8584f"/><circle cx="24" cy="62" r="10" fill="#5a5f73"/><circle cx="48" cy="62" r="10" fill="#5a5f73"/><circle cx="72" cy="62" r="10" fill="#5a5f73"/><g fill="#c9ced8" stroke="none"><circle cx="24" cy="62" r="3.5"/><circle cx="48" cy="62" r="3.5"/><circle cx="72" cy="62" r="3.5"/></g></g></svg></span></div>`;
+    rover=$("rover");placeRover(q.start,true);
+    if(showHint){let p=q.start;q.sol.slice(0,-1).forEach(d=>{p=step(q,p,d);const t=grid.querySelector(`.tile[data-i="${p}"]`);if(t&&!t.textContent)t.classList.add("hint")})}
+  }
+  function step(q,p,d){return (Math.floor(p/q.c)+DIR[d][1])*q.c+(p%q.c+DIR[d][0])}
+  function placeRover(p,instant){pos=p;rover.dataset.p=p;const q=S.q,x=p%q.c,y=Math.floor(p/q.c);
+    if(instant)rover.style.transition="none";
+    rover.style.transform=`translate(calc(8px + ${x} * (100% + 4px)),calc(8px + ${y} * (100% + 4px)))`;
+    if(instant){void rover.offsetWidth;rover.style.transition=""}}
+  function face(d){if(d==="L"||d==="R"){facing=d;rover.classList.toggle("l",d==="L")}}
+  function drawProg(){
+    const q=S.q,pr=$("prog");
+    pr.innerHTML=S.prog.map((d,i)=>`<button type="button" class="card" data-k="${i}" aria-label="往${NAME[d]}，點一下刪掉">${arrow(d)}</button>`).join("")+
+      Array(Math.max(0,q.max-S.prog.length)).fill('<span class="slot"></span>').join("")+`<span class="cnt">${S.prog.length}/${q.max}</span>`;
+    pr.querySelectorAll(".card").forEach(c=>c.addEventListener("click",()=>{if(S.running)return;S.prog.splice(+c.dataset.k,1);sfx.pip(0);drawProg()}));
+    $("run").disabled=!S.prog.length;
+  }
+  function addCmd(d){
+    if(S.phase!=="play"||S.running)return;
+    if(S.prog.length>=S.q.max){msg(`最多只能排 ${S.q.max} 個指令喔`,"bad");sfx.bad();return}
+    S.prog.push(d);sfx.pip(S.prog.length);drawProg();msg("");
+  }
+  document.querySelectorAll(".ar").forEach(b=>b.addEventListener("click",()=>{unlock();addCmd(b.dataset.d)}));
+  $("del").addEventListener("click",()=>{if(S.running||!S.prog.length)return;S.prog.pop();sfx.pip(0);drawProg()});
+  // 鍵盤也可以用方向鍵
+  addEventListener("keydown",e=>{const m={ArrowUp:"U",ArrowDown:"D",ArrowLeft:"L",ArrowRight:"R"}[e.key];if(m){e.preventDefault();addCmd(m)}
+    else if(e.key==="Backspace"){e.preventDefault();$("del").click()}else if(e.key==="Enter"&&S.phase==="play")$("run").click()});
+  const msg=(t,c="")=>{$("msg").textContent=t;$("msg").className="msg"+(c?" "+c:"")};
+  const wait=ms=>new Promise(r=>setTimeout(r,ms));
+
+  // ---- 出發：一步一步照著指令開 ----
+  $("run").addEventListener("click",async()=>{
+    if(S.phase!=="play"||S.running||!S.prog.length)return;
+    unlock();S.running=true;$("ctl").classList.add("off");$("run").disabled=true;msg("");
+    const q=S.q,cards=[...$("prog").querySelectorAll(".card")];got=new Set();
+    grid.querySelectorAll(".tile.hint").forEach(t=>t.classList.remove("hint"));
+    let p=q.start,fail=null;
+    for(let i=0;i<S.prog.length;i++){
+      const d=S.prog[i];cards.forEach((c,j)=>c.classList.toggle("now",j===i));face(d);
+      const x=p%q.c+DIR[d][0],y=Math.floor(p/q.c)+DIR[d][1],out=x<0||y<0||x>=q.c||y>=q.r,np=y*q.c+x;
+      if(out||q.rocks.has(np)){
+        // 撞到：往那邊衝一下再彈回來
+        rover.style.setProperty("--bx",DIR[d][0]*30+"%");rover.style.setProperty("--by",DIR[d][1]*30+"%");
+        rover.classList.remove("bump");void rover.offsetWidth;rover.classList.add("bump");sfx.bad();
+        cards[i].classList.remove("now");cards[i].classList.add("err");fail={i,why:out?"edge":"rock"};break}
+      p=np;placeRover(p);sfx.step();await wait(480);
+      cards[i].classList.remove("now");cards[i].classList.add("done");
+      const gi=q.gems.indexOf(p);if(gi>=0&&!got.has(p)){got.add(p);sfx.gem();const t=grid.querySelector(`.tile[data-i="${p}"]`);t.textContent="";t.classList.add("got")}
+    }
+    const allGems=got.size===q.gems.length;
+    if(!fail&&p===q.goal&&allGems)return success();
+    if(!fail)fail={why:p===q.goal?"gems":"short"};
+    S.fails++;
+    const T={edge:`第 ${fail.i+1} 個指令會開出地圖外面！`,rock:`第 ${fail.i+1} 個指令撞到石頭了！`,
+      gems:"還有水晶沒撿到，先撿水晶再到旗子！",short:"還沒到旗子喔，再改一改指令！"}[fail.why];
+    if(fail.why!=="edge"&&fail.why!=="rock")sfx.bad();
+    msg(T,"bad");say(T.replace(/第 (\d+) 個/,"第$1個"));
+    await wait(1500);
+    // 回到起點，指令留著，可以改錯的地方
+    cards.forEach(c=>c.classList.remove("now","done"));got=new Set();draw(q,S.fails>=2);
+    if(S.fails>=2)msg("虛線圈圈是可以走的路，照著排排看！");
+    S.running=false;$("ctl").classList.remove("off");drawProg();
+    if(fail.i!=null){const c=$("prog").querySelector(`.card[data-k="${fail.i}"]`);c&&c.classList.add("err")}
+  });
+  async function success(){
+    S.phase="win";if(!S.fails)S.first++;
+    rover.classList.add("yay");sfx.good();msg("到了！🚩","good");upd();
+    await wait(1600);S.running=false;$("ctl").classList.remove("off");next();
+  }
+  function next(){
+    if(S.round>=S.total)return finish();
+    S.round++;S.phase="play";S.fails=0;S.prog=[];got=new Set();
+    S.q=makeQ();draw(S.q);drawProg();upd();
+    $("lgem").hidden=!S.q.gems.length;
+    $("ask").textContent=S.q.gems.length?"先撿完水晶 💎，再開到旗子 🚩！":"排好箭頭，讓探險車開到旗子 🚩！";
+    msg("");
+    if(S.round===1)say(S.q.gems.length?"按箭頭排好指令，先撿完水晶，再開到旗子，然後按出發。":"按箭頭排好指令，讓探險車開到旗子那裡，再按出發。");
+  }
+  const upd=()=>{$("score").textContent=`🚩 ${S.round} / ${S.total}`};
+  function start(){unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.first=0;S.q=null;next();
+    try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}}
+  function finish(){
+    S.phase="end";sfx.win();
+    const r=S.first/S.total,st=r>=.8?3:r>=.5?2:1;
+    $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);
+    $("endTitle").textContent=st===3?"太厲害了！":st===2?"做得很好！":"再練習一下！";
+    $("endText").textContent=`開完 ${S.total} 趟，有 ${S.first} 趟一次就成功。`;
+    $("end").hidden=false;say(`${$("endTitle").textContent}開完${S.total}趟`);
+  }
+  $("go").addEventListener("click",start);$("replay").addEventListener("click",start);
+  $("again").addEventListener("click",()=>say(S.q&&S.q.gems.length?"按箭頭排好指令，先撿完水晶，再開到旗子，然後按出發。":"按箭頭排好指令，讓探險車開到旗子那裡，再按出發。"));
+  // 開始畫面後面先擺一張示範的地圖
+  function demo(){if(S.phase!=="start")return;S.q=makeQ();S.prog=[];draw(S.q);drawProg();$("lgem").hidden=!S.q.gems.length}
+  demo();upd();
+})();
+</script>
+</body>
+</html>
