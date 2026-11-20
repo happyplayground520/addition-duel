@@ -47,7 +47,17 @@ main{justify-content:center}
 .board::after{top:50%;left:8px;right:8px;height:4px;transform:translateY(-50%)}
 .cell{position:relative;border:0;border-radius:16px;background:#fff;display:grid;place-items:center;font-size:calc(var(--g)*.13);line-height:1;cursor:pointer;padding:0;
   box-shadow:inset 0 -5px 0 rgba(0,0,0,.08);transition:background .2s,transform .12s}
-.cell.c1{margin-right:4px}.cell.c2{margin-left:4px}.cell.r1{margin-bottom:4px}.cell.r2{margin-top:4px}
+.cell.vr{margin-right:4px}.cell.vl{margin-left:4px}.cell.hb{margin-bottom:4px}.cell.ht{margin-top:4px}
+/* 6×6：不畫中間的白線，改成小方塊輪流塗顏色＋寬一點的縫 */
+.board.n6{grid-template-columns:repeat(6,1fr);gap:4px;padding:8px}
+.board.n6::before,.board.n6::after{display:none}
+.board.n6 .cell{font-size:calc(var(--g)*.085);border-radius:12px}
+.board.n6 .cell.vr{margin-right:5px}.board.n6 .cell.vl{margin-left:5px}.board.n6 .cell.hb{margin-bottom:5px}.board.n6 .cell.ht{margin-top:5px}
+.board.n6 .cell.tint{background:#ffe7bd}.board.n6 .cell.tint.given{background:#d6c8f7}
+.board.n6 .cell.empty::after{border-width:2px}
+.pal.n6{flex-wrap:wrap;max-width:min(96vw,620px);gap:clamp(8px,1.8vmin,14px)}
+.pal.n6 .pb{width:clamp(56px,10vmin,86px);font-size:clamp(32px,5.6vmin,48px);border-radius:18px}
+@media (max-width:440px){.pal.n6 .pb{width:calc((100vw - 60px)/6);font-size:calc((100vw - 60px)/10);border-radius:12px;border-width:3px}.pal.n6{gap:6px}}
 .cell.given{background:#e7e2ff;cursor:default}
 .cell.empty::after{content:"";width:26%;aspect-ratio:1;border-radius:50%;border:3px dashed #b9b2e0}
 .cell.zone{background:#fff7d0}
@@ -110,11 +120,11 @@ body.two .ask{display:none}
 @media (max-width:400px) and (orientation:portrait){.pal{gap:10px}.pb{width:66px;font-size:36px}.board{gap:5px;padding:8px}}
 @media (prefers-reduced-motion:reduce){.cell,.pb{animation:none!important}}
 </style>
-<script src="zhuyin.js?v=20261119r"></script>
-<script src="rest.js?v=20261119r"></script>
+<script src="zhuyin.js?v=20261119s"></script>
+<script src="rest.js?v=20261119s"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261119r">
-<script src="park.js?v=20261119r"></script>
+<link rel="stylesheet" href="park.css?v=20261119s">
+<script src="park.js?v=20261119s"></script>
 </head>
 <body data-park>
 <header class="top">
@@ -143,6 +153,7 @@ body.two .ask{display:none}
         <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small>空 4 格</small></button>
         <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small>空 7 格</small></button>
         <button type="button" class="opt" data-lv="3" aria-label="高級"><span class="lvst">⭐⭐⭐</span><small>空 10 格</small></button>
+        <button type="button" class="opt" data-lv="4" aria-label="挑戰 6×6"><span class="lvst">🌟 6×6</span><small>空 14 格</small></button>
       </div>
       <span class="lbl">幾題</span>
       <div class="row" id="counts">
@@ -171,10 +182,13 @@ body.two .ask{display:none}
   const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
   const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
   const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
-  const BLANKS={1:4,2:7,3:10};
-  const S={lv:[1,2,3].includes(+pref("sky-sudoku-lv"))?+pref("sky-sudoku-lv"):1,total:3,round:0,first:0,cells:0,phase:"start",sel:-1,sym:-1,miss:{},two:pref("sky-sudoku-mode")==="2",turn:0,pts:[0,0]};
+  const BLANKS={1:4,2:7,3:10,4:14};
+  // 格子大小：前三級 4×4（小方塊 2×2），挑戰級 6×6（小方塊 2 排 × 3 格，六種圖案）
+  let N=4,BR=2,BC=2;
+  const setSize=()=>{if(S.lv===4){N=6;BR=2;BC=3}else{N=4;BR=2;BC=2}};
+  const S={lv:[1,2,3,4].includes(+pref("sky-sudoku-lv"))?+pref("sky-sudoku-lv"):1,total:3,round:0,first:0,cells:0,phase:"start",sel:-1,sym:-1,miss:{},two:pref("sky-sudoku-mode")==="2",turn:0,pts:[0,0]};
   const syncLv=()=>document.querySelectorAll("#levels button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
-  document.querySelectorAll("#levels button").forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("sky-sudoku-lv",S.lv);syncLv()}));
+  document.querySelectorAll("#levels button").forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("sky-sudoku-lv",S.lv);syncLv();if(S.phase==="start"&&typeof demo==="function")demo()}));
   syncLv();
   const syncMode=()=>document.querySelectorAll("#modes button").forEach(b=>b.setAttribute("aria-pressed",(b.dataset.m==="2")===S.two));
   document.querySelectorAll("#modes button").forEach(b=>b.addEventListener("click",()=>{S.two=b.dataset.m==="2";pref("sky-sudoku-mode",S.two?"2":"1");syncMode()}));
@@ -210,40 +224,41 @@ body.two .ask{display:none}
 
   // ---- 四種圖案：每一題換一組（外星人、太空、天空、動物、水果…），一輪裡不會重複 ----
   const THEMES=[
-    [["👽","外星人"],["👾","小怪獸"],["🪐","土星"],["🌍","地球"]],
-    [["🚀","火箭"],["🛸","飛碟"],["🌙","月亮"],["⭐","星星"]],
-    [["☀️","太陽"],["☁️","雲朵"],["🌈","彩虹"],["⚡","閃電"]],
-    [["🐶","小狗"],["🐱","小貓"],["🐰","兔子"],["🐼","熊貓"]],
-    [["🍎","蘋果"],["🍌","香蕉"],["🍇","葡萄"],["🍓","草莓"]],
-    [["🐟","小魚"],["🐙","章魚"],["🐢","烏龜"],["🦀","螃蟹"]],
-    [["🍩","甜甜圈"],["🍦","冰淇淋"],["🍪","餅乾"],["🧁","杯子蛋糕"]],
-    [["🚗","汽車"],["🚂","火車"],["✈️","飛機"],["🚲","腳踏車"]]
+    [["👽","外星人"],["👾","小怪獸"],["🪐","土星"],["🌍","地球"],["🚀","火箭"],["🛸","飛碟"]],
+    [["🚀","火箭"],["🛸","飛碟"],["🌙","月亮"],["⭐","星星"],["🌞","太陽"],["🪐","土星"]],
+    [["☀️","太陽"],["☁️","雲朵"],["🌈","彩虹"],["⚡","閃電"],["❄️","雪花"],["💧","水滴"]],
+    [["🐶","小狗"],["🐱","小貓"],["🐰","兔子"],["🐼","熊貓"],["🐸","青蛙"],["🦊","狐狸"]],
+    [["🍎","蘋果"],["🍌","香蕉"],["🍇","葡萄"],["🍓","草莓"],["🍉","西瓜"],["🍊","橘子"]],
+    [["🐟","小魚"],["🐙","章魚"],["🐢","烏龜"],["🦀","螃蟹"],["🐳","鯨魚"],["🐚","貝殼"]],
+    [["🍩","甜甜圈"],["🍦","冰淇淋"],["🍪","餅乾"],["🧁","杯子蛋糕"],["🍭","棒棒糖"],["🍬","糖果"]],
+    [["🚗","汽車"],["🚂","火車"],["✈️","飛機"],["🚲","腳踏車"],["🚌","公車"],["🚀","火箭"]]
   ];
   let SYM=THEMES[0],themeOrder=[];
   function nextTheme(){if(S.round===1)themeOrder=[0,...shuffle([...Array(THEMES.length-1).keys()].map(k=>k+1))];
-    SYM=THEMES[themeOrder[(S.round-1)%themeOrder.length]];
+    SYM=THEMES[themeOrder[(S.round-1)%themeOrder.length]].slice(0,N);pal.classList.toggle("n6",N===6);
     pal.innerHTML=SYM.map(([e,n],k)=>`<button type="button" class="pb" data-v="${k}" aria-label="${n}" aria-pressed="false">${e}</button>`).join("");
     pbs=[...pal.querySelectorAll(".pb")];pbs.forEach(b=>b.addEventListener("click",()=>tapPal(+b.dataset.v)))}
   // ---- 出題：先做一個完整的答案，再挖空格（挖完一定只有一種填法） ----
-  const row=i=>Math.floor(i/4),col=i=>i%4,box=i=>Math.floor(row(i)/2)*2+Math.floor(col(i)/2);
-  const peers=i=>[...Array(16).keys()].filter(j=>j!==i&&(row(j)===row(i)||col(j)===col(i)||box(j)===box(i)));
+  const row=i=>Math.floor(i/N),col=i=>i%N,box=i=>Math.floor(row(i)/BR)*(N/BC)+Math.floor(col(i)/BC);
+  const PEERS={};
+  const peers=i=>{const P=PEERS[N]||(PEERS[N]=[...Array(N*N).keys()].map(a=>[...Array(N*N).keys()].filter(j=>j!==a&&(row(j)===row(a)||col(j)===col(a)||box(j)===box(a)))));return P[i]};
+  // 完整的答案：照公式排好一個，再把「同一帶裡的排」「帶和帶」「同一疊裡的直排」「疊和疊」隨機換位置、圖案也打亂
   function solved(){
-    let g=[[0,1,2,3],[2,3,0,1],[1,0,3,2],[3,2,1,0]];
-    const sw=(a,b,c)=>{if(c){[g[a],g[b]]=[g[b],g[a]]}};
-    sw(0,1,Math.random()<.5);sw(2,3,Math.random()<.5);if(Math.random()<.5)g=[g[2],g[3],g[0],g[1]];
-    const T=()=>{g=g[0].map((_,c)=>g.map(r=>r[c]))};
-    if(Math.random()<.5)T();sw(0,1,Math.random()<.5);sw(2,3,Math.random()<.5);if(Math.random()<.5)g=[g[2],g[3],g[0],g[1]];if(Math.random()<.5)T();
-    const perm=shuffle([0,1,2,3]);return g.flat().map(v=>perm[v]);
+    const idx=(n,k)=>{const groups=shuffle([...Array(n/k).keys()]);return groups.flatMap(g=>shuffle([...Array(k).keys()]).map(x=>g*k+x))};
+    const rs=idx(N,BR),cs=idx(N,BC),perm=shuffle([...Array(N).keys()]);
+    const base=(r,c)=>(BC*(r%BR)+Math.floor(r/BR)+c)%N;
+    return [...Array(N*N).keys()].map(i=>perm[base(rs[Math.floor(i/N)],cs[i%N])]);
   }
   function countSol(a,limit=2){
-    const i=a.indexOf(-1);if(i<0)return 1;let n=0;
-    for(let v=0;v<4&&n<limit;v++){if(peers(i).some(j=>a[j]===v))continue;a[i]=v;n+=countSol(a,limit-n);a[i]=-1}
+    const i=a.indexOf(-1);if(i<0)return 1;let n=0;const P=peers(i);
+    for(let v=0;v<N&&n<limit;v++){if(P.some(j=>a[j]===v))continue;a[i]=v;n+=countSol(a,limit-n);a[i]=-1}
     return n;
   }
   function makePuzzle(){
+    setSize();
     for(let t=0;t<50;t++){
       const sol=solved(),puz=sol.slice();let removed=0;
-      for(const i of shuffle([...Array(16).keys()])){if(removed>=BLANKS[S.lv])break;const k=puz[i];puz[i]=-1;if(countSol(puz.slice())===1)removed++;else puz[i]=k}
+      for(const i of shuffle([...Array(N*N).keys()])){if(removed>=BLANKS[S.lv])break;const k=puz[i];puz[i]=-1;if(countSol(puz.slice())===1)removed++;else puz[i]=k}
       if(removed===BLANKS[S.lv])return{sol,puz};
     }
     return makePuzzle();
@@ -254,8 +269,11 @@ body.two .ask{display:none}
   let pbs=[];
   let G=null;
   function drawBoard(){
+    board.classList.toggle("n6",N===6);board.style.setProperty("--n",N);
     board.innerHTML=G.cur.map((v,i)=>{const r=row(i),c=col(i);
-      const cls=["cell",G.puz[i]>=0?"given":v<0?"empty":"kid","c"+c,"r"+r].join(" ");
+      const cls=["cell",G.puz[i]>=0?"given":v<0?"empty":"kid",
+        c%BC===BC-1&&c<N-1?"vr":"",c%BC===0&&c>0?"vl":"",r%BR===BR-1&&r<N-1?"hb":"",r%BR===0&&r>0?"ht":"",
+        N===6&&(Math.floor(r/BR)+Math.floor(c/BC))%2?"tint":""].filter(Boolean).join(" ");
       return `<button type="button" class="${cls}" data-i="${i}" aria-label="第${r+1}排第${c+1}格${v>=0?"："+SYM[v][1]:"，空格"}">${v>=0?SYM[v][0]:""}</button>`}).join("");
     board.querySelectorAll(".cell").forEach(b=>b.addEventListener("click",()=>tapCell(+b.dataset.i)));
   }
@@ -308,7 +326,8 @@ body.two .ask{display:none}
     S.round++;S.phase="play";S.sel=-1;S.miss={};setSym(-1);
     nextTheme();const p=makePuzzle();G={sol:p.sol,puz:p.puz,cur:p.puz.slice()};drawBoard();upd();
     $("msg").textContent=S.two?`輪到${PN[S.turn]}：點一個空格，再點圖案`:"點一個空格，再點下面的圖案";$("msg").className="msg";pbs.forEach(b=>b.classList.remove("glow"));updTurn();
-    if(S.round===1)say("每一橫排、每一直排、每一個小方塊裡，四種圖案都只能出現一次。點空格，再點下面的圖案。");
+    $("ask").innerHTML=`每一排、每一直排、每一個小方塊，<br>${N===6?"六":"四"}種圖案都只能出現一次！`;
+    if(S.round===1)say(`每一橫排、每一直排、每一個小方塊裡，${N===6?"六":"四"}種圖案都只能出現一次。點空格，再點下面的圖案。`);
   }
   const upd=()=>{$("score").textContent=`🧩 ${S.round} / ${S.total}`};
   function start(){unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.first=0;S.cells=0;S.turn=0;S.pts=[0,0];next();
@@ -326,9 +345,10 @@ body.two .ask{display:none}
     $("end").hidden=false;say(`${$("endTitle").textContent}完成${S.total}題數獨`);
   }
   $("go").addEventListener("click",start);$("replay").addEventListener("click",start);
-  $("again").addEventListener("click",()=>say("每一橫排、每一直排、每一個小方塊裡，四種圖案都只能出現一次。點空格，再點下面的圖案。"));
+  $("again").addEventListener("click",()=>say(`每一橫排、每一直排、每一個小方塊裡，${N===6?"六":"四"}種圖案都只能出現一次。點空格，再點下面的圖案。`));
   // 開始畫面後面先擺一個示範的格子
-  {const p=makePuzzle();G={sol:p.sol,puz:p.puz,cur:p.puz.slice()};drawBoard();upd()}
+  function demo(){const p=makePuzzle();SYM=THEMES[0].slice(0,N);G={sol:p.sol,puz:p.puz,cur:p.puz.slice()};drawBoard();upd()}
+  demo();
 })();
 </script>
 </body>

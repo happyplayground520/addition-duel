@@ -99,11 +99,11 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   .overlay h2{display:none} .overlay .opt small{display:none}
 }
 </style>
-<script src="zhuyin.js?v=20261119r"></script>
-<script src="rest.js?v=20261119r"></script>
+<script src="zhuyin.js?v=20261119s"></script>
+<script src="rest.js?v=20261119s"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261119r">
-<script src="park.js?v=20261119r"></script>
+<link rel="stylesheet" href="park.css?v=20261119s">
+<script src="park.js?v=20261119s"></script>
 <style>:root{--theme:#2b7f50}</style>
 </head>
 <body>
@@ -126,7 +126,8 @@ body{background:#eef3f1;color:var(--ink);font-family:var(--text);overflow:hidden
   const NAMES=["藍色","橘色"];
   const STAR={1:"⭐",2:"⭐⭐",3:"⭐⭐⭐"};
   // 難度（兩人共用一個牌桌，所以只有一個難度）
-  const LV={1:{name:"初級",sub:"湊成 5・12 張",T:5,n:12,dots:true},2:{name:"進階",sub:"湊成 10・12 張",T:10,n:12,dots:true},3:{name:"高級",sub:"湊成 10・16 張",T:10,n:16,dots:false}};
+  // 牌的對數都是單數（7 對、9 對），兩個人的分數加起來是單數，就不會平手
+  const LV={1:{name:"初級",sub:"湊成 5・14 張",T:5,n:14,dots:true},2:{name:"進階",sub:"湊成 10・14 張",T:10,n:14,dots:true},3:{name:"高級",sub:"湊成 10・18 張",T:10,n:18,dots:false}};
   const G={lv:LV[+pref("memory-lv")]?+pref("memory-lv"):1,voice:pref("memory-voice")!=="off",turn:0,score:[0,0],ready:[false,false],phase:"ready",first:null,busy:false,left:0};
 
   // ---- 語音 ----
