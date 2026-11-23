@@ -101,11 +101,11 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:minma
 .wheel,.ride{position:relative;height:100%;min-height:0}
 .wheel svg,.ride svg{position:absolute;inset:0;width:100%;height:100%;max-height:none}
 </style>
-<script src="zhuyin.js?v=20261119s"></script>
-<script src="rest.js?v=20261119s"></script>
+<script src="zhuyin.js?v=20261123a"></script>
+<script src="rest.js?v=20261123a"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261119s">
-<script src="park.js?v=20261119s"></script>
+<link rel="stylesheet" href="park.css?v=20261123a">
+<script src="park.js?v=20261123a"></script>
 <style>body{background:repeating-linear-gradient(115deg,rgba(255,255,255,.35) 0 22px,transparent 22px 44px),radial-gradient(circle at 50% 30%,#fff3f8,#ffe0ec 60%,#f9cfe0)}</style>
 </head>
 <body data-park>
@@ -167,12 +167,13 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:minma
   <section class="cover" id="start">
     <div class="box">
       <h2>🎠 旋轉木馬時鐘</h2>
-      <p>旋轉木馬上有一個大時鐘！<br>看時鐘說出時間，或把時鐘撥到對的時間。</p>
+      <p>旋轉木馬上有一個大時鐘！<br>看時鐘說出時間，或把時鐘撥到對的時間。<br>「經過多久」要算旋轉木馬轉了多少時間。</p>
       <span class="lbl">玩法</span>
       <div class="row" id="modes">
         <button type="button" class="opt" data-mode="read">讀時鐘<small>看鐘選答案</small></button>
         <button type="button" class="opt" data-mode="set">撥時鐘<small>拖動指針</small></button>
         <button type="button" class="opt" data-mode="mix">兩種混合</button>
+        <button type="button" class="opt" data-mode="elapse">經過多久<small>算時間</small></button>
       </div>
       <span class="lbl">難度</span>
       <div class="row" id="levels">
@@ -206,7 +207,7 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:minma
   const STEP={1:30,2:5,3:1};
   const S={lv:[1,2,3].includes(+pref("park-level"))?+pref("park-level"):1,mode:pref("carousel-mode")||"read",total:10,
     round:0,score:0,tries:0,phase:"start",kind:"read",target:null,h:12,m:0,last:""};
-  if(!["read","set","mix"].includes(S.mode))S.mode="read";
+  if(!["read","set","mix","elapse"].includes(S.mode))S.mode="read";
 
   // ---- 開始畫面的選項 ----
   const sync=()=>{
@@ -270,6 +271,40 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:minma
     return out.slice(0,3);
   }
 
+  // ---- 經過多久 ----
+  // 初級：整點到整點，經過幾小時；進階：再過幾小時是幾點、半小時是 30 分鐘；高級：同一個小時裡經過幾分鐘、跨過整點、1 小時 = 60 分鐘
+  const hh=h=>((h-1+12)%12)+1,dur=(a,b)=>{let d=(hh(b.h)%12*60+b.m)-(hh(a.h)%12*60+a.m);if(d<=0)d+=720;return d};
+  const ft=t=>t.m===0?`${t.h} 點`:t.m===30&&S.lv<3?`${t.h} 點半`:`${t.h} 點 ${t.m} 分`;
+  const st2=t=>ft(t).replace(/ /g,"");
+  const durTxt=d=>d%60===0?`${d/60} 小時`:d<60?`${d} 分鐘`:`${Math.floor(d/60)} 小時 ${d%60} 分`;
+  function elapseQ(){
+    const lv=S.lv,kind=lv===1?"hours":lv===2?["hours","after","half"][rnd(0,2)]:["mins","mins","cross","after"][rnd(0,3)];
+    let a,b,q={kind};
+    if(kind==="hours"){a={h:rnd(1,10),m:0};const n=rnd(1,lv===1?4:6);b={h:hh(a.h+n),m:0};q.ans=durTxt(n*60);
+      q.opts=[n,n+1,n-1>0?n-1:n+2].map(x=>durTxt(x*60));q.ask=`旋轉木馬從 <b>${ft(a)}</b> 轉到 <b>${ft(b)}</b>，<br>經過了多久？`}
+    else if(kind==="half"){a={h:rnd(1,11),m:rnd(0,1)*30};const n=rnd(0,1);const d=n*60+30;b={h:hh(a.h+Math.floor((a.m+d)/60)),m:(a.m+d)%60};
+      q.ans=durTxt(d);q.opts=[durTxt(d),durTxt(d===30?60:30),durTxt(d+60)];q.ask=`從 <b>${ft(a)}</b> 到 <b>${ft(b)}</b>，<br>經過了多久？`}
+    else if(kind==="after"){a={h:rnd(1,11),m:lv===3?rnd(0,11)*5:0};const n=rnd(1,lv===3?4:3);b={h:hh(a.h+n),m:a.m};
+      q.ans=ft(b);q.opts=[ft(b),ft({h:hh(a.h+n+1),m:a.m}),ft({h:hh(a.h+n-1),m:a.m})].filter((v,i,x)=>x.indexOf(v)===i);
+      if(q.opts.length<3)q.opts.push(ft({h:hh(a.h+n+2),m:a.m}));
+      q.ask=`現在是 <b>${ft(a)}</b>，<br>再過 ${n} 小時是幾點？`;q.say=`現在是${st2(a)}，再過${n}小時是幾點？`}
+    else if(kind==="mins"){a={h:rnd(1,12),m:rnd(0,7)*5};const d=rnd(2,Math.min(11,(55-a.m)/5|0)||2)*5;b={h:a.h,m:a.m+d};if(b.m>=60){b.m-=60;b.h=hh(b.h+1)}
+      q.ans=durTxt(d);q.opts=[d,d+5,d-5>0?d-5:d+10].map(durTxt);q.ask=`從 <b>${ft(a)}</b> 到 <b>${ft(b)}</b>，<br>經過幾分鐘？`}
+    else{a={h:rnd(1,11),m:rnd(8,11)*5};const d=rnd(2,6)*5+(60-a.m);b={h:hh(a.h+1),m:a.m+d-60};
+      q.ans=durTxt(d);q.opts=[d,d+10,(60-a.m)].filter((v,i,x)=>x.indexOf(v)===i).map(durTxt);if(q.opts.length<3)q.opts.push(durTxt(d+5));
+      q.ask=`從 <b>${ft(a)}</b> 到 <b>${ft(b)}</b>，<br>經過幾分鐘？`}
+    q.a=a;q.b=b;q.opts=q.opts.sort(()=>Math.random()-.5);
+    if(!q.say)q.say=q.ask.replace(/<[^>]+>/g,"").replace(/ /g,"");
+    return q;
+  }
+  function elapseHint(q){
+    if(q.kind==="after")return`從 ${ft(q.a)} 開始，一個小時一個小時往後數。`;
+    if(q.kind==="hours")return"看短針（時針）走過了幾個數字。";
+    if(q.kind==="half")return"長針走半圈是 30 分鐘，走一圈是 1 小時。";
+    if(q.kind==="cross")return`先數到 ${q.b.h} 點整，再加上後面的分鐘。`;
+    return"長針走一大格是 5 分鐘，數數看走了幾大格。";
+  }
+
   // ---- 遊戲流程 ----
   function start(){
     unlock();$("start").hidden=true;$("end").hidden=true;
@@ -285,6 +320,17 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:minma
     if(S.round>=S.total)return finish();
     S.round++;S.tries=0;S.phase="play";$("msg").textContent="";$("msg").className="msg";
     S.kind=S.mode==="mix"?(S.round%2?"read":"set"):S.mode;
+    if(S.kind==="elapse"){
+      const q=S.eq=elapseQ();document.body.classList.remove("setmode");
+      S.h=q.a.h;S.m=q.a.m;draw();
+      // 先停在開始的時間，再讓指針轉到結束的時間（「再過幾小時」題目不轉，答對才轉）
+      if(q.kind!=="after")setTimeout(()=>{if(S.eq===q&&S.phase==="play")animateTo(q.b.h,q.b.m)},1100);
+      $("ask").innerHTML=q.ask;
+      $("choices").innerHTML=q.opts.map(t=>`<button type="button" class="ch" data-t="${t}">${t}</button>`).join("");
+      $("choices").querySelectorAll(".ch").forEach(b=>b.addEventListener("click",()=>pickE(b)));
+      $("choices").hidden=false;$("setter").hidden=true;
+      say(q.say);return;
+    }
     S.target=newTime();
     document.body.classList.toggle("setmode",S.kind==="set");
     if(S.kind==="read"){
@@ -315,6 +361,14 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:minma
   }
   function wrong(text){
     S.tries++;sfx.bad();$("msg").textContent=text;$("msg").className="msg bad";
+  }
+  function pickE(b){
+    if(S.phase!=="play")return;const q=S.eq;
+    if(b.dataset.t===q.ans){b.classList.add("right");if(q.kind==="after")animateTo(q.b.h,q.b.m);correct();return}
+    b.classList.remove("wrong");void b.offsetWidth;b.classList.add("wrong");
+    const tip=elapseHint(q);wrong(tip);say(tip.replace(/（|）/g,"").replace(/ /g,""));
+    // 錯兩次就再轉一次給你看
+    if(S.tries>=2&&q.kind!=="after"){S.h=q.a.h;S.m=q.a.m;draw();setTimeout(()=>animateTo(q.b.h,q.b.m),600)}
   }
   function pick(b){
     if(S.phase!=="play")return;
@@ -389,7 +443,7 @@ main{position:relative;flex:1;min-height:0;display:grid;grid-template-rows:minma
 
   $("go").addEventListener("click",start);
   $("replay").addEventListener("click",start);
-  $("again").addEventListener("click",()=>{if(S.phase==="play")say(S.kind==="read"?"現在是幾點？":`請把時鐘撥到${speak(S.target.h,S.target.m)}`)});
+  $("again").addEventListener("click",()=>{if(S.phase==="play")say(S.kind==="elapse"?S.eq.say:S.kind==="read"?"現在是幾點？":`請把時鐘撥到${speak(S.target.h,S.target.m)}`)});
   S.h=10;S.m=10;draw();upd();
 })();
 </script>

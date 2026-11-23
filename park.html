@@ -152,9 +152,9 @@ h1 .star{font-size:.7em;text-shadow:none}
   .map{width:min(100%,calc((100dvh - 56px) * 1.6))}
 }
 </style>
-<script src="zhuyin.js?v=20261119s"></script>
-<script src="rest.js?v=20261119s"></script>
-<script src="warm.js?v=20261119s" defer></script>
+<script src="zhuyin.js?v=20261123a"></script>
+<script src="rest.js?v=20261123a"></script>
+<script src="warm.js?v=20261123a" defer></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
 <style>:root{--text:"Chiron GoRound TC","PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif}
 /* ---- 手機：地圖變成長長的步道，往下捲著逛（一排 2 個，手機橫放一排 4 個） ---- */
@@ -193,7 +193,13 @@ html.phone .bunting{height:36px}
   <div id="decos" aria-hidden="true"></div>
 
   <a class="spot open" data-k="booth" href="booth.html" style="--c:#e0772b">
-    <span class="icon">🎟️</span><span class="name" data-zy>售票亭</span><span class="tag">👤 認識錢幣</span>
+    <span class="icon">🎟️</span><span class="name" data-zy>售票亭</span><span class="tag">👤 付錢、找錢</span>
+  </a>
+  <a class="spot open" data-k="ruler" href="ruler.html" style="--c:#d99a00">
+    <span class="icon">📏</span><span class="name" data-zy>量一量</span><span class="tag">👤 長度</span>
+  </a>
+  <a class="spot open" data-k="share" href="share.html" style="--c:#c86a2b">
+    <span class="icon">🍪</span><span class="name" data-zy>分點心</span><span class="tag">👤 平分、分數</span>
   </a>
   <a class="spot open" data-k="train" href="train.html" style="--c:#c0392b">
     <span class="icon">🚂</span><span class="name" data-zy>小火車</span><span class="tag">👥 大富翁</span>
@@ -205,7 +211,7 @@ html.phone .bunting{height:36px}
     <span class="icon">🎡</span><span class="name" data-zy>摩天輪</span><span class="tag">👤 乘法</span>
   </a>
   <a class="spot open" data-k="carousel" href="carousel.html" style="--c:#d1478f">
-    <span class="icon">🎠</span><span class="name" data-zy>旋轉木馬</span><span class="tag">👤 認識時鐘</span>
+    <span class="icon">🎠</span><span class="name" data-zy>旋轉木馬</span><span class="tag">👤 時鐘、經過時間</span>
   </a>
   <a class="spot open" data-k="ring" href="ring.html" style="--c:#14a99c">
     <span class="icon"><svg class="ringico" viewBox="0 0 64 64" width="1em" height="1em" aria-hidden="true" style="vertical-align:-.12em"><rect x="27" y="10" width="10" height="20" rx="3" fill="#b9ece4"/><rect x="25.5" y="7" width="13" height="6" rx="2" fill="#7fd6c8"/><rect x="17" y="27" width="30" height="31" rx="10" fill="#b9ece4"/><circle cx="26" cy="42" r="2.2" fill="#1f2b33"/><circle cx="38" cy="42" r="2.2" fill="#1f2b33"/><path d="M28.5 47q3.5 3 7 0" stroke="#1f2b33" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="22" cy="46" r="2.6" fill="#ffb3c7" opacity=".8"/><circle cx="42" cy="46" r="2.6" fill="#ffb3c7" opacity=".8"/><ellipse cx="32" cy="24" rx="17" ry="6" fill="none" stroke="#ff6b9a" stroke-width="5" transform="rotate(-10 32 24)"/><ellipse cx="32" cy="24" rx="17" ry="6" fill="none" stroke="#ffd23f" stroke-width="5" stroke-dasharray="9 9" transform="rotate(-10 32 24)"/></svg></span><span class="name" data-zy>套圈圈</span><span class="tag">👤 九九快答</span>
@@ -245,7 +251,7 @@ html.phone .bunting{height:36px}
   const map=document.querySelector(".map");
   function mkLayout(c,dc,dmid,street,rows,plazaLeft){
     const [r1,r2,r3]=rows;
-    const pos={balloon:[c[0],r1],coaster:[c[1],r1],fish:[c[2],r1],
+    const pos={balloon:[c[0],r1],coaster:[c[1],r1],fish:[c[2],r1],ruler:[street,(r1+r2)/2+2],share:[street,(r2+r3)/2+2],
                ferris:[c[0],r2],donut:[c[1],r2],ring:[c[2],r2],
                carousel:[c[0],r3],claw:[c[1],r3],booth:[c[2],r3],
                train:[dc[0],r1],bumper:[dc[1],r1],duel:[dmid,r2],memory:[dc[0],r3],shape:[dc[1],r3]};
@@ -260,11 +266,11 @@ html.phone .bunting{height:36px}
       {decos:[["🌷",18,35],["🌼",35,35],["🌳",18,66],["🌲",35,66],["🎈",97,95],["🌳",3,95]]}),
     // 直放：上半部草地（一個人玩 3×3），下半部對戰廣場（小火車、馬戲團、碰碰車／翻牌湊十、形狀搶答）
     port:{
-      pos:{balloon:[17,13],coaster:[50,13],fish:[83,13],
+      pos:{balloon:[12.5,13],coaster:[37.5,13],fish:[62.5,13],ruler:[87.5,13],
            ferris:[17,29.5],donut:[50,29.5],ring:[83,29.5],
-           carousel:[17,45.5],claw:[50,45.5],booth:[83,45.5],
+           carousel:[12.5,45.5],claw:[37.5,45.5],booth:[62.5,45.5],share:[87.5,45.5],
            train:[17,71],duel:[50,71],bumper:[83,71],memory:[30,89],shape:[70,89]},
-      lines:[[[17,13],[83,13]],[[17,29.5],[83,29.5]],[[17,45.5],[83,45.5]],[[17,71],[83,71]],[[30,89],[70,89]],
+      lines:[[[12.5,13],[87.5,13]],[[17,29.5],[83,29.5]],[[12.5,45.5],[87.5,45.5]],[[17,71],[83,71]],[[30,89],[70,89]],
              [[17,13],[17,71]],[[83,13],[83,71]],[[50,104],[50,13]]],
       plaza:{left:"1.5%",right:"1.5%",top:"56%",bottom:"1.5%"},gate:50,signs:[[50,1.2],[50,56.6]],
       decos:[["🌷",33,20],["🌼",67,20],["🌳",33,37],["🌲",67,37],["🎈",95,97],["🌳",5,97]]}
@@ -283,7 +289,7 @@ html.phone .bunting{height:36px}
     return d+(closed?" Z":"");
   }
   // 手機版的位置：依地圖寬度決定一排幾個，算出每一排的高度，地圖拉長到放得下全部
-  const SOLO=["balloon","coaster","fish","ferris","donut","ring","carousel","claw","booth"],DUO=["train","bumper","memory","shape"];
+  const SOLO=["balloon","coaster","fish","ferris","donut","ring","carousel","claw","booth","ruler","share"],DUO=["train","bumper","memory","shape"];
   function phoneLayout(){
     const W=map.clientWidth,cols=W>=640?4:2,rowH=W>=640?158:168,signH=54;
     const pos={},lines=[],yPx={};let y=12;

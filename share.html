@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>分點心</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
+<style>
+/* 單人小遊戲：分點心。初級平分、分裝（除法的前置經驗）；進階認識幾分之一；高級比較單位分數、分給大家 */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --ink:#1f2b33; --muted:#5d6b72; --good:#1f9d61; --bad:#d23c3c; --accent:#f0a020; --accent-dark:#b06a00;
+  --num:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
+  --text:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{margin:0;height:100%}
+body{background:radial-gradient(circle,rgba(255,255,255,.5) 2px,transparent 2.5px) 0 0/30px 30px,linear-gradient(#fff6d8,#ffe9b8);color:var(--ink);font-family:var(--text);overflow:hidden;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;display:flex;flex-direction:column}
+[hidden]{display:none!important}
+.top{display:flex;align-items:center;gap:12px;padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.ibtn{width:48px;height:48px;border-radius:14px;border:0;background:rgba(255,255,255,.9);font-size:24px;cursor:pointer;display:grid;place-items:center;text-decoration:none;color:inherit;box-shadow:0 3px 0 rgba(0,0,0,.1);flex:none}
+.ibtn:active{transform:translateY(2px)}
+.ttl{flex:1;text-align:center;font-weight:800;font-size:clamp(18px,3.2vmin,28px)}
+.score{font-family:var(--num);font-weight:800;font-size:clamp(18px,3.4vmin,30px);background:rgba(255,255,255,.9);border-radius:999px;padding:4px 14px;white-space:nowrap;flex:none}
+main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(10px,2.2vh,22px);
+  padding:0 max(12px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+.ask{background:#fff;border-radius:20px;padding:.3em 1em;font-weight:800;font-size:clamp(18px,3.2vmin,28px);box-shadow:0 5px 0 rgba(0,0,0,.08);text-align:center;max-width:96vw}
+/* 分點心的盤子、袋子 */
+.stage{display:flex;flex-direction:column;align-items:center;gap:clamp(8px,1.8vh,16px);width:min(100%,900px)}
+.pile{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;min-height:52px;max-width:min(96vw,620px);padding:8px 14px;background:#fff;border-radius:20px;box-shadow:0 4px 0 rgba(0,0,0,.08)}
+.pile .ck,.plate .ck,.bag .ck{font-size:clamp(28px,5vmin,42px);line-height:1}
+.pile .lab{font-weight:800;color:var(--muted);align-self:center;font-size:16px;margin-right:6px}
+.plates{display:flex;flex-wrap:wrap;gap:clamp(10px,2.4vmin,22px);justify-content:center}
+.plate{position:relative;width:clamp(110px,19vmin,170px);min-height:clamp(110px,19vmin,170px);border-radius:50%;border:0;cursor:pointer;padding:14px;
+  background:radial-gradient(circle,#fff 55%,#e9eef2 56%,#fff 70%);box-shadow:0 6px 0 #d4dde3,0 10px 18px rgba(0,0,0,.08);display:flex;flex-wrap:wrap;align-content:center;justify-content:center;gap:2px}
+.plate:active{transform:translateY(3px)}
+.plate .who{position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:30px;line-height:1}
+.plate .n{position:absolute;bottom:-12px;left:50%;transform:translateX(-50%);background:#fff;border-radius:999px;padding:0 10px;font-family:var(--num);font-weight:800;font-size:18px;box-shadow:0 2px 0 rgba(0,0,0,.1)}
+.plate.no{animation:shake .4s}
+.bags{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;min-height:90px}
+.bag{position:relative;width:clamp(90px,15vmin,130px);padding:22px 8px 10px;border-radius:12px 12px 22px 22px;background:#ffd9a8;box-shadow:inset 0 -6px 0 rgba(0,0,0,.08),0 5px 0 #e0a860;
+  display:flex;flex-wrap:wrap;justify-content:center;gap:2px;animation:pop .4s cubic-bezier(.3,1.6,.5,1)}
+.bag::before{content:"🎀";position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:24px}
+@keyframes pop{from{transform:scale(.3)}}
+.tool{font:inherit;font-weight:900;font-size:clamp(18px,3.2vmin,24px);border:0;border-radius:999px;padding:.4em 1.1em;background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 5px 0 #e7c98a}
+.tool:active{transform:translateY(3px);box-shadow:0 2px 0 #e7c98a}
+.tool.green{background:#3cb371;color:#fff;box-shadow:0 5px 0 #23804c}
+.tool.green .zy .b,.tool.green .tz-b{color:#fff}
+.tools{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+/* 分數：圖形 */
+.shapes{display:flex;flex-wrap:wrap;gap:clamp(12px,3vmin,30px);justify-content:center}
+.shp{border:0;background:none;padding:6px;border-radius:20px;cursor:pointer}
+.shp svg{width:clamp(130px,22vmin,210px);height:auto;display:block}
+.shp.big svg{width:clamp(170px,32vmin,280px)}
+.shp.no{animation:shake .4s;background:#ffd6d6}
+.shp.yes{background:#c9f5dc}
+.shp.static{cursor:default}
+.fr{display:inline-flex;flex-direction:column;align-items:center;font-family:var(--num);font-weight:800;line-height:1;vertical-align:middle;margin:0 .15em}
+.fr i{font-style:normal}.fr hr{width:1.2em;margin:.08em 0;border:0;border-top:3px solid currentColor}
+.ch .fr{font-size:.9em}
+.ch .cn{display:block;font-family:var(--text);font-size:.4em;font-weight:800;color:var(--muted);margin-top:.15em}
+.choices{display:flex;gap:clamp(10px,2.4vmin,22px);flex-wrap:wrap;justify-content:center}
+.ch{min-width:clamp(96px,16vmin,150px);border:0;border-radius:20px;background:#fff;cursor:pointer;padding:.25em .6em;box-shadow:0 6px 0 #e7c98a;
+  font-family:var(--num);font-weight:800;font-size:clamp(28px,5.4vmin,46px);color:var(--ink);line-height:1.15}
+.ch small{font-family:var(--text);font-size:.45em;margin-left:.15em}
+.ch:active{transform:translateY(4px);box-shadow:0 2px 0 #e7c98a}
+.ch.no{background:#ffd6d6;box-shadow:0 6px 0 #e8a0a0;animation:shake .4s}
+.ch.yes{background:#c9f5dc;box-shadow:0 6px 0 #7bd3a2}
+.ch.glow{box-shadow:0 0 0 5px #ffd23f,0 6px 0 #e7c98a}
+@keyframes shake{25%{translate:-8px 0}75%{translate:8px 0}}
+.msg{min-height:1.4em;font-weight:800;font-size:clamp(17px,2.8vmin,24px);text-align:center}
+.msg.good{color:var(--good)}.msg.bad{color:var(--bad)}
+@media (max-width:440px){.plate{width:96px;min-height:96px;padding:10px}.pile .ck,.plate .ck,.bag .ck{font-size:24px}.shp svg{width:120px}.shp.big svg{width:180px}}
+@media (max-height:560px){.plate{width:88px;min-height:88px;padding:8px}.pile .ck,.plate .ck,.bag .ck{font-size:22px}.shp svg{width:110px}.shp.big svg{width:150px}.pile{min-height:40px;padding:4px 10px}}
+/* 開始／結束畫面 */
+.panel{position:fixed;inset:0;z-index:20;display:grid;place-items:start center;overflow-y:auto;-webkit-overflow-scrolling:touch;background:rgba(255,246,216,.8);
+  padding:max(12px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.panel>.card{margin:auto 0}
+.card{background:#fff;border-radius:24px;padding:clamp(18px,4vmin,34px);width:min(480px,100%);box-shadow:0 12px 40px rgba(0,0,0,.18);display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center}
+.card h2{margin:0;font-size:clamp(26px,5.5vmin,44px)}
+.card p{margin:0;color:var(--muted);font-size:clamp(15px,2.6vmin,20px);line-height:1.5}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.opt{font:inherit;font-size:18px;font-weight:700;border:2px solid #cfd8dc;background:#fff;border-radius:14px;padding:10px 16px;cursor:pointer;color:inherit}
+.opt small{display:block;font-size:13px;font-weight:600;opacity:.8;margin-top:2px}
+.opt[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:#fff}
+.lbl{font-size:14px;font-weight:700;color:var(--muted)}
+.big{font-family:var(--text);font-weight:800;font-size:clamp(20px,4vmin,30px);border:0;border-radius:999px;padding:.5em 1.6em;background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 5px 0 var(--accent-dark);text-decoration:none;display:inline-block}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 var(--accent-dark)}
+.big.alt{background:#fff;color:var(--ink);box-shadow:0 5px 0 #cfd8dc;border:2px solid #cfd8dc}
+.stars{font-size:clamp(40px,9vmin,72px);letter-spacing:.1em;line-height:1}
+#start .card>.big{position:sticky;bottom:0;z-index:1}
+@media (max-height:560px){.panel>.card{gap:8px;padding:14px 18px}.panel>.card h2{font-size:24px}#start .card>p{display:none}.panel .stars{font-size:36px}
+  main{gap:6px}.ask{font-size:16px}.ch{font-size:26px;min-width:84px}.msg{font-size:15px}}
+@media (prefers-reduced-motion:reduce){.handle circle,.desk .it.no,.ch.no{animation:none}}
+
+@media (prefers-reduced-motion:reduce){.plate.no,.ch.no,.shp.no,.bag{animation:none}}
+</style>
+<script src="zhuyin.js?v=20261123a"></script>
+<script src="rest.js?v=20261123a"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="park.css?v=20261123a">
+<script src="park.js?v=20261123a"></script>
+</head>
+<body data-park>
+<header class="top">
+  <a class="ibtn" href="park.html" aria-label="回遊樂園地圖">🏠</a>
+  <div class="ttl">🍪<span class="tx"> 分點心</span></div>
+  <span class="score" id="score">⭐ 0</span>
+  <button type="button" class="ibtn" id="again" aria-label="再念一次題目">🔊</button>
+</header>
+<main>
+  <div class="ask" id="ask" data-zy>分一分！</div>
+  <div class="stage" id="stage"></div>
+  <div class="choices" id="choices" hidden></div>
+  <div class="msg" id="msg" data-zy aria-live="polite"></div>
+
+  <section class="panel" id="start">
+    <div class="card">
+      <h2>🍪 分點心</h2>
+      <p data-zy>把點心平分給好朋友，<br>每個人都要一樣多！<br>還有披薩和蛋糕要切成一樣大。</p>
+      <span class="lbl">難度</span>
+      <div class="row" id="levels">
+        <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small>平分、分裝</small></button>
+        <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small>幾分之一</small></button>
+        <button type="button" class="opt" data-lv="3" aria-label="高級"><span class="lvst">⭐⭐⭐</span><small>比一比、分給大家</small></button>
+      </div>
+      <span class="lbl">題數</span>
+      <div class="row" id="counts">
+        <button type="button" class="opt" data-n="5" aria-label="5 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button>
+        <button type="button" class="opt" data-n="10" aria-label="10 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>10</small></button>
+        <button type="button" class="opt" data-n="15" aria-label="15 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>15</small></button>
+      </div>
+      <button type="button" class="big" id="go" aria-label="開始">READY</button>
+    </div>
+  </section>
+  <section class="panel" id="end" hidden>
+    <div class="card">
+      <div class="stars" id="stars"></div>
+      <h2 id="endTitle"></h2>
+      <p id="endText" data-zy></p>
+      <div class="row">
+        <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+        <a class="big alt ico-btn" href="park.html" aria-label="回遊樂園">🏠</a>
+      </div>
+    </div>
+  </section>
+</main>
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
+  const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+  const pick=a=>a[rnd(0,a.length-1)];
+  const S={lv:[1,2,3].includes(+pref("share-lv"))?+pref("share-lv"):1,total:10,round:0,score:0,first:0,miss:0,phase:"start",q:null,last:""};
+  const levels=[...document.querySelectorAll("#levels button")],syncLv=()=>levels.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
+  levels.forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("share-lv",S.lv);syncLv()}));syncLv();
+  {const n0=+pref("share-total");if([5,10,15].includes(n0))S.total=n0;
+   const cs=[...document.querySelectorAll("#counts button")],sync=()=>cs.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===S.total));
+   sync();cs.forEach(b=>b.addEventListener("click",()=>{S.total=+b.dataset.n;pref("share-total",S.total);sync()}))}
+
+  // ---- 語音與音效（和遊樂園一樣） ----
+  const synth=window.speechSynthesis;let voice=null;const rate=+(pref("duel-rate")||.9)||.9;
+  const quality=v=>{const u=v.voiceURI||"";return /eloquence|speech\.synthesis\.voice/i.test(u)?0:/\.premium\./i.test(u)?3:/enhanced|-premium/i.test(u)?2:1};
+  function pickVoice(){if(!synth)return;const vs=synth.getVoices().filter(v=>/^(zh|cmn)/i.test(v.lang));const want=pref("duel-voice");
+    const tw=vs.filter(v=>/TW|Hant/i.test(v.lang)&&quality(v)>0).sort((a,b)=>quality(b)-quality(a));
+    voice=(want&&vs.find(v=>(v.voiceURI||v.name)===want))||tw[0]||vs.find(v=>quality(v)>0)||vs[0]||null}
+  if(synth){pickVoice();try{synth.addEventListener("voiceschanged",pickVoice)}catch(e){}}
+  function say(t){if(!synth)return;try{const u=new SpeechSynthesisUtterance(t);u.lang=voice?voice.lang.replace("_","-"):"zh-TW";if(voice)u.voice=voice;u.rate=rate;u.pitch=1.1;
+    if(synth.speaking||synth.pending){synth.cancel();setTimeout(()=>{try{synth.speak(u)}catch(e){}},90)}else synth.speak(u)}catch(e){}}
+  let ac=null;
+  function tone(fs,dur=.12,type="triangle",vol=.15){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume();
+    fs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*dur;o.type=type;o.frequency.value=f;
+      g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)})}catch(e){}}
+  const sfx={good:()=>tone([784,1175],.14,"sine",.3),bad:()=>tone([150],.3,"square",.16),tick:()=>tone([900],.03,"sine",.06),snap:()=>tone([660],.05,"sine",.12),win:()=>tone([523,659,784,1047],.16)};
+  {const _g=sfx.good;sfx.good=(...a)=>{try{window.parkBurst&&parkBurst()}catch(err){}return _g(...a)}}
+  function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
+    try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}}
+
+
+  // ---- 分數的寫法：直的（分母在下）＋國字念法 ----
+  const CN=["零","一","二","三","四","五","六","七","八","九","十","十一","十二"];
+  const frac=(n,d)=>`<span class="fr"><i>${n}</i><hr><i>${d}</i></span>`;
+  const fracWord=(n,d)=>`${CN[d]}分之${CN[n]}`;
+  // ---- 圖形：圓形披薩、長方形蛋糕；平分或沒有平分 ----
+  const COL={pizza:["#ffd36b","#ff8a3d"],cake:["#ffe3ec","#ff6f9f"],choco:["#c58a5a","#7a4a24"]};
+  function shapeSVG(kind,parts,colored=[],unequal=false){
+    const [base,hi]=COL[kind];let s="";
+    if(kind==="pizza"){const R=46,C=50;let angs=[];
+      if(unequal){let w=[...Array(parts)].map((_,i)=>i===0?2.2:1);const t=w.reduce((a,b)=>a+b);let a=0;angs=w.map(x=>{const r=[a,a+x/t*360];a+=x/t*360;return r})}
+      else angs=[...Array(parts)].map((_,i)=>[i*360/parts,(i+1)*360/parts]);
+      const P=a=>{const r=(a-90)*Math.PI/180;return[C+R*Math.cos(r),C+R*Math.sin(r)]};
+      s+=`<circle cx="${C}" cy="${C}" r="${R+3}" fill="#e0a860"/>`;
+      angs.forEach(([a,b],i)=>{const [x1,y1]=P(a),[x2,y2]=P(b);s+=`<path d="M${C} ${C}L${x1} ${y1}A${R} ${R} 0 ${b-a>180?1:0} 1 ${x2} ${y2}Z" fill="${colored.includes(i)?hi:base}" stroke="#7a4a24" stroke-width="2"/>`});
+      if(parts===1)s=`<circle cx="${C}" cy="${C}" r="${R+3}" fill="#e0a860"/><circle cx="${C}" cy="${C}" r="${R}" fill="${colored.length?hi:base}" stroke="#7a4a24" stroke-width="2"/>`;
+      [[38,34],[62,40],[46,62],[66,64],[32,54]].forEach(([x,y])=>s+=`<circle cx="${x}" cy="${y}" r="3.5" fill="#d9483f" opacity=".75"/>`);
+      return `<svg viewBox="0 0 100 100" aria-hidden="true">${s}</svg>`}
+    // 長方形：直的切成幾條
+    const W=96,H=kind==="choco"?48:60,x0=2,y0=kind==="choco"?26:20;let xs=[];
+    if(unequal){const w=[...Array(parts)].map((_,i)=>i===parts-1?2:1),t=w.reduce((a,b)=>a+b);let a=0;xs=w.map(v=>{const r=[a,a+v/t*W];a+=v/t*W;return r})}
+    else xs=[...Array(parts)].map((_,i)=>[i*W/parts,(i+1)*W/parts]);
+    xs.forEach(([a,b],i)=>s+=`<rect x="${x0+a}" y="${y0}" width="${b-a}" height="${H}" fill="${colored.includes(i)?hi:base}" stroke="#7a4a24" stroke-width="2"/>`);
+    if(kind==="cake")s=`<rect x="${x0}" y="${y0-8}" width="${W}" height="10" rx="5" fill="#fff" stroke="#7a4a24" stroke-width="2"/>`+s+`<circle cx="${x0+W*.2}" cy="${y0-9}" r="4" fill="#ff4b55"/><circle cx="${x0+W*.5}" cy="${y0-9}" r="4" fill="#ff4b55"/><circle cx="${x0+W*.8}" cy="${y0-9}" r="4" fill="#ff4b55"/>`;
+    return `<svg viewBox="0 0 100 100" aria-hidden="true">${s}</svg>`;
+  }
+  const KN={pizza:"披薩",cake:"蛋糕",choco:"巧克力"};
+  const FRIENDS=["🐻","🐰","🐼","🐱","🦊","🐨"],SNACK=["🍪","🍬","🍓","🧁","🍩","🍡"];
+
+  // ---- 出題 ----
+  // 初級：deal（一個一個平分到盤子）、pack（每袋裝幾個，可以裝幾袋）
+  // 進階：name（塗色的是幾分之一）、equal（哪一個是平分）
+  // 高級：compare（哪一個比較大）、give（一個披薩平分給幾個人，每人分到幾分之一）、name
+  function newQ(){
+    // 題型輪流出（每一輪開始時打亂順序），不會一直出同一種
+    if(S.round<=1||!S.order){const L={1:["deal","pack","deal","pack"],2:["name","equal","name","equal"],3:["compare","give","name","equal"]}[S.lv];S.order=shuffle(L.slice())}
+    const t=S.order[(Math.max(1,S.round)-1)%S.order.length];
+    const q={t};
+    if(t==="deal"){const k=rnd(2,S.round>3?4:3),each=rnd(2,k>=4?3:4);q.k=k;q.n=k*each;q.ans=each;q.snack=pick(SNACK);q.who=shuffle(FRIENDS.slice()).slice(0,k);
+      q.ask=`把 ${q.n} 個${q.snack}平分給 ${k} 個好朋友，<br>點盤子放進去！`;q.say=`把${q.n}個點心平分給${k}個好朋友，點盤子放進去`}
+    else if(t==="pack"){const per=rnd(2,4),bags=rnd(2,5);q.per=per;q.n=per*bags;q.ans=bags;q.snack=pick(SNACK);
+      q.ask=`有 ${q.n} 個${q.snack}，每袋裝 ${per} 個，<br>可以裝幾袋？`;q.say=`有${q.n}個點心，每袋裝${per}個，可以裝幾袋？`}
+    else if(t==="name"){const d=pick(S.lv===2?[2,3,4]:[2,3,4,5,6,8]),kind=pick(["pizza","cake","choco"]),c=rnd(0,d-1);q.d=d;q.kind=kind;q.col=[c];
+      q.ans=d;q.opts=shuffle([...new Set([d,...shuffle([2,3,4,5,6,8].filter(x=>x!==d)).slice(0,2)])]);
+      q.ask=`${KN[kind]}平分成 ${d} 份，<br>塗色的是幾分之一？`;q.say=`${KN[kind]}平分成${d}份，塗色的是幾分之一？`}
+    else if(t==="equal"){const d=pick([2,3,4]),kind=pick(["pizza","cake"]);q.d=d;q.kind=kind;q.ansIdx=rnd(0,2);
+      q.ask=`哪一個是平分成 ${d} 份？`;q.say=`哪一個是平分成${d}份？每一份都要一樣大`}
+    else if(t==="compare"){const [a,b]=shuffle([2,3,4,6,8]).slice(0,2);q.a=a;q.b=b;q.kind=pick(["pizza","cake"]);const big=Math.random()<.65;q.big=big;
+      q.ansIdx=big?(a<b?0:1):(a<b?1:0);q.ask=`${fracWord(1,a)}和${fracWord(1,b)}，<br>哪一個比較${big?"大":"小"}？`;q.say=q.ask.replace(/<br>/,"")}
+    else{const d=pick([2,3,4,6]);q.d=d;q.ans=d;q.who=shuffle(FRIENDS.slice()).slice(0,Math.min(d,6));
+      q.opts=shuffle([...new Set([d,...shuffle([2,3,4,6,8].filter(x=>x!==d)).slice(0,2)])]);
+      q.ask=`一個披薩平分給 ${d} 個人，<br>每個人分到幾分之一個？`;q.say=`一個披薩平分給${d}個人，每個人分到幾分之一個？`}
+    const key=t+(q.ans||q.d||q.a);if(key===S.last&&Math.random()<.8)return newQ();S.last=key;
+    return q;
+  }
+
+  // ---- 畫面 ----
+  const stage=$("stage"),msg=(t,c="")=>{$("msg").textContent=t;$("msg").className="msg"+(c?" "+c:"")};
+  function showChoices(list,render){const ch=$("choices");ch.hidden=false;
+    ch.innerHTML=list.map(v=>`<button type="button" class="ch" data-v="${v}">${render(v)}</button>`).join("");
+    ch.querySelectorAll(".ch").forEach(b=>b.addEventListener("click",()=>answer(+b.dataset.v,b)))}
+  function show(){
+    const q=S.q;$("ask").innerHTML=q.ask;msg("");$("choices").hidden=true;$("choices").innerHTML="";
+    if(q.t==="deal"){
+      q.left=q.n;q.on=Array(q.k).fill(0);
+      stage.innerHTML=`<div class="pile" id="pile"></div><div class="plates">${q.who.map((w,i)=>`<button type="button" class="plate" data-i="${i}" aria-label="${w}的盤子"><span class="who">${w}</span><span class="n">0</span></button>`).join("")}</div>
+        <div class="tools"><button type="button" class="tool" id="undo" data-zy>↩ 拿回來</button></div>`;
+      drawPile();
+      stage.querySelectorAll(".plate").forEach(p=>p.addEventListener("click",()=>dealTo(+p.dataset.i,p)));
+      $("undo").addEventListener("click",undoDeal);
+    }else if(q.t==="pack"){
+      q.left=q.n;q.bags=0;
+      stage.innerHTML=`<div class="pile" id="pile"></div><div class="bags" id="bags"></div><div class="tools"><button type="button" class="tool green" id="packBtn" data-zy>🎀 裝一袋（${q.per} 個）</button></div>`;
+      drawPile();$("packBtn").addEventListener("click",packOne);
+      showChoices(shuffle([...new Set([q.ans,q.ans+1,q.ans>2?q.ans-1:q.ans+2])]),v=>`${v}<small>袋</small>`);
+    }else if(q.t==="name"){
+      stage.innerHTML=`<div class="shapes"><span class="shp big static">${shapeSVG(q.kind,q.d,q.col)}</span></div>`;
+      showChoices(q.opts,v=>`${frac(1,v)}<span class="cn">${fracWord(1,v)}</span>`);
+    }else if(q.t==="equal"){
+      const items=[0,1,2].map(i=>i===q.ansIdx?shapeSVG(q.kind,q.d,[],false):shapeSVG(q.kind,i%2?q.d:q.d,[],true));
+      // 兩個干擾：一個沒有平分、一個平分但份數不對
+      const wrongN=q.d===2?3:q.d-1;const alt=[0,1,2].filter(i=>i!==q.ansIdx);
+      items[alt[1]]=shapeSVG(q.kind,wrongN,[],false);
+      stage.innerHTML=`<div class="shapes">${items.map((s,i)=>`<button type="button" class="shp" data-i="${i}">${s}</button>`).join("")}</div>`;
+      stage.querySelectorAll(".shp").forEach(b=>b.addEventListener("click",()=>answer(+b.dataset.i,b,true)));
+    }else if(q.t==="compare"){
+      stage.innerHTML=`<div class="shapes">${[q.a,q.b].map((d,i)=>`<button type="button" class="shp" data-i="${i}">${shapeSVG(q.kind,d,[0])}<div class="ch" style="pointer-events:none;box-shadow:none">${frac(1,d)}</div></button>`).join("")}</div>`;
+      stage.querySelectorAll(".shp").forEach(b=>b.addEventListener("click",()=>answer(+b.dataset.i,b,true)));
+    }else{
+      stage.innerHTML=`<div class="shapes"><span class="shp big static">${shapeSVG("pizza",q.d,[0])}</span></div><div class="pile">${q.who.map(w=>`<span class="ck">${w}</span>`).join("")}</div>`;
+      showChoices(q.opts,v=>`${frac(1,v)}<span class="cn">${fracWord(1,v)}</span>`);
+    }
+    say(q.say);
+  }
+  function drawPile(){const q=S.q;$("pile").innerHTML=q.left?`<span class="lab" data-zy>還有 ${q.left} 個</span>`+Array(q.left).fill(`<span class="ck">${q.snack}</span>`).join(""):`<span class="lab" data-zy>都分完了！</span>`}
+  // 平分：點一個盤子放一個；放完會檢查是不是每盤一樣多
+  function dealTo(i,p){
+    const q=S.q;if(S.phase!=="play"||!q.left)return;
+    q.left--;q.on[i]++;q.hist=(q.hist||[]).concat(i);sfx.tick();
+    p.insertAdjacentHTML("beforeend",`<span class="ck">${q.snack}</span>`);p.querySelector(".n").textContent=q.on[i];drawPile();
+    if(!q.left){
+      if(q.on.every(v=>v===q.on[0])){msg("每個人都一樣多！每個人分到幾個？","good");
+        showChoices(shuffle([...new Set([q.ans,q.ans+1,q.ans>1?q.ans-1:q.ans+2])]),v=>`${v}<small>個</small>`);say("每個人都一樣多，每個人分到幾個？")}
+      else{S.miss++;sfx.bad();const mx=Math.max(...q.on),mn=Math.min(...q.on);const tip=`不一樣多喔！有人 ${mx} 個、有人 ${mn} 個，按「拿回來」再分一次。`;msg(tip,"bad");say(tip.replace(/ /g,""))}
+    }
+  }
+  function undoDeal(){const q=S.q;if(S.phase!=="play"||!q.hist||!q.hist.length)return;
+    const i=q.hist.pop();q.on[i]--;q.left++;const p=stage.querySelector(`.plate[data-i="${i}"]`),cks=p.querySelectorAll(".ck");cks[cks.length-1].remove();p.querySelector(".n").textContent=q.on[i];
+    drawPile();$("choices").hidden=true;msg("");sfx.tick()}
+  function packOne(){const q=S.q;if(S.phase!=="play")return;
+    if(q.left<q.per){msg(q.left?"剩下的不夠裝一袋了":"都裝完了！數數看有幾袋？","bad");return}
+    q.left-=q.per;q.bags++;sfx.tick();
+    $("bags").insertAdjacentHTML("beforeend",`<div class="bag">${Array(q.per).fill(`<span class="ck">${q.snack}</span>`).join("")}</div>`);drawPile();
+    if(!q.left)msg("都裝完了！數數看有幾袋？","good");
+  }
+
+  // ---- 作答 ----
+  function answer(v,el,isIdx){
+    if(S.phase!=="play")return;const q=S.q;
+    const ok=isIdx?v===q.ansIdx:v===q.ans;
+    if(ok){S.phase="ok";S.score++;if(!S.miss)S.first++;sfx.good();upd();el.classList.add("yes");msg(["答對了！","好棒！","分得真好！"][rnd(0,2)],"good");setTimeout(next,1600);return}
+    S.miss++;sfx.bad();el.classList.remove("no");void el.getBoundingClientRect();el.classList.add("no");
+    let tip="再想一想！";
+    if(q.t==="deal")tip=`${q.n} 個分給 ${q.k} 個人，數數看每個盤子有幾個。`;
+    else if(q.t==="pack")tip=`按「裝一袋」，${q.per} 個 ${q.per} 個裝，裝完數數看有幾袋。`;
+    else if(q.t==="name")tip=`數數看一共分成幾份，塗色的是其中 1 份。`;
+    else if(q.t==="equal")tip=`平分就是每一份都一樣大，而且要剛好 ${q.d} 份。`;
+    else if(q.t==="compare")tip="分成越多份，每一份就越小喔！";
+    else tip=`平分給 ${q.d} 個人，就是切成 ${q.d} 份，每人 1 份。`;
+    msg(tip,"bad");say(tip.replace(/ /g,""));
+  }
+  function next(){if(S.round>=S.total)return finish();S.round++;S.miss=0;S.phase="play";S.q=newQ();upd();show()}
+  window.shareDebug=()=>S.q;
+  const upd=()=>{$("score").textContent=`⭐ ${S.score} / ${S.total}`};
+  function start(){unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.score=0;S.first=0;S.last="";next();
+    try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}}
+  function finish(){
+    S.phase="end";sfx.win();
+    const r=S.first/S.total,st=r>=.9?3:r>=.6?2:1;
+    $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);
+    $("endTitle").textContent=st===3?"太厲害了！":st===2?"做得很好！":"再練習一下！";
+    $("endText").textContent=`${S.total} 題裡面，有 ${S.first} 題第一次就答對。`;
+    $("end").hidden=false;say(`${$("endTitle").textContent}${S.total}題裡面，有${S.first}題第一次就答對`);
+  }
+  $("go").addEventListener("click",start);$("replay").addEventListener("click",start);
+  $("again").addEventListener("click",()=>{if(S.q)say(S.q.say)});
+  // 開始畫面後面先擺一題示範
+  S.q=newQ();show();S.phase="start";try{synth&&synth.cancel()}catch(e){}upd();
+})();
+</script>
+</body>
+</html>

@@ -50,6 +50,11 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
 .ticket .ico{font-size:clamp(40px,8vmin,70px);line-height:1}
 .ticket .what{flex:1;font-weight:800;font-size:clamp(18px,3.2vmin,28px);line-height:1.3}
 .ticket .what small{display:block;font-size:.6em;color:var(--muted)}
+/* 找錢：客人付的錢 */
+.custpay{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:10px;font-weight:800;font-size:clamp(16px,2.8vmin,24px)}
+.custpay .who{font-size:1.8em;line-height:1}
+.custpay .bill{display:inline-flex;align-items:center;gap:4px;background:#fff;border-radius:14px;padding:4px 10px;box-shadow:0 3px 0 rgba(0,0,0,.08)}
+.custpay b{font-family:var(--num);font-size:1.3em;color:var(--accent-dark,#b4521a)}
 .price{font-family:var(--num);font-weight:800;font-size:clamp(40px,8vmin,76px);line-height:1;color:var(--accent);white-space:nowrap}
 .price small{font-family:var(--text);font-size:.4em;color:var(--ink);margin-left:4px}
 /* 付款盤 */
@@ -106,11 +111,11 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
   .wallet{grid-column:2;grid-row:1/3;align-content:center;overflow:auto}
 }
 </style>
-<script src="zhuyin.js?v=20261119s"></script>
-<script src="rest.js?v=20261119s"></script>
+<script src="zhuyin.js?v=20261123a"></script>
+<script src="rest.js?v=20261123a"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261119s">
-<script src="park.js?v=20261119s"></script>
+<link rel="stylesheet" href="park.css?v=20261123a">
+<script src="park.js?v=20261123a"></script>
 <style>body{background:radial-gradient(circle,rgba(224,119,43,.13) 2.5px,transparent 3px) 0 0/30px 30px,linear-gradient(#ffe7c4,#fff4e2)}</style>
 </head>
 <body data-park>
@@ -122,9 +127,10 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
 <main>
   <div class="booth">
     <div class="ticket" id="ticket"><span class="stamp" id="stamp" data-zy hidden>已付款</span><span class="ico" id="tIco">🎠</span><span class="what" id="tWhat" data-zy></span><span class="price" id="tPrice"></span></div>
+    <div class="custpay" id="custpay" hidden></div>
   </div>
   <div class="tray">
-    <div class="head"><span>付款盤（點錢幣可以拿回來）</span><span class="sum" id="sum">0 元</span></div>
+    <div class="head"><span id="trayName">付款盤（點錢幣可以拿回來）</span><span class="sum" id="sum">0 元</span></div>
     <div class="paid" id="paid" data-zy-skip></div>
     <div class="msg" id="msg" aria-live="polite"></div>
     <div class="actions">
@@ -138,7 +144,12 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
   <section class="cover" id="start">
     <div class="box">
       <h2>🎟️ 售票亭買門票</h2>
-      <p>想玩遊樂園的設施要先買門票！<br>從錢包拿出硬幣和紙鈔，付<b>剛好</b>的錢。</p>
+      <p>想玩遊樂園的設施要先買門票！<br>從錢包拿出硬幣和紙鈔，付<b>剛好</b>的錢。<br>當售票員的時候，要找錢給客人！</p>
+      <span class="lbl">玩法</span>
+      <div class="row" id="modes">
+        <button type="button" class="opt" data-mode="pay" aria-label="買門票，付剛好的錢"><span class="lvst">🛒</span><small data-zy>買門票</small></button>
+        <button type="button" class="opt" data-mode="change" aria-label="當售票員，找錢給客人"><span class="lvst">💰</span><small data-zy>當售票員找錢</small></button>
+      </div>
       <span class="lbl">難度</span>
       <div class="row" id="levels">
         <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small>20 元以內</small></button>
@@ -176,10 +187,17 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
   const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
   const LV={1:{min:3,max:20,money:[1,5,10]},2:{min:21,max:100,money:[1,5,10,50]},3:{min:101,max:1000,money:[1,5,10,50,100,500,1000]}};
   const RIDES=[["🎠","旋轉木馬"],["🎡","摩天輪"],["🎢","雲霄飛車"],["🎪","馬戲團表演"],["🎈","射氣球"],["🚂","小火車"],["🛶","碰碰船"],["🏰","鬼屋探險"]];
-  const S={adv:pref("booth-advance")==="manual"?"manual":"auto",lv:LV[+pref("park-level")]?+pref("park-level"):1,total:10,round:0,score:0,tries:0,phase:"start",price:0,paid:[],lastRide:-1};
+  const S={mode:pref("booth-mode")==="change"?"change":"pay",adv:pref("booth-advance")==="manual"?"manual":"auto",lv:LV[+pref("park-level")]?+pref("park-level"):1,total:10,round:0,score:0,tries:0,phase:"start",price:0,paid:[],lastRide:-1};
   const syncLv=()=>document.querySelectorAll("#levels button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
   document.querySelectorAll("#levels button").forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("park-level",S.lv);syncLv()}));
   syncLv();
+  const syncMode=()=>document.querySelectorAll("#modes button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.mode===S.mode));
+  document.querySelectorAll("#modes button").forEach(b=>b.addEventListener("click",()=>{S.mode=b.dataset.mode;pref("booth-mode",S.mode);syncMode()}));
+  syncMode();
+  // 找錢：客人付的錢（比票價大的整數鈔票或硬幣）；找回來的錢 = 客人付的 − 票價
+  const CUST=["🐻","🐰","🐼","🐱","🐶","🦊","🐨","🐷"];
+  const PAYWITH={1:[10,20],2:[50,100],3:[500,1000]};
+  const target=()=>S.mode==="change"?S.give-S.price:S.price;
   const syncAdv=()=>document.querySelectorAll("#advance button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.adv===S.adv));
   document.querySelectorAll("#advance button").forEach(b=>b.addEventListener("click",()=>{S.adv=b.dataset.adv;pref("booth-advance",S.adv);syncAdv()}));
   syncAdv();
@@ -280,9 +298,9 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
   function renderPaid(){
     const p=$("paid");
     p.innerHTML=S.paid.length?S.paid.map((v,i)=>`<button type="button" class="money" data-i="${i}" aria-label="拿回${label(v)}">${moneySVG(v,.62)}</button>`).join("")
-      :`<span class="empty">把錢包裡的錢點進來</span>`;
+      :`<span class="empty">${S.mode==="change"?"把要找給客人的錢點進來":"把錢包裡的錢點進來"}</span>`;
     p.querySelectorAll(".money").forEach(b=>b.addEventListener("click",()=>{if(S.phase!=="play")return;S.paid.splice(+b.dataset.i,1);sfx.paper();renderPaid()}));
-    const t=sum(),el=$("sum");el.textContent=`${t} 元`;el.className="sum"+(t>S.price?" over":t===S.price?" ok":"");
+    const t=sum(),el=$("sum");el.textContent=`${t} 元`;el.className="sum"+(t>target()?" over":t===target()?" ok":"");
   }
   // 錢從錢包飛到付款盤
   function flyMoney(from,to){
@@ -313,17 +331,45 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
     if(S.round>=S.total)return finish();
     S.round++;S.tries=0;S.phase="play";S.paid=[];clearTimeout(advTimer);$("stamp").hidden=true;$("ticket").classList.remove("print");
     $("pay").hidden=false;$("clear").hidden=false;$("nextBtn").hidden=true;
-    const L=LV[S.lv];S.price=rnd(L.min,L.max);
+    const L=LV[S.lv];
+    if(S.mode==="change"){
+      // 票價要比客人付的錢小；初級 10 元以內的票、付 10 元（偶爾 20 元）
+      const opts=PAYWITH[S.lv];S.give=S.lv===1?(Math.random()<.75?10:20):opts[rnd(0,1)];
+      const lo=S.lv===1?2:S.lv===2?(S.give===50?21:51):(S.give===500?101:501);S.price=rnd(lo,S.give-1);
+    }else S.price=rnd(L.min,L.max);
     let ri;do{ri=rnd(0,RIDES.length-1)}while(ri===S.lastRide);S.lastRide=ri;
     const[ico,name]=RIDES[ri];S.ride=name;
     $("tIco").textContent=ico;$("tWhat").innerHTML=`${name}<small>門票一張</small>`;
     $("tPrice").innerHTML=`${S.price}<small>元</small>`;
     $("msg").textContent="";$("msg").className="msg";renderPaid();
-    say(`${name}的門票要${S.price}元，請付剛好的錢`);
+    const cp=$("custpay");
+    if(S.mode==="change"){S.who=CUST[rnd(0,CUST.length-1)];
+      cp.innerHTML=`<span class="who">${S.who}</span><span>${TZY("客人給你")}</span><span class="bill">${moneySVG(S.give,S.give>=100?.55:.7)}<b>${S.give}</b> 元</span><span>${TZY("要找多少錢？")}</span>`;cp.hidden=false;
+      $("trayName").textContent="找錢盤（點錢幣可以拿回來）";$("pay").setAttribute("aria-label","找錢");
+      say(`${name}的門票${S.price}元，客人給你${S.give}元，要找多少錢？把錢放進找錢盤`);
+    }else{cp.hidden=true;$("trayName").textContent="付款盤（點錢幣可以拿回來）";$("pay").setAttribute("aria-label","付錢");
+      say(`${name}的門票要${S.price}元，請付剛好的錢`)}
   }
   $("pay").addEventListener("click",()=>{
     if(S.phase!=="play")return;
-    const t=sum();
+    const t=sum(),want=target();
+    if(S.mode==="change"&&t===want){
+      S.phase="reveal";if(S.tries===0)S.score++;upd();sfx.good();
+      const tk=$("ticket");tk.classList.remove("print");void tk.offsetWidth;tk.classList.add("print");
+      const best=fewest(want),used=S.paid.length;
+      $("msg").textContent=used===best?`找對了！${S.price} 加 ${want} 就是 ${S.give}，用最少的 ${used} 個！`:`找對了！${S.price} 加 ${want} 就是 ${S.give}（最少只要 ${best} 個喔）`;
+      $("msg").className="msg good";$("pay").hidden=true;$("clear").hidden=true;$("nextBtn").hidden=false;
+      const after=()=>{if(S.adv==="auto"&&S.phase==="reveal"){clearTimeout(advTimer);advTimer=setTimeout(goNext,1000)}};
+      say(`找對了，${S.who==="🐻"?"小熊":"客人"}說謝謝！`,after);
+      if(S.adv==="auto")advTimer=setTimeout(goNext,12000);
+      return;
+    }
+    if(S.mode==="change"){
+      S.tries++;sfx.bad();
+      const tip=t===0?"還沒有放要找的錢喔":t<want?`還要再找 ${want-t} 元`:`多找了 ${t-want} 元`;
+      const hint=S.tries>=2?`（${S.give} 減 ${S.price}，或從 ${S.price} 往上數到 ${S.give}）`:"";
+      $("msg").textContent=tip+hint;$("msg").className="msg bad";say(tip);return;
+    }
     if(t===S.price){
       S.phase="reveal";if(S.tries===0)S.score++;upd();sfx.good();
       // 售票亭蓋上「已付款」章，門票從窗口印出來
@@ -350,11 +396,15 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
     const r=S.score/S.total,st=r>=.9?3:r>=.6?2:1;
     $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);
     $("endTitle").textContent=st===3?"太厲害了！":st===2?"做得很好！":"再練習一下！";
+    if(S.mode==="change"){$("endText").textContent=`賣了 ${S.total} 張門票，有 ${S.score} 次第一次就找對錢。`;
+      $("end").hidden=false;say(`${$("endTitle").textContent}有${S.score}次第一次就找對錢`);return}
     $("endText").textContent=`買了 ${S.total} 張門票，有 ${S.score} 張第一次就付剛好。`;
     $("end").hidden=false;say(`${$("endTitle").textContent}有${S.score}張門票第一次就付剛好`);
   }
   $("go").addEventListener("click",start);$("replay").addEventListener("click",start);
-  $("again").addEventListener("click",()=>{if(S.phase==="play")say(`${S.ride}的門票要${S.price}元，請付剛好的錢`)});
+  $("again").addEventListener("click",()=>{if(S.phase==="play")say(S.mode==="change"?`${S.ride}的門票${S.price}元，客人給你${S.give}元，要找多少錢？`:`${S.ride}的門票要${S.price}元，請付剛好的錢`)});
+  // 文字加注音的小工具（custpay 不自動加注音，避免把錢幣上的字也加上）
+  function TZY(t){return `<span data-zy>${t}</span>`}
   renderWallet();renderPaid();upd();
 })();
 </script>
