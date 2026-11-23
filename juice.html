@@ -75,6 +75,48 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
 .msg.good{color:var(--good)}.msg.bad{color:var(--bad)}
 @media (max-width:440px){.stage{--jw:min(150px,max(110px,calc((100dvh - 470px) / 1.6)))}.stage.three{--jw:108px}.jars{gap:8px}}
 @media (max-height:560px){.stage{--jw:clamp(80px,23vh,130px)}.stage.three{--jw:clamp(70px,20vh,110px)}.jar .nm{font-size:13px}.tool{font-size:16px}.note{font-size:13px}}
+/* ---- 雙人版：上下兩半面對面，上面那半轉 180 度；中間是兩個人一起看的果汁 ---- */
+.dhalf{display:none}
+body.duo .top,body.duo #ask,body.duo #choices,body.duo #msg{display:none!important}
+body.duo main{display:grid;grid-template-rows:auto minmax(0,1fr) auto;grid-template-columns:100%;padding:0;gap:0;height:100dvh;width:100%}
+body.duo #stage{--jw:clamp(70px,min(32vw,calc((100dvh - 2 * var(--hh) - 90px) / 1.75)),250px);align-self:center;justify-self:center;padding:6px 0}
+body.duo #stage.three{--jw:clamp(64px,min(26vw,calc((100dvh - 2 * var(--hh) - 90px) / 1.6)),220px)}
+body.duo{--hh:clamp(170px,25dvh,250px)}
+
+body.duo .dhalf{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(6px,1.2vh,12px);height:var(--hh);
+  padding:8px max(14px,env(safe-area-inset-left,0px));background:var(--pb);border-top:5px solid var(--pc);overflow:hidden}
+body.duo .dhalf.p1{transform:rotate(180deg);border-top-color:var(--pc)}
+.dhalf.p0{--pc:#3d7fe0;--pb:#e6f0ff}.dhalf.p1{--pc:#f08a24;--pb:#fff0de}
+.dhalf .dhd{display:flex;align-items:center;gap:10px;font-weight:900;font-size:clamp(16px,2.6vmin,22px)}
+.dhalf .dsc{font-family:var(--num);background:#fff;border-radius:999px;padding:0 12px;box-shadow:0 2px 0 rgba(0,0,0,.08)}
+.dhalf .dask{background:#fff;border-radius:16px;padding:.2em .9em;font-weight:800;font-size:clamp(15px,2.6vmin,22px);text-align:center;box-shadow:0 3px 0 rgba(0,0,0,.06)}
+.dhalf .dopts{display:flex;gap:clamp(8px,1.6vmin,14px);flex-wrap:wrap;justify-content:center;min-height:52px;align-items:center}
+.dhalf .dch{font:inherit;font-family:var(--num);font-weight:800;font-size:clamp(20px,3.6vmin,32px);min-width:clamp(58px,9vmin,90px);border:0;border-radius:16px;background:#fff;
+  padding:.2em .6em;cursor:pointer;box-shadow:0 5px 0 color-mix(in srgb,var(--pc) 45%,#fff);color:var(--ink)}
+.dhalf .dch.word{font-family:var(--text);font-size:clamp(16px,2.8vmin,24px)}
+.dhalf .dch small{font-family:var(--text);font-size:.5em;margin-left:.1em}
+.dhalf .dch:active{transform:translateY(3px)}
+.dhalf .dch.mine{background:var(--pc);color:#fff}
+.dhalf .dch.right{outline:4px solid #3cb371;outline-offset:2px}
+.dhalf .dot{display:inline-block;width:.8em;height:.8em;border-radius:50%;vertical-align:-.05em;margin-right:.25em;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+.dhalf .wait{font-weight:900;font-size:clamp(17px,3vmin,26px);color:var(--pc);background:#fff;border-radius:16px;padding:.3em 1em}
+.dhalf .dmsg{min-height:1.3em;font-weight:900;font-size:clamp(16px,2.8vmin,24px)}
+.dhalf .dmsg.good{color:var(--good)}.dhalf .dmsg.bad{color:var(--bad)}
+.dhalf .dres{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:var(--pb)}
+.dhalf .dres b{font-size:clamp(22px,4.4vmin,40px)}
+.dhalf .dres .row{display:flex;gap:12px}
+.dhalf .dres button,.dhalf .dres a{font:inherit;font-weight:900;font-size:clamp(18px,3vmin,24px);border:0;border-radius:999px;padding:.35em 1.2em;background:var(--pc);color:#fff;cursor:pointer;text-decoration:none;box-shadow:0 4px 0 rgba(0,0,0,.15)}
+.dhalf .dres a{background:#fff;color:var(--ink)}
+@media (orientation:landscape){body.duo{--hh:clamp(140px,21dvh,200px)}
+  body.duo .dhalf{display:grid;grid-template-columns:minmax(0,auto) minmax(0,1fr);grid-template-areas:"hd op" "ask op" "msg op";column-gap:22px;row-gap:4px;align-content:center;justify-content:center;padding:6px 70px}
+  body.duo .dhalf .dhd{grid-area:hd;justify-self:center}body.duo .dhalf .dask{grid-area:ask;font-size:clamp(14px,2.3vmin,20px)}body.duo .dhalf .dmsg{grid-area:msg;justify-self:center}
+  body.duo .dhalf .dopts{grid-area:op;justify-content:flex-start}}
+@media (max-width:600px) and (orientation:portrait){body.duo{--hh:clamp(208px,27dvh,250px)}body.duo .dhalf .dask{font-size:14px;padding:.2em .6em}body.duo .dhalf .dch{font-size:18px;min-width:52px}body.duo .dhalf .dch.word{font-size:15px}body.duo .dhalf{gap:5px}}
+.dmid{display:none}
+body.duo .dmid{display:block;position:fixed;left:max(8px,env(safe-area-inset-left,0px));top:50%;transform:translateY(-50%);z-index:5}
+body.duo .dmid a,body.duo .dmid button{display:grid;place-items:center;width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.92);text-decoration:none;font-size:22px;border:0;margin:6px 0;box-shadow:0 3px 0 rgba(0,0,0,.1);cursor:pointer}
+.dbanner{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:6;background:#fff;border-radius:20px;padding:.3em 1em;font-weight:900;font-size:clamp(22px,4.5vmin,40px);box-shadow:0 8px 24px rgba(0,0,0,.18);pointer-events:none}
+.mode-note{font-size:13px;color:var(--muted);margin:-6px 0 0}
 /* 手機橫放：左邊容器、右邊題目和答案 */
 @media (max-height:500px) and (orientation:landscape){
   main{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"st ask" "st ch" "st msg";align-content:center;justify-content:center;column-gap:18px;row-gap:10px}
@@ -104,11 +146,11 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
   main{gap:6px}.ask{font-size:16px}.ch{font-size:26px;min-width:84px}.msg{font-size:15px}}
 @media (prefers-reduced-motion:reduce){.handle circle,.desk .it.no,.ch.no{animation:none}}
 </style>
-<script src="zhuyin.js?v=20261123c"></script>
-<script src="rest.js?v=20261123c"></script>
+<script src="zhuyin.js?v=20261123d"></script>
+<script src="rest.js?v=20261123d"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261123c">
-<script src="park.js?v=20261123c"></script>
+<link rel="stylesheet" href="park.css?v=20261123d">
+<script src="park.js?v=20261123d"></script>
 </head>
 <body data-park>
 <header class="top">
@@ -118,15 +160,24 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
   <button type="button" class="ibtn" id="again" aria-label="再念一次題目">🔊</button>
 </header>
 <main>
+  <section class="dhalf p1" data-p="1"><div class="dhd"><span data-zy>🟠 橘色</span><span class="dsc">⭐ 0</span></div><div class="dask" data-zy></div><div class="dopts"></div><div class="dmsg" data-zy></div></section>
   <div class="ask" id="ask" data-zy>比一比，哪一個裝得多？</div>
   <div class="stage" id="stage"></div>
   <div class="choices" id="choices" hidden></div>
   <div class="msg" id="msg" data-zy aria-live="polite"></div>
+  <section class="dhalf p0" data-p="0"><div class="dhd"><span data-zy>🔵 藍色</span><span class="dsc">⭐ 0</span></div><div class="dask" data-zy></div><div class="dopts"></div><div class="dmsg" data-zy></div></section>
+  <div class="dmid"><a href="park.html" aria-label="回遊樂園地圖">🏠</a><button type="button" id="dAgain" aria-label="再念一次題目">🔊</button></div>
 
   <section class="panel" id="start">
     <div class="card">
       <h2>🥤 果汁攤</h2>
       <p data-zy>小動物來買果汁了！<br>比一比哪一個裝得多，<br>再用小杯子量量看。</p>
+      <span class="lbl">玩法</span>
+      <div class="row" id="modes">
+        <button type="button" class="opt" data-mode="solo" aria-label="一個人玩"><span class="lvst">👤</span><small data-zy>一個人</small></button>
+        <button type="button" class="opt" data-mode="duo" aria-label="兩個人對戰"><span class="lvst">👥</span><small data-zy>兩個人猜猜看</small></button>
+      </div>
+      <p class="mode-note" id="modeNote" data-zy hidden>兩個人面對面坐，<br>各自偷偷選，再倒倒看！</p>
       <span class="lbl">難度</span>
       <div class="row" id="levels">
         <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small>倒倒看、比一比</small></button>
@@ -161,9 +212,11 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
   const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
   const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
   const pick=a=>a[rnd(0,a.length-1)];
-  const S={lv:[1,2,3].includes(+pref("juice-lv"))?+pref("juice-lv"):1,total:10,round:0,score:0,first:0,miss:0,phase:"start",q:null,last:""};
+  const S={mode:pref("juice-mode")==="duo"?"duo":"solo",lv:[1,2,3].includes(+pref("juice-lv"))?+pref("juice-lv"):1,total:10,round:0,score:0,first:0,miss:0,phase:"start",q:null,last:""};
   const levels=[...document.querySelectorAll("#levels button")],syncLv=()=>levels.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
   levels.forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("juice-lv",S.lv);syncLv()}));syncLv();
+  const modes=[...document.querySelectorAll("#modes button")],syncMode=()=>{modes.forEach(b=>b.setAttribute("aria-pressed",b.dataset.mode===S.mode));$("modeNote").hidden=S.mode!=="duo"};
+  modes.forEach(b=>b.addEventListener("click",()=>{S.mode=b.dataset.mode;pref("juice-mode",S.mode);syncMode()}));syncMode();
   {const n0=+pref("juice-total");if([5,10,15].includes(n0))S.total=n0;
    const cs=[...document.querySelectorAll("#counts button")],sync=()=>cs.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===S.total));
    sync();cs.forEach(b=>b.addEventListener("click",()=>{S.total=+b.dataset.n;pref("juice-total",S.total);sync()}))}
@@ -226,7 +279,7 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
   // 高級：order（三個排順序）、diff（多幾杯）、unit（杯子大小不一樣）
   function newQ(){
     // 題型輪流出；每一輪的第一題是最直覺的那種
-    if(S.round<=1||!S.order){const L={1:["level","pour","pour","level","pour"],2:["count","fill","cmp","count","fill","cmp"],3:["diff","order","unit","diff","order","unit"]}[S.lv];
+    if(S.round<=1||!S.order){const L={1:["level","pour","pour","level","pour"],2:["count","fill","cmp","count","fill","cmp"],3:S.duo?["diff","unit","cmp","diff","unit","cmp"]:["diff","order","unit","diff","order","unit"]}[S.lv];
       S.order=[L[0],...shuffle(L.slice(1))]}
     const t=S.order[(Math.max(1,S.round)-1)%S.order.length],easy=S.round<=2;
     const q={t},js=shuffle(JUICE.slice()),who=pick(CUST);q.who=who;
@@ -282,6 +335,12 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
         q.ask=`${w2[0].e} 的果汁倒成 ${blue} 個<b>藍杯</b>，<br>${w2[1].e} 的果汁倒成 ${green} 個<b>綠杯</b>，<br>誰的果汁比較多？`;
         q.say=`${w2[0].n}的果汁倒成${blue}個藍杯，${w2[1].n}的果汁倒成${green}個綠杯，誰的果汁比較多？`}
     }
+    // 雙人：先猜再看，所以題目不說「按倒倒看」
+    q.dask=q.ask.replace("<br>按「倒一杯」數數看！","<br>猜猜看！");
+    if(t==="cmp")q.dask=q.ask.replace("兩瓶果汁都倒成一杯一杯，<br>","兩瓶都倒成一杯一杯，<br>猜猜看");
+    if(q.sub==="cup")q.dask=`同一瓶果汁，藍杯倒了 ${q.b} 杯、綠杯倒了 ${q.g} 杯，<br>哪一種杯子<b>比較大</b>？`;
+    if(q.sub==="who")q.dask=`${q.w2[0].e} 倒成 ${q.blue} 個<b>藍杯</b>，${q.w2[1].e} 倒成 ${q.green} 個<b>綠杯</b>，<br>誰的果汁比較多？`;
+    q.dsay=q.say.replace(/？?可以按倒倒看$/,"？").replace("按倒一杯，數數看","猜猜看").replace("兩瓶果汁都倒成一杯一杯","兩瓶都倒成一杯一杯，猜猜看");
     const key=t+JSON.stringify(q.cnt||q.ans)+(q.c||"")+(q.blue||"")+(q.green||"");if(key===S.last&&Math.random()<.85)return newQ();S.last=key;
     return q;
   }
@@ -399,7 +458,97 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
   function next(){if(S.round>=S.total)return finish();S.round++;S.miss=0;S.phase="play";S.q=newQ();upd();show()}
   window.juiceDebug=()=>S.q;
   const upd=()=>{$("score").textContent=`⭐ ${S.score} / ${S.total}`};
-  function start(){unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.score=0;S.first=0;S.last="";next();
+  // ================= 雙人版：同一題，兩個人各自偷偷選，選好了再倒給大家看 =================
+  const H=[0,1].map(p=>document.querySelector(`.dhalf.p${p}`));
+  const D={sc:[0,0],pick:[null,null],extra:0};
+  const dq=(p,sel)=>H[p].querySelector(sel);
+  function duoOpts(q){
+    const dot=c=>`<i class="dot" style="background:${c}"></i>`;
+    const win=(n,w)=>{const lo=Math.max(1,n-rnd(0,w-1));return Array.from({length:w},(_,i)=>lo+i)};
+    if(q.t==="pour")return[0,1,2].map(v=>({v,w:1,l:v===2?"一樣多":q.jars[v].jn}));
+    if(q.t==="level"||q.t==="cmp")return q.jars.map((j,v)=>({v,w:1,l:dot(j.col)+j.jn}));
+    if(q.t==="count"||q.t==="fill")return win(q.ans,5).map(v=>({v,l:`${v}<small>杯</small>`}));
+    if(q.t==="diff")return win(q.ans,4).map(v=>({v,l:`${v}<small>杯</small>`}));
+    if(q.sub==="cup")return[{v:0,w:1,l:"🔵 藍杯"},{v:1,w:1,l:"🟢 綠杯"}];
+    return[{v:0,l:q.w2[0].e},{v:1,l:q.w2[1].e},{v:2,w:1,l:"一樣多"}];
+  }
+  // 中間的果汁：題目還沒揭曉的部分先藏起來
+  function duoStage(q){
+    stage.className="stage"+(q.t==="level"?" three":"");
+    if(q.t==="pour")stage.innerHTML=`<div class="jars">${jarBtn(q.jars[0],0)}<span class="arrow" id="arrow">➡️</span>${jarBtn(q.jars[1],1)}</div>`;
+    else if(q.t==="level")stage.innerHTML=`<div class="jars">${q.jars.map((j,i)=>jarBtn(j,i)).join("")}</div>`;
+    else if(q.t==="count"||q.t==="fill")stage.innerHTML=`<div class="jars">${jarBtn(q.jars[0],0)}</div><div class="cups long" id="cupRow"></div>`;
+    else if(q.t==="cmp"){q.jars.forEach(j=>j.fill=1);stage.innerHTML=`<div class="jars">${q.jars.map((j,i)=>`<div class="jarcol">${jarBtn(j,i)}<div class="cups" data-c="${i}"></div></div>`).join("")}</div>`}
+    else if(q.t==="diff")stage.innerHTML=`<div class="jars">${q.jars.map((j,i)=>`<div class="jarcol">${jarBtn(j,i)}${cupsRow(q.cnt[i],1,j.col)}</div>`).join("")}</div>`;
+    else if(q.sub==="cup")stage.innerHTML=`<div class="jars">${jarBtn(q.jars[0],0)}</div><div class="jars"><span class="cnt">🔵 × ${q.b}</span><span class="cnt">🟢 × ${q.g}</span></div>`;
+    else stage.innerHTML=`<div class="jars" style="align-items:flex-start">${[0,1].map(i=>`<div class="jarcol"><span class="owner">${q.w2[i].e}</span>${cupsRow(i?q.green:q.blue,i?1:2,q.col)}</div>`).join("")}</div><p class="note" data-zy>1 個🔵藍杯 = 2 個🟢綠杯</p>`;
+    stage.querySelectorAll(".jar").forEach(b=>b.disabled=true);
+  }
+  function duoUpd(){[0,1].forEach(p=>dq(p,".dsc").textContent=`⭐ ${D.sc[p]}`)}
+  function banner(t,ms=1100){const b=document.createElement("div");b.className="dbanner";b.setAttribute("data-zy","");b.textContent=t;document.body.appendChild(b);setTimeout(()=>b.remove(),ms)}
+  function duoNext(){
+    const over=S.round>=S.total;
+    if(over&&(D.sc[0]!==D.sc[1]||D.extra>=3))return duoEnd();
+    if(over){D.extra++;banner(`平手！加賽第 ${D.extra} 題`,1400)}
+    S.round++;S.phase="play";D.pick=[null,null];S.q=newQ();const q=S.q;
+    duoStage(q);const opts=duoOpts(q);
+    [0,1].forEach(p=>{dq(p,".dask").innerHTML=q.dask;dq(p,".dmsg").textContent="";dq(p,".dmsg").className="dmsg";
+      dq(p,".dopts").innerHTML=opts.map(o=>`<button type="button" class="dch${o.w?" word":""}" data-v="${o.v}"${o.w?" data-zy":""}>${o.l}</button>`).join("");
+      dq(p,".dopts").querySelectorAll(".dch").forEach(b=>b.addEventListener("click",()=>duoPick(p,+b.dataset.v)))});
+    say(q.dsay);
+  }
+  function duoPick(p,v){
+    if(S.phase!=="play"||D.pick[p]!==null)return;D.pick[p]=v;sfx.tick();
+    // 選好就蓋起來，對方看不到選了什麼
+    dq(p,".dopts").innerHTML=`<span class="wait" data-zy>✔ 選好了！等${p?"藍色":"橘色"}…</span>`;
+    if(D.pick.every(x=>x!==null)){S.phase="reveal";setTimeout(duoReveal,350)}
+  }
+  const wait=ms=>new Promise(r=>setTimeout(r,ms));
+  async function duoReveal(){
+    const q=S.q;[0,1].forEach(p=>dq(p,".dopts").innerHTML=`<span class="wait" data-zy>👀 倒倒看！</span>`);
+    if(q.t==="pour"){const [A,B]=q.jars,amt=Math.min(A.cap,B.cap);$("arrow").classList.add("on");sfx.snap();
+      setFill(0,(A.cap-amt)/A.cap);setFill(1,amt/B.cap);if(A.cap>B.cap)liq(1).closest("svg").querySelector(".spill").classList.add("on");await wait(1700);$("arrow").classList.remove("on")}
+    else if(q.t==="count"||q.t==="fill"){const j=q.jars[0],row=$("cupRow");
+      for(let i=1;i<=q.c;i++){if(S.q!==q)return;row.insertAdjacentHTML("beforeend",cupSVG(1,j.col));
+        if(q.t==="fill"){const c=row.lastElementChild;setTimeout(()=>c.querySelectorAll("rect")[1].setAttribute("fill","#e9eef2"),250)}
+        setFill(0,q.t==="count"?1-i/q.c:i/q.c,true);sfx.tick();await wait(480)}
+      await wait(400)}
+    else if(q.t==="cmp"){const mx=Math.max(...q.cnt);
+      for(let i=1;i<=mx;i++){if(S.q!==q)return;q.jars.forEach((j,k)=>{if(i<=j.cap){stage.querySelector(`.cups[data-c="${k}"]`).insertAdjacentHTML("beforeend",cupSVG(1,j.col));setFill(k,1-i/j.cap,true)}});sfx.tick();await wait(420)}
+      await wait(400)}
+    else if(q.t==="level"||q.sub==="who"||q.sub==="cup"||q.t==="diff")await wait(300);
+    if(S.q!==q)return;
+    // 計分：「幾杯」的題目猜得最接近的人得分，其他要剛好答對
+    const near=q.t==="count"||q.t==="fill"||q.t==="diff",d=D.pick.map(v=>Math.abs(v-q.ans)),best=Math.min(...d);
+    const got=[0,1].map(p=>near?d[p]===best:D.pick[p]===q.ans);
+    const ansTxt=duoOpts(q).find(o=>o.v===q.ans);
+    if(q.t==="pour"||q.t==="level"||q.t==="cmp")stage.querySelectorAll(".jar").forEach((b,i)=>{if(i===q.ans)b.classList.add("yes")});
+    [0,1].forEach(p=>{const m=dq(p,".dmsg");
+      if(got[p]){D.sc[p]++;m.textContent=d[p]===0?"✅ 猜對了！+1":"👍 最接近！+1";m.className="dmsg good"}
+      else{m.textContent="❌ 下次加油！";m.className="dmsg bad"}
+      dq(p,".dopts").innerHTML=`<span class="wait" data-zy>${near?`猜 ${D.pick[p]} 杯・答案 ${q.ans} 杯`:"答案："+ansTxt.l.replace(/<small>|<\/small>/g,"")}</span>`});
+    if(got.some(x=>x))sfx.good();else sfx.bad();duoUpd();
+    await wait(2600);if(S.q===q&&S.phase==="reveal")duoNext();
+  }
+  function duoEnd(){
+    S.phase="end";sfx.win();const w=D.sc[0]===D.sc[1]?-1:D.sc[0]>D.sc[1]?0:1;
+    [0,1].forEach(p=>{const r=document.createElement("div");r.className="dres";
+      r.innerHTML=`<b data-zy>${w<0?"🤝 平手！兩個人一樣厲害":w===p?"🏆 你贏了！":"👏 好可惜，下次再來！"}</b><span data-zy>藍色 ${D.sc[0]} 分、橘色 ${D.sc[1]} 分</span>
+        <div class="row"><button type="button" class="dre" data-zy>🔁 再玩一次</button><a href="park.html" data-zy>🏠 回遊樂園</a></div>`;
+      H[p].appendChild(r);r.querySelector(".dre").addEventListener("click",duoStart)});
+    if(w>=0)try{window.parkWin&&parkWin(H[w])}catch(e){}
+    say(w<0?"平手！兩個人一樣厲害":`${w?"橘色":"藍色"}贏了！`);
+  }
+  function duoStart(){
+    unlock();S.duo=true;document.body.classList.add("duo");$("start").hidden=true;$("end").hidden=true;
+    H.forEach(h=>h.querySelectorAll(".dres").forEach(e=>e.remove()));
+    S.round=0;S.last="";S.order=null;S.q=null;S.phase="start";D.sc=[0,0];D.extra=0;duoUpd();banner("🔵 藍色 VS 🟠 橘色",1300);const tok=D.tok=(D.tok||0)+1;setTimeout(()=>{if(D.tok===tok)duoNext()},900);
+    try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}
+  }
+  $("dAgain").addEventListener("click",()=>{if(S.q&&S.duo)say(S.q.dsay)});
+  window.juiceDuo=()=>({D,phase:S.phase,round:S.round,q:S.q});
+
+  function start(){if(S.mode==="duo")return duoStart();S.duo=false;document.body.classList.remove("duo");unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.score=0;S.first=0;S.last="";next();
     try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}}
   function finish(){
     S.phase="end";sfx.win();
