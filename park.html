@@ -143,9 +143,9 @@ h1 .star{font-size:.7em;text-shadow:none}
 @media (orientation:portrait){
   .map{aspect-ratio:4/5;width:min(100%,calc((100dvh - 130px) * .8))}
   @supports (container-type:inline-size){
-    .spot .icon{width:clamp(44px,11.5cqw,140px);font-size:clamp(24px,7cqw,84px)}
-    .spot.big .icon{width:clamp(52px,14.5cqw,170px);font-size:clamp(30px,9cqw,104px)}
-    .spot .name{font-size:clamp(13px,2.8cqw,30px)} .spot .tag{font-size:clamp(11px,1.9cqw,19px)}
+    .spot .icon{width:clamp(44px,10.2cqw,140px);font-size:clamp(24px,6.2cqw,84px)}
+    .spot.big .icon{width:clamp(48px,11.5cqw,170px);font-size:clamp(28px,7.2cqw,104px)}
+    .spot .name{font-size:clamp(12px,2.5cqw,30px)} .spot .tag{font-size:clamp(10px,1.75cqw,19px)}
     .road-edge{stroke-width:max(18px,6.6cqw)} .road{stroke-width:max(14px,5.4cqw)}
     .gate{width:13%;height:6%} .gate b{font-size:clamp(12px,2.4cqw,24px)}
     .zsign{font-size:clamp(13px,2.4cqw,26px)}
@@ -157,9 +157,9 @@ h1 .star{font-size:.7em;text-shadow:none}
   .map{width:min(100%,calc((100dvh - 56px) * 1.6))}
 }
 </style>
-<script src="zhuyin.js?v=20261123b"></script>
-<script src="rest.js?v=20261123b"></script>
-<script src="warm.js?v=20261123b" defer></script>
+<script src="zhuyin.js?v=20261123c"></script>
+<script src="rest.js?v=20261123c"></script>
+<script src="warm.js?v=20261123c" defer></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
 <style>:root{--text:"Chiron GoRound TC","PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif}
 /* ---- 手機：地圖變成長長的步道，往下捲著逛（一排 2 個，手機橫放一排 4 個） ---- */
@@ -204,6 +204,9 @@ html.phone .bunting{height:36px}
   </a>
   <a class="spot open" data-k="ruler" href="ruler.html" style="--c:#d99a00">
     <span class="icon">📏</span><span class="name" data-zy>量一量</span><span class="tag">👤 長度</span>
+  </a>
+  <a class="spot open" data-k="juice" href="juice.html" style="--c:#ef7d22">
+    <span class="icon">🥤</span><span class="name" data-zy>果汁攤</span><span class="tag">👤 容量</span>
   </a>
   <a class="spot open" data-k="share" href="share.html" style="--c:#c86a2b">
     <span class="icon">🍪</span><span class="name" data-zy>分點心</span><span class="tag">👤 平分、分數</span>
@@ -260,33 +263,40 @@ html.phone .bunting{height:36px}
   // 左邊「一個人玩」草地區 3×3；右邊「兩個人對戰」磚紅色廣場，馬戲團在正中間；中間一條大街，入口在下方
   const map=document.querySelector(".map");
   // 三區：左「算一算」（加減乘）、中「數一數・量一量」（位值、比大小、長度、時間、錢、分數）、右「兩個人對戰」
-  const ZA=["balloon","coaster","fish","ferris","donut","ring"],ZB=["blocks","claw","ruler","carousel","booth","share"];
-  function mkLayout(c,dc,dmid,street,rows,zoneB,plazaLeft){
-    const [r1,r2,r3]=rows,pos={};
-    [ZA,ZB].forEach((z,zi)=>z.forEach((k,i)=>pos[k]=[c[zi*2+i%2],rows[i>>1]]));
-    Object.assign(pos,{train:[dc[0],r1],bumper:[dc[1],r1],duel:[dmid,r2],memory:[dc[0],r3],shape:[dc[1],r3]});
+  // 三區：「算一算」（加減乘）、「數一數・量一量」（位值、比大小、長度、容量、時間、錢、分數）、「兩個人對戰」
+  const ZA=["balloon","coaster","fish","ferris","donut","ring"],ZB=["blocks","claw","carousel","ruler","juice","booth","share"];
+  const DUO=["train","bumper","memory","shape"];
+  // 橫放：算一算 2 欄×3 排，數一數・量一量 3 欄×3 排，右邊對戰廣場
+  function landLayout(){
+    const cA=[6.5,20],cB=[34.5,48,61.5],dc=[77,92.5],dmid=84.75,street=27.25,rows=[18.5,46.5,74.5],pos={};
+    ZA.forEach((k,i)=>pos[k]=[cA[i%2],rows[i>>1]]);
+    const gridB=[["blocks","claw","carousel"],["ruler","juice",null],["booth","share",null]],decos=[];
+    gridB.forEach((r,ri)=>r.forEach((k,ci)=>{if(k)pos[k]=[cB[ci],rows[ri]];else decos.push([ri%2?"🌳":"🌻",cB[ci],rows[ri]+2])}));
+    Object.assign(pos,{train:[dc[0],rows[0]],bumper:[dc[1],rows[0]],duel:[dmid,rows[1]],memory:[dc[0],rows[2]],shape:[dc[1],rows[2]]});
     const lines=[];
-    rows.forEach(y=>lines.push([[c[0],y],[dc[1],y]]));             // 三條橫的路
-    [...c,...dc].forEach(x=>lines.push([[x,r1],[x,r3]]));           // 每一欄一條直的路
-    lines.push([[street,104],[street,r1]]);                          // 大街（入口往上）
-    return{pos,lines,zone:{left:zoneB[0]+"%",width:(zoneB[1]-zoneB[0])+"%",top:"3%",bottom:"3%"},
-      plaza:{left:plazaLeft+"%",top:"3%",right:"1.5%",bottom:"3%"},gate:street,
-      signs:[[(c[0]+c[1])/2,1.6],[(c[2]+c[3])/2,1.6],[(dc[0]+dc[1])/2,1.6]]};
+    rows.forEach(y=>lines.push([[cA[0],y],[dc[1],y]]));
+    [...cA,...cB,...dc].forEach(x=>lines.push([[x,rows[0]],[x,rows[2]]]));
+    lines.push([[street,104],[street,rows[0]]]);
+    return{pos,lines,zone:{left:"27.75%",width:"40.75%",top:"3%",bottom:"3%"},
+      plaza:{left:"69.5%",top:"3%",right:"1.5%",bottom:"3%"},gate:street,
+      signs:[[(cA[0]+cA[1])/2,1.6],[cB[1],1.6],[dmid,1.6]],
+      decos:decos.concat([["🌷",13.25,33],["🌼",13.25,61],["🌸",54.75,61],["🎈",97.5,95],["🌳",2.5,95]])};
   }
-  const LAYOUT={
-    land:Object.assign(mkLayout([8,24.5,40.5,56],[74.5,91.5],83,32.25,[18.5,46.5,74.5],[32.75,64],65.5),
-      {decos:[["🌷",16.25,34],["🌼",16.25,63],["🌻",48.25,34],["🍄",48.25,63],["🎈",97.5,95],["🌳",3,95]]}),
-    // 直放：上半部草地（一個人玩 3×3），下半部對戰廣場（小火車、馬戲團、碰碰車／翻牌湊十、形狀搶答）
-    port:{
-      pos:Object.assign({},...[ZA,ZB].flatMap((z,zi)=>z.map((k,i)=>({[k]:[[13,37,63,87][zi*2+i%2],[12.5,30,47.5][i>>1]]}))),
-           {train:[17,73.5],duel:[50,73.5],bumper:[83,73.5],memory:[30,90],shape:[70,90]}),
-      lines:[[[13,12.5],[87,12.5]],[[13,30],[87,30]],[[13,47.5],[87,47.5]],[[17,73.5],[83,73.5]],[[30,90],[70,90]],
-             [[13,12.5],[13,47.5]],[[37,12.5],[37,47.5]],[[63,12.5],[63,47.5]],[[87,12.5],[87,47.5]],
-             [[17,47.5],[17,73.5]],[[83,47.5],[83,73.5]],[[50,104],[50,12.5]]],
-      zone:{left:"51.25%",width:"47.25%",top:"3%",height:"55%"},
-      plaza:{left:"1.5%",right:"1.5%",top:"59.5%",bottom:"1.5%"},gate:50,signs:[[25,1.2],[75,1.2],[50,60.1]],
-      decos:[["🌷",25,21],["🌳",25,39],["🌻",75,21],["🍄",75,39],["🎈",95,97],["🌳",5,97]]}
-  };
+  // 直放：上面左邊算一算（2×3）、右邊數一數・量一量（2×4），中間大街；下面對戰廣場排成一排
+  function portLayout(){
+    const pos={},lines=[],rA=[13,32.5,52],rB=[11.5,27,42.5,58],cA=[13,37],cB=[63,87],decos=[];
+    ZA.forEach((k,i)=>pos[k]=[cA[i%2],rA[i>>1]]);
+    ZB.forEach((k,i)=>pos[k]=[cB[i%2],rB[i>>1]]);
+    if(ZB.length%2)decos.push(["🌻",cB[1],rB[ZB.length>>1]+2]);
+    rA.forEach(y=>lines.push([[cA[0],y],[50,y]]));rB.forEach(y=>lines.push([[50,y],[cB[1],y]]));
+    cA.forEach(x=>lines.push([[x,rA[0]],[x,rA[2]]]));cB.forEach(x=>lines.push([[x,rB[0]],[x,rB[3]]]));
+    const dy=80,dx=[11,30.5,50,69.5,89];
+    ["train","bumper","duel","memory","shape"].forEach((k,i)=>pos[k]=[dx[i],dy]);
+    lines.push([[dx[0],dy],[dx[4],dy]]);lines.push([[50,104],[50,rA[0]]]);
+    return{pos,lines,zone:{left:"51.25%",width:"47.25%",top:"3%",height:"63.5%"},
+      plaza:{left:"1.5%",right:"1.5%",top:"67.5%",bottom:"1.5%"},gate:50,signs:[[25,1.2],[75,1.2],[50,67.9]],
+      decos:decos.concat([["🌷",25,22.75],["🌳",25,42.25],["🌼",25,61],["🎈",95,97],["🌳",5,97]])};
+  }
   const spots={};document.querySelectorAll(".spot").forEach(a=>spots[a.dataset.k]=a);
   const set=(el,x,y)=>{el.style.left=x+"%";el.style.top=y+"%"};
   // Catmull-Rom 轉成平滑的貝茲曲線（closed=true 時頭尾相接）
@@ -301,7 +311,6 @@ html.phone .bunting{height:36px}
     return d+(closed?" Z":"");
   }
   // 手機版的位置：依地圖寬度決定一排幾個，算出每一排的高度，地圖拉長到放得下全部
-  const DUO=["train","bumper","memory","shape"];
   function phoneLayout(){
     const W=map.clientWidth,cols=W>=640?4:2,rowH=W>=640?158:168,signH=54;
     const pos={},lines=[],yPx={};let y=12;
@@ -334,7 +343,7 @@ html.phone .bunting{height:36px}
   function layout(){
     const phone=phoneMQ.matches;document.documentElement.classList.toggle("phone",phone);
     if(!phone)map.style.height="";
-    const L=phone?phoneLayout():matchMedia("(orientation:portrait)").matches?LAYOUT.port:LAYOUT.land;
+    const L=phone?phoneLayout():matchMedia("(orientation:portrait)").matches?portLayout():landLayout();
     Object.entries(L.pos).forEach(([k,[x,y]])=>set(spots[k],x,y));
     const S=p=>[p[0]*1.6,p[1]];let d="";
     L.lines.forEach(([a,b])=>{const A=S(a),B=S(b);d+=` M${A[0].toFixed(1)} ${A[1]} L${B[0].toFixed(1)} ${B[1]}`});

@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>果汁攤</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
+<style>
+/* 單人小遊戲：容量。初級倒倒看、一樣大的杯子比高度（直接比較）；進階用小杯子量幾杯（個別單位）；高級排順序、多幾杯、杯子大小不一樣 */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --ink:#1f2b33; --muted:#5d6b72; --good:#1f9d61; --bad:#d23c3c; --accent:#f0a020; --accent-dark:#b06a00;
+  --num:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
+  --text:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{margin:0;height:100%}
+body{background:radial-gradient(circle,rgba(255,255,255,.5) 2px,transparent 2.5px) 0 0/30px 30px,linear-gradient(#fff6d8,#ffe9b8);color:var(--ink);font-family:var(--text);overflow:hidden;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;display:flex;flex-direction:column}
+[hidden]{display:none!important}
+.top{display:flex;align-items:center;gap:12px;padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.ibtn{width:48px;height:48px;border-radius:14px;border:0;background:rgba(255,255,255,.9);font-size:24px;cursor:pointer;display:grid;place-items:center;text-decoration:none;color:inherit;box-shadow:0 3px 0 rgba(0,0,0,.1);flex:none}
+.ibtn:active{transform:translateY(2px)}
+.ttl{flex:1;text-align:center;font-weight:800;font-size:clamp(18px,3.2vmin,28px)}
+.score{font-family:var(--num);font-weight:800;font-size:clamp(18px,3.4vmin,30px);background:rgba(255,255,255,.9);border-radius:999px;padding:4px 14px;white-space:nowrap;flex:none}
+main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(10px,2.2vh,22px);
+  padding:0 max(12px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+.ask{background:#fff;border-radius:20px;padding:.3em 1em;font-weight:800;font-size:clamp(18px,3.2vmin,28px);box-shadow:0 5px 0 rgba(0,0,0,.08);text-align:center;max-width:96vw}
+/* 果汁攤：容器、果汁、小杯子 */
+.stage{--jw:clamp(110px,min(33vmin,calc((100dvh - 470px) / 1.6)),290px);display:flex;flex-direction:column;align-items:center;gap:clamp(8px,1.6vh,14px);width:min(100%,900px)}
+.stage.three{--jw:clamp(104px,25vmin,230px)}
+.jars{display:flex;align-items:flex-end;justify-content:center;gap:clamp(10px,3vmin,34px);flex-wrap:nowrap}
+.jars:has(.jarcol){align-items:flex-start}
+.jarcol{display:flex;flex-direction:column;align-items:center;gap:6px}
+.jar{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;border:0;background:none;padding:6px 4px 8px;border-radius:20px;cursor:pointer;font:inherit;color:inherit}
+.jar:disabled{cursor:default}
+.jar svg{width:var(--jw);height:auto;display:block;overflow:visible}
+.jar .nm{font-weight:800;font-size:clamp(14px,2.4vmin,20px);background:#fff;border-radius:999px;padding:0 10px;box-shadow:0 2px 0 rgba(0,0,0,.08)}
+.jar.no{animation:shake .4s;background:#ffd6d6}
+.jar.yes{background:#c9f5dc}
+.jar .badge{position:absolute;top:2px;left:50%;transform:translateX(-50%);width:38px;height:38px;border-radius:50%;background:var(--accent);color:#fff;
+  font-family:var(--num);font-weight:800;font-size:24px;display:grid;place-items:center;box-shadow:0 3px 0 var(--accent-dark);animation:pop .3s cubic-bezier(.3,1.6,.5,1)}
+.liq{transform-box:fill-box;transform-origin:50% 100%;transition:transform 1.4s ease-in-out}
+.liq.fast{transition-duration:.45s}
+.spill{opacity:0;transition:opacity .4s .9s}
+.spill.on{opacity:.9}
+.arrow{font-size:clamp(26px,5vmin,44px);align-self:center;opacity:.35;transition:opacity .2s}
+.arrow.on{opacity:1;animation:nudge .5s ease-in-out infinite alternate}
+@keyframes nudge{to{translate:8px 0}}
+.cups{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;align-items:flex-end;max-width:calc(var(--jw) * 1.35);min-height:calc(var(--jw) * .3)}
+.cups .cup{display:block;animation:pop .35s cubic-bezier(.3,1.6,.5,1)}
+.cups.long{max-width:min(92vw,calc(var(--jw) * 2.6));min-height:calc(var(--jw) * .34)}
+.cnt{font-size:clamp(22px,4vmin,34px);font-weight:900;font-family:var(--num);background:#fff;border-radius:16px;padding:.1em .6em;box-shadow:0 3px 0 rgba(0,0,0,.08)}
+.owner{font-size:clamp(28px,5vmin,44px);line-height:1}
+.note{text-align:center;font-size:clamp(14px,2.4vmin,19px);color:var(--muted);margin:0;font-weight:800}
+@keyframes pop{from{transform:scale(.3)}}
+.tool{font:inherit;font-weight:900;font-size:clamp(18px,3.2vmin,24px);border:0;border-radius:999px;padding:.4em 1.1em;background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 5px 0 #e7c98a}
+.tool:active{transform:translateY(3px);box-shadow:0 2px 0 #e7c98a}
+.tool.green{background:#3cb371;color:#fff;box-shadow:0 5px 0 #23804c}
+.tool.green .zy .b,.tool.green .tz-b{color:#fff}
+.tool:disabled{opacity:.45}
+.tools{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.choices{display:flex;gap:clamp(10px,2.4vmin,22px);flex-wrap:wrap;justify-content:center}
+.ch{min-width:clamp(96px,16vmin,150px);border:0;border-radius:20px;background:#fff;cursor:pointer;padding:.25em .6em;box-shadow:0 6px 0 #e7c98a;
+  font-family:var(--num);font-weight:800;font-size:clamp(28px,5.4vmin,46px);color:var(--ink);line-height:1.15}
+.ch small{font-family:var(--text);font-size:.45em;margin-left:.15em}
+.ch.word{font-family:var(--text);font-size:clamp(20px,3.6vmin,30px);padding:.45em .9em}
+.ch:active{transform:translateY(4px);box-shadow:0 2px 0 #e7c98a}
+.ch.no{background:#ffd6d6;box-shadow:0 6px 0 #e8a0a0;animation:shake .4s}
+.ch.yes{background:#c9f5dc;box-shadow:0 6px 0 #7bd3a2}
+@keyframes shake{25%{translate:-8px 0}75%{translate:8px 0}}
+.msg{min-height:1.4em;font-weight:800;font-size:clamp(17px,2.8vmin,24px);text-align:center}
+.msg.good{color:var(--good)}.msg.bad{color:var(--bad)}
+@media (max-width:440px){.stage{--jw:min(150px,max(110px,calc((100dvh - 470px) / 1.6)))}.stage.three{--jw:108px}.jars{gap:8px}}
+@media (max-height:560px){.stage{--jw:clamp(80px,23vh,130px)}.stage.three{--jw:clamp(70px,20vh,110px)}.jar .nm{font-size:13px}.tool{font-size:16px}.note{font-size:13px}}
+/* 手機橫放：左邊容器、右邊題目和答案 */
+@media (max-height:500px) and (orientation:landscape){
+  main{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"st ask" "st ch" "st msg";align-content:center;justify-content:center;column-gap:18px;row-gap:10px}
+  #ask{grid-area:ask;align-self:end} #stage{grid-area:st;width:auto;align-self:center} #choices{grid-area:ch;align-self:center} #msg{grid-area:msg;align-self:start}
+  .stage{--jw:clamp(70px,calc((100dvh - 160px) / 1.7),150px);gap:6px}.stage.three{--jw:clamp(60px,calc((100dvh - 160px) / 1.9),120px)}
+  .ask{font-size:16px}.ch{font-size:24px;min-width:70px}.ch.word{font-size:18px}.msg{font-size:15px}.tool{font-size:15px;padding:.3em .9em}.jar{padding:2px}
+}
+@media (prefers-reduced-motion:reduce){.liq{transition-duration:.01s}.jar.no,.ch.no,.cups .cup,.arrow.on{animation:none}}
+/* 開始／結束畫面 */
+.panel{position:fixed;inset:0;z-index:20;display:grid;place-items:start center;overflow-y:auto;-webkit-overflow-scrolling:touch;background:rgba(255,246,216,.8);
+  padding:max(12px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.panel>.card{margin:auto 0}
+.card{background:#fff;border-radius:24px;padding:clamp(18px,4vmin,34px);width:min(480px,100%);box-shadow:0 12px 40px rgba(0,0,0,.18);display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center}
+.card h2{margin:0;font-size:clamp(26px,5.5vmin,44px)}
+.card p{margin:0;color:var(--muted);font-size:clamp(15px,2.6vmin,20px);line-height:1.5}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.opt{font:inherit;font-size:18px;font-weight:700;border:2px solid #cfd8dc;background:#fff;border-radius:14px;padding:10px 16px;cursor:pointer;color:inherit}
+.opt small{display:block;font-size:13px;font-weight:600;opacity:.8;margin-top:2px}
+.opt[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:#fff}
+.lbl{font-size:14px;font-weight:700;color:var(--muted)}
+.big{font-family:var(--text);font-weight:800;font-size:clamp(20px,4vmin,30px);border:0;border-radius:999px;padding:.5em 1.6em;background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 5px 0 var(--accent-dark);text-decoration:none;display:inline-block}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 var(--accent-dark)}
+.big.alt{background:#fff;color:var(--ink);box-shadow:0 5px 0 #cfd8dc;border:2px solid #cfd8dc}
+.stars{font-size:clamp(40px,9vmin,72px);letter-spacing:.1em;line-height:1}
+#start .card>.big{position:sticky;bottom:0;z-index:1}
+@media (max-height:560px){.panel>.card{gap:8px;padding:14px 18px}.panel>.card h2{font-size:24px}#start .card>p{display:none}.panel .stars{font-size:36px}
+  main{gap:6px}.ask{font-size:16px}.ch{font-size:26px;min-width:84px}.msg{font-size:15px}}
+@media (prefers-reduced-motion:reduce){.handle circle,.desk .it.no,.ch.no{animation:none}}
+</style>
+<script src="zhuyin.js?v=20261123c"></script>
+<script src="rest.js?v=20261123c"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="park.css?v=20261123c">
+<script src="park.js?v=20261123c"></script>
+</head>
+<body data-park>
+<header class="top">
+  <a class="ibtn" href="park.html" aria-label="回遊樂園地圖">🏠</a>
+  <div class="ttl">🥤<span class="tx"> 果汁攤</span></div>
+  <span class="score" id="score">⭐ 0</span>
+  <button type="button" class="ibtn" id="again" aria-label="再念一次題目">🔊</button>
+</header>
+<main>
+  <div class="ask" id="ask" data-zy>比一比，哪一個裝得多？</div>
+  <div class="stage" id="stage"></div>
+  <div class="choices" id="choices" hidden></div>
+  <div class="msg" id="msg" data-zy aria-live="polite"></div>
+
+  <section class="panel" id="start">
+    <div class="card">
+      <h2>🥤 果汁攤</h2>
+      <p data-zy>小動物來買果汁了！<br>比一比哪一個裝得多，<br>再用小杯子量量看。</p>
+      <span class="lbl">難度</span>
+      <div class="row" id="levels">
+        <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small>倒倒看、比一比</small></button>
+        <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small>用小杯子量</small></button>
+        <button type="button" class="opt" data-lv="3" aria-label="高級"><span class="lvst">⭐⭐⭐</span><small>排順序、大小杯</small></button>
+      </div>
+      <span class="lbl">題數</span>
+      <div class="row" id="counts">
+        <button type="button" class="opt" data-n="5" aria-label="5 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button>
+        <button type="button" class="opt" data-n="10" aria-label="10 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>10</small></button>
+        <button type="button" class="opt" data-n="15" aria-label="15 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>15</small></button>
+      </div>
+      <button type="button" class="big" id="go" aria-label="開始">READY</button>
+    </div>
+  </section>
+  <section class="panel" id="end" hidden>
+    <div class="card">
+      <div class="stars" id="stars"></div>
+      <h2 id="endTitle"></h2>
+      <p id="endText" data-zy></p>
+      <div class="row">
+        <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+        <a class="big alt ico-btn" href="park.html" aria-label="回遊樂園">🏠</a>
+      </div>
+    </div>
+  </section>
+</main>
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
+  const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+  const pick=a=>a[rnd(0,a.length-1)];
+  const S={lv:[1,2,3].includes(+pref("juice-lv"))?+pref("juice-lv"):1,total:10,round:0,score:0,first:0,miss:0,phase:"start",q:null,last:""};
+  const levels=[...document.querySelectorAll("#levels button")],syncLv=()=>levels.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
+  levels.forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("juice-lv",S.lv);syncLv()}));syncLv();
+  {const n0=+pref("juice-total");if([5,10,15].includes(n0))S.total=n0;
+   const cs=[...document.querySelectorAll("#counts button")],sync=()=>cs.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===S.total));
+   sync();cs.forEach(b=>b.addEventListener("click",()=>{S.total=+b.dataset.n;pref("juice-total",S.total);sync()}))}
+  // ---- 語音與音效（和遊樂園一樣） ----
+  const synth=window.speechSynthesis;let voice=null;const rate=+(pref("duel-rate")||.9)||.9;
+  const quality=v=>{const u=v.voiceURI||"";return /eloquence|speech\.synthesis\.voice/i.test(u)?0:/\.premium\./i.test(u)?3:/enhanced|-premium/i.test(u)?2:1};
+  function pickVoice(){if(!synth)return;const vs=synth.getVoices().filter(v=>/^(zh|cmn)/i.test(v.lang));const want=pref("duel-voice");
+    const tw=vs.filter(v=>/TW|Hant/i.test(v.lang)&&quality(v)>0).sort((a,b)=>quality(b)-quality(a));
+    voice=(want&&vs.find(v=>(v.voiceURI||v.name)===want))||tw[0]||vs.find(v=>quality(v)>0)||vs[0]||null}
+  if(synth){pickVoice();try{synth.addEventListener("voiceschanged",pickVoice)}catch(e){}}
+  function say(t){if(!synth)return;try{const u=new SpeechSynthesisUtterance(t);u.lang=voice?voice.lang.replace("_","-"):"zh-TW";if(voice)u.voice=voice;u.rate=rate;u.pitch=1.1;
+    if(synth.speaking||synth.pending){synth.cancel();setTimeout(()=>{try{synth.speak(u)}catch(e){}},90)}else synth.speak(u)}catch(e){}}
+  let ac=null;
+  function tone(fs,dur=.12,type="triangle",vol=.15){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume();
+    fs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*dur;o.type=type;o.frequency.value=f;
+      g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)})}catch(e){}}
+  const sfx={good:()=>tone([784,1175],.14,"sine",.3),bad:()=>tone([150],.3,"square",.16),tick:()=>tone([900],.03,"sine",.06),snap:()=>tone([660],.05,"sine",.12),win:()=>tone([523,659,784,1047],.16)};
+  {const _g=sfx.good;sfx.good=(...a)=>{try{window.parkBurst&&parkBurst()}catch(err){}return _g(...a)}}
+  function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
+    try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}}
+
+
+  // ---- 容器：容量用「幾杯」算，畫的時候面積 = 容量（所以高瘦和矮胖的可以裝一樣多）----
+  const UNIT=560;   // 一小杯的面積
+  const JUICE=[{n:"柳橙汁",c:"#ff9f2e"},{n:"葡萄汁",c:"#9b5de5"},{n:"草莓汁",c:"#ff6b8b"},{n:"奇異果汁",c:"#7cbf3a"},{n:"西瓜汁",c:"#ff4f5e"},{n:"蘋果汁",c:"#f2c230"}];
+  const CUST=[{e:"🐻",n:"小熊"},{e:"🐰",n:"小兔子"},{e:"🐼",n:"貓熊"},{e:"🐱",n:"小貓"},{e:"🐶",n:"小狗"},{e:"🦊",n:"狐狸"}];
+  const KN={cup:"杯子",bottle:"瓶子",pitcher:"水壺",bucket:"水桶"};
+  // style：tall 高瘦、wide 矮胖、mid 中等
+  function mkJar(cap,style){
+    const A=cap*UNIT;let h;
+    if(style==="tall")h=rnd(104,118);
+    else if(style==="wide")h=Math.max(rnd(38,52),A/106);
+    else h=Math.max(rnd(66,84),A/100);
+    h=Math.min(h,A/22,120);const w=A/h;
+    const kind=style==="tall"?"bottle":w>88?"bucket":pick(["cup","pitcher"]);
+    return{cap,w,h,kind};
+  }
+  function jarSVG(j,col,fill){
+    const x=(120-j.w)/2,y=130-j.h,X=x-4,Y=y-3,W=j.w+8,H=j.h+7;let d="";
+    if(j.kind==="bottle"){const nw=Math.min(j.w*.5,24),nx=60-nw/2;d+=`<rect x="${nx}" y="${Y-15}" width="${nw}" height="17" rx="3" fill="#eaf6ff" stroke="#8fb0c4" stroke-width="3"/><rect x="${nx-2}" y="${Y-21}" width="${nw+4}" height="8" rx="3" fill="#ff8a65"/>`}
+    if(j.kind==="pitcher")d+=`<path d="M${X+W} ${Y+H*.18} q18 4 14 ${H*.32} q-2 ${H*.12} -14 ${H*.18}" fill="none" stroke="#8fb0c4" stroke-width="5" stroke-linecap="round"/><path d="M${X+4} ${Y+2} l-10 -8 l14 2z" fill="#eaf6ff" stroke="#8fb0c4" stroke-width="2.5" stroke-linejoin="round"/>`;
+    if(j.kind==="bucket")d+=`<path d="M${X+6} ${Y+4} Q60 ${Y-28} ${X+W-6} ${Y+4}" fill="none" stroke="#8fb0c4" stroke-width="4"/>`;
+    return `<svg viewBox="-6 -24 132 166" aria-hidden="true">${d}
+      <rect x="${X}" y="${Y}" width="${W}" height="${H}" rx="9" fill="#f3faff" fill-opacity=".85" stroke="#8fb0c4" stroke-width="3.5"/>
+      <rect class="liq" x="${x}" y="${y}" width="${j.w}" height="${j.h}" rx="5" fill="${col}" style="transform:scaleY(${fill})"/>
+      <rect x="${x+5}" y="${y+6}" width="5" height="${Math.max(10,j.h*.55)}" rx="2.5" fill="#fff" opacity=".55"/>
+      <ellipse class="spill" cx="60" cy="139" rx="58" ry="5" fill="${col}"/></svg>`;
+  }
+  // 小杯子：1 份（綠色小杯）、2 份（藍色大杯）；跟容器用同一個比例畫
+  const CUPDIM={1:[20,28],2:[28,40]};
+  function cupSVG(u,col){const [w,h]=CUPDIM[u],vw=w+8,vh=h+6;
+    return `<svg class="cup" viewBox="0 0 ${vw} ${vh}" style="width:calc(var(--jw) * ${(vw/132).toFixed(3)})" aria-hidden="true">
+      <rect x="2" y="2" width="${w+4}" height="${h+2}" rx="4" fill="#f3faff" stroke="${u===2?"#3d7fe0":"#3cb371"}" stroke-width="2.5"/>
+      <rect x="4" y="5" width="${w}" height="${h-3}" rx="2" fill="${col}"/></svg>`}
+  const cupsRow=(n,u,col,cls="")=>`<div class="cups ${cls}">${Array(n).fill(cupSVG(u,col)).join("")}</div>`;
+
+  // ---- 出題 ----
+  // 初級：pour（把一個倒進另一個比多少，可能一樣多）、level（三個一樣的杯子比高度）
+  // 進階：count（一瓶可以倒幾杯）、fill（幾杯可以裝滿）、cmp（倒成一杯一杯，哪一瓶多）
+  // 高級：order（三個排順序）、diff（多幾杯）、unit（杯子大小不一樣）
+  function newQ(){
+    // 題型輪流出；每一輪的第一題是最直覺的那種
+    if(S.round<=1||!S.order){const L={1:["level","pour","pour","level","pour"],2:["count","fill","cmp","count","fill","cmp"],3:["diff","order","unit","diff","order","unit"]}[S.lv];
+      S.order=[L[0],...shuffle(L.slice(1))]}
+    const t=S.order[(Math.max(1,S.round)-1)%S.order.length],easy=S.round<=2;
+    const q={t},js=shuffle(JUICE.slice()),who=pick(CUST);q.who=who;
+    const more=Math.random()<.6;q.more=more;
+    if(t==="pour"){
+      // 高瘦 vs 矮胖；有時候一樣多
+      const a=rnd(5,8),same=!easy&&Math.random()<.22;let b=same?a:a+pick(easy?[-3,3]:[-2,-1,1,2]);b=Math.max(3,Math.min(9,b));if(b===a&&!same)b=a>5?a-2:a+2;
+      const tallFirst=Math.random()<.5;
+      const A=mkJar(a,tallFirst?"tall":"wide"),B=mkJar(b,tallFirst?"wide":"tall");
+      // 右邊裝的是從左邊倒過來的同一種果汁；用容器的名字來叫（瓶子、水壺…）
+      q.jars=[{...A,col:js[0].c,jn:KN[A.kind],fill:1},{...B,col:js[0].c,jn:KN[B.kind],fill:0}];
+      q.ans=a===b?2:((a>b)===more?0:1);
+      q.ask=more?`${who.e} ${who.n}好渴！<br>哪一個裝得<b>比較多</b>？`:`${who.e} ${who.n}只想喝一點點，<br>哪一個裝得<b>比較少</b>？`;
+      q.say=`${who.n}${more?"好渴，哪一個裝得比較多":"只想喝一點點，哪一個裝得比較少"}？可以按倒倒看`;
+    }else if(t==="level"){
+      const fs=shuffle([.22,.42,.62,.86]).slice(0,3),J=mkJar(8,"mid");J.kind="cup";
+      q.jars=fs.map((f,i)=>({...J,col:js[i].c,jn:js[i].n,fill:f}));
+      q.ans=fs.indexOf(more?Math.max(...fs):Math.min(...fs));
+      q.ask=`${who.e} 三個杯子一樣大，<br>哪一杯果汁<b>${more?"最多":"最少"}</b>？`;q.say=`三個杯子一樣大，哪一杯果汁${more?"最多":"最少"}？`;
+    }else if(t==="count"){
+      const c=easy?rnd(3,5):rnd(4,8),J=mkJar(c,pick(["tall","mid"]));
+      q.jars=[{...J,col:js[0].c,jn:js[0].n,fill:1}];q.c=c;q.ans=c;q.poured=0;
+      q.ask=`這瓶${js[0].n}可以倒滿幾杯？<br>按「倒一杯」數數看！`;q.say=`這瓶${js[0].n}可以倒滿幾杯？按倒一杯，數數看`;
+    }else if(t==="fill"){
+      const c=easy?rnd(3,5):rnd(4,8),J=mkJar(c,pick(["wide","mid"]));
+      q.jars=[{...J,col:js[0].c,jn:js[0].n,fill:0}];q.c=c;q.ans=c;q.poured=0;
+      q.ask=`要倒幾杯${js[0].n}，<br>才能裝滿這個${KN[J.kind]}？`;q.say=`要倒幾杯${js[0].n}，才能裝滿這個${KN[J.kind]}？`;
+    }else if(t==="cmp"||t==="diff"){
+      let a,b;do{a=rnd(3,8);b=rnd(3,8)}while(Math.abs(a-b)<(t==="diff"?1:2)||(easy&&Math.abs(a-b)>3));
+      // 杯數少的那瓶故意畫得比較高
+      const tallIdx=a<b?0:1;
+      q.jars=[a,b].map((c,i)=>({...mkJar(c,i===tallIdx?"tall":"wide"),col:js[i].c,jn:js[i].n,fill:0}));q.cnt=[a,b];
+      if(t==="cmp"){q.ans=(a>b)===more?0:1;q.ask=`兩瓶果汁都倒成一杯一杯，<br>哪一瓶<b>比較${more?"多":"少"}</b>？`;q.say=`兩瓶果汁都倒成一杯一杯，哪一瓶比較${more?"多":"少"}？`}
+      else{const hi=a>b?0:1,lo=1-hi;q.ans=Math.abs(a-b);
+        q.ask=`${js[hi].n}比${js[lo].n}<br><b>多幾杯</b>？`;q.say=`${js[hi].n}比${js[lo].n}多幾杯？`}
+    }else if(t==="order"){
+      let caps;do{caps=shuffle([3,4,5,6,7,8,9]).slice(0,3)}while(Math.max(...caps)-Math.min(...caps)<3);
+      const st=shuffle(["tall","wide","mid"]);
+      q.jars=caps.map((c,i)=>({...mkJar(c,st[i]),col:js[i].c,jn:js[i].n,fill:1}));q.cnt=caps;q.measured=false;q.seq=[];
+      q.ans=caps.map((c,i)=>[c,i]).sort((x,y)=>y[0]-x[0]).map(x=>x[1]);
+      q.ask=`從裝得<b>最多</b>排到<b>最少</b>，<br>依序點一點！`;q.say=`從裝得最多排到最少，依序點一點。可以先用杯子量量看`;
+    }else{
+      // unit：藍色大杯（1 個藍杯 = 2 個綠杯）；兩種小題輪流
+      q.sub=S.unitFlip=S.unitFlip==="who"?"cup":"who";
+      if(q.sub==="cup"){const g=pick([4,6,8]);q.g=g;q.b=g/2;const J=mkJar(g,"mid");q.jars=[{...J,col:js[0].c,jn:js[0].n,fill:1}];q.ans=0;
+        q.ask=`同一瓶${js[0].n}，倒成藍杯是 ${q.b} 杯，<br>倒成綠杯是 ${g} 杯。哪一種杯子<b>比較大</b>？`;
+        q.say=`同一瓶${js[0].n}，倒成藍杯是${q.b}杯，倒成綠杯是${g}杯。哪一種杯子比較大？`}
+      else{const w2=shuffle(CUST.slice()).slice(0,2),cs=pick(["same","same","blue","green"]);
+        const blue=rnd(2,4);let green=blue*2;
+        if(cs==="blue")green=blue*2-pick([1,2]);
+        if(cs==="green")green=blue*2+pick([1,2]);
+        q.w2=w2;q.blue=blue;q.green=green;q.ans=blue*2===green?2:blue*2>green?0:1;q.col=js[0].c;
+        q.ask=`${w2[0].e} 的果汁倒成 ${blue} 個<b>藍杯</b>，<br>${w2[1].e} 的果汁倒成 ${green} 個<b>綠杯</b>，<br>誰的果汁比較多？`;
+        q.say=`${w2[0].n}的果汁倒成${blue}個藍杯，${w2[1].n}的果汁倒成${green}個綠杯，誰的果汁比較多？`}
+    }
+    const key=t+JSON.stringify(q.cnt||q.ans)+(q.c||"")+(q.blue||"")+(q.green||"");if(key===S.last&&Math.random()<.85)return newQ();S.last=key;
+    return q;
+  }
+
+  // ---- 畫面 ----
+  const stage=$("stage"),msg=(t,c="")=>{$("msg").textContent=t;$("msg").className="msg"+(c?" "+c:"")};
+  const liq=i=>stage.querySelectorAll(".jar")[i].querySelector(".liq");
+  const setFill=(i,f,fast)=>{const l=liq(i);l.classList.toggle("fast",!!fast);l.style.transform=`scaleY(${Math.max(0,Math.min(1,f))})`};
+  const jarBtn=(j,i)=>`<button type="button" class="jar" data-i="${i}" aria-label="${j.jn}">${jarSVG(j,j.col,j.fill)}<span class="nm" data-zy>${j.jn}</span></button>`;
+  function showChoices(list,render,word){const ch=$("choices");ch.hidden=false;
+    ch.innerHTML=list.map(v=>`<button type="button" class="ch${word&&word(v)?" word":""}" data-v="${v}"${word&&word(v)?" data-zy":""}>${render(v)}</button>`).join("");
+    ch.querySelectorAll(".ch").forEach(b=>b.addEventListener("click",()=>answer(+b.dataset.v,b)))}
+  const nums=n=>shuffle([...new Set([n,n+1,n>1?n-1:n+2])]);
+  const allWord=()=>true;
+  function bindJars(fn){stage.querySelectorAll(".jar").forEach(b=>b.addEventListener("click",()=>fn(+b.dataset.i,b)))}
+  function show(){
+    const q=S.q;$("ask").innerHTML=q.ask;msg("");$("choices").hidden=true;$("choices").innerHTML="";stage.className="stage";
+    if(q.t==="pour"){
+      stage.innerHTML=`<div class="jars">${jarBtn(q.jars[0],0)}<span class="arrow" id="arrow">➡️</span>${jarBtn(q.jars[1],1)}</div>
+        <div class="tools"><button type="button" class="tool green" id="pourBtn"><span data-zy id="pourTx">倒倒看</span></button></div>`;
+      $("pourBtn").addEventListener("click",pour);bindJars((i,b)=>answer(i,b));
+      showChoices([2],()=>"一樣多",allWord);
+    }else if(q.t==="level"){
+      stage.className="stage three";stage.innerHTML=`<div class="jars">${q.jars.map((j,i)=>jarBtn(j,i)).join("")}</div>`;bindJars((i,b)=>answer(i,b));
+    }else if(q.t==="count"||q.t==="fill"){
+      const j=q.jars[0];
+      stage.innerHTML=`<div class="jars">${jarBtn(j,0)}</div><div class="cups long" id="cupRow"></div>
+        <div class="tools"><button type="button" class="tool green" id="cupBtn" data-zy>${q.t==="count"?"倒一杯":"倒一杯進去"}</button><button type="button" class="tool" id="resetBtn" data-zy>↩ 重來</button></div>`;
+      stage.querySelector(".jar").disabled=true;
+      if(q.t==="fill")$("cupRow").innerHTML=Array(q.c+2).fill(cupSVG(1,j.col)).join("");
+      $("cupBtn").addEventListener("click",cupStep);$("resetBtn").addEventListener("click",cupReset);
+      showChoices(nums(q.ans),v=>`${v}<small>杯</small>`);
+    }else if(q.t==="cmp"||q.t==="diff"){
+      stage.innerHTML=`<div class="jars">${q.jars.map((j,i)=>`<div class="jarcol">${jarBtn(j,i)}${cupsRow(q.cnt[i],1,j.col)}</div>`).join("")}</div>`;
+      if(q.t==="cmp")bindJars((i,b)=>answer(i,b));else{stage.querySelectorAll(".jar").forEach(b=>b.disabled=true);showChoices(nums(q.ans),v=>`${v}<small>杯</small>`)}
+    }else if(q.t==="order"){
+      stage.className="stage three";
+      stage.innerHTML=`<div class="jars">${q.jars.map((j,i)=>`<div class="jarcol">${jarBtn(j,i)}<div class="cups" data-c="${i}"></div></div>`).join("")}</div>
+        <div class="tools"><button type="button" class="tool green" id="measureBtn" data-zy>用杯子量量看</button><button type="button" class="tool" id="resetBtn" data-zy>↩ 重排</button></div>`;
+      $("measureBtn").addEventListener("click",measure);$("resetBtn").addEventListener("click",orderReset);bindJars(orderTap);
+    }else if(q.sub==="cup"){
+      // 只寫杯數，不畫杯子大小（要從杯數想出來）
+      const j=q.jars[0];
+      stage.innerHTML=`<div class="jars">${jarBtn(j,0)}</div><div class="jars"><span class="cnt">🔵 × ${q.b}</span><span class="cnt">🟢 × ${q.g}</span></div>`;
+      stage.querySelector(".jar").disabled=true;
+      showChoices([0,1],v=>v===0?"🔵 藍杯":"🟢 綠杯",allWord);
+    }else{
+      stage.innerHTML=`<div class="jars" style="align-items:flex-start">${[0,1].map(i=>`<div class="jarcol"><span class="owner">${q.w2[i].e}</span>${cupsRow(i?q.green:q.blue,i?1:2,q.col)}</div>`).join("")}</div>
+        <p class="note" data-zy>1 個🔵藍杯 = 2 個🟢綠杯</p>`;
+      showChoices([0,1,2],v=>v===2?"一樣多":q.w2[v].e,v=>v===2);
+    }
+    say(q.say);
+  }
+  // 倒倒看：左邊（滿的）倒進右邊（空的）；再按一次倒回去
+  function pour(){
+    const q=S.q;if(S.phase!=="play")return;const [A,B]=q.jars;
+    if(q.poured){setFill(0,1,true);setFill(1,0,true);stage.querySelectorAll(".spill").forEach(s=>s.classList.remove("on"));q.poured=false;$("pourTx").textContent="倒倒看";$("arrow").classList.remove("on");msg("");return}
+    q.poured=true;$("pourTx").textContent="倒回去";$("arrow").classList.add("on");sfx.snap();
+    const amt=Math.min(A.cap,B.cap);setFill(0,(A.cap-amt)/A.cap);setFill(1,amt/B.cap);
+    if(A.cap>B.cap)liq(1).closest("svg").querySelector(".spill").classList.add("on");
+    setTimeout(()=>{if(S.q!==q)return;$("arrow").classList.remove("on");if(!q.poured)return;
+      const t=A.cap>B.cap?`滿出來了！${A.jn}裡面還有剩。`:A.cap<B.cap?`倒完了，還沒有裝滿。`:"剛剛好裝滿，沒有剩！";
+      msg(t);say(t)},1450);
+  }
+  // 一杯一杯倒
+  function cupStep(){
+    const q=S.q;if(S.phase!=="play")return;const j=q.jars[0];
+    if(q.poured>=q.c){msg(q.t==="count"?"倒完了！倒了幾杯？":"滿了！倒了幾杯？","good");return}
+    q.poured++;sfx.tick();const row=$("cupRow");
+    if(q.t==="count"){row.insertAdjacentHTML("beforeend",cupSVG(1,j.col));setFill(0,1-q.poured/q.c,true)}
+    else{row.querySelectorAll(".cup")[q.poured-1].querySelectorAll("rect")[1].setAttribute("fill","#e9eef2");setFill(0,q.poured/q.c,true)}
+    if(q.poured>=q.c){const t=q.t==="count"?"倒完了！數數看倒了幾杯？":"裝滿了！數數看倒了幾杯？";msg(t,"good");say(t)}
+  }
+  function cupReset(){const q=S.q;if(S.phase!=="play")return;q.poured=0;const j=q.jars[0];
+    if(q.t==="count"){$("cupRow").innerHTML="";setFill(0,1,true)}else{$("cupRow").innerHTML=Array(q.c+2).fill(cupSVG(1,j.col)).join("");setFill(0,0,true)}msg("")}
+  // 排順序
+  function measure(){const q=S.q;if(S.phase!=="play"||q.measured)return;q.measured=true;sfx.snap();
+    q.jars.forEach((j,i)=>{stage.querySelector(`.cups[data-c="${i}"]`).innerHTML=Array(j.cap).fill(cupSVG(1,j.col)).join("");setFill(i,0)});
+    $("measureBtn").disabled=true;const t="都倒成一杯一杯了，數數看！";msg(t);say(t)}
+  function orderReset(){const q=S.q;if(S.phase!=="play")return;q.seq=[];stage.querySelectorAll(".jar .badge").forEach(b=>b.remove());stage.querySelectorAll(".jar").forEach(b=>b.classList.remove("no","yes"));msg("")}
+  function orderTap(i,el){
+    const q=S.q;if(S.phase!=="play"||q.seq.includes(i))return;q.seq.push(i);sfx.tick();
+    el.insertAdjacentHTML("beforeend",`<span class="badge">${q.seq.length}</span>`);
+    if(q.seq.length<3)return;
+    if(q.seq.every((v,k)=>v===q.ans[k])){ok(null);stage.querySelectorAll(".jar").forEach(b=>b.classList.add("yes"));return}
+    S.miss++;sfx.bad();stage.querySelectorAll(".jar").forEach(b=>{b.classList.remove("no");void b.offsetWidth;b.classList.add("no")});
+    const tip=q.measured?"數數看每一個倒了幾杯，杯數最多的排第 1。":"按「用杯子量量看」，數數看每一個倒了幾杯。";
+    msg(tip,"bad");say(tip.replace(/ /g,""));S.phase="wait";
+    setTimeout(()=>{if(S.q===q&&S.phase==="wait"){S.phase="play";orderReset();msg(tip,"bad")}},1300);
+  }
+
+  // ---- 作答 ----
+  function ok(el){
+    const q=S.q;S.phase="ok";S.score++;if(!S.miss)S.first++;sfx.good();upd();el&&el.classList.add("yes");
+    msg(["答對了！","好棒！","真會比！"][rnd(0,2)],"good");
+    // 客人把選中的果汁喝掉
+    const drink=(q.t==="pour"||q.t==="level")&&q.ans!==2;
+    if(drink){const i=q.ans;setTimeout(()=>{if(S.q===q)setFill(i,0)},300)}
+    setTimeout(next,drink?2000:1600);
+  }
+  function answer(v,el){
+    if(S.phase!=="play")return;const q=S.q;
+    if(v===q.ans){ok(el);return}
+    S.miss++;sfx.bad();el.classList.remove("no");void el.getBoundingClientRect();el.classList.add("no");
+    let tip="再想一想！";
+    if(q.t==="pour")tip=q.poured?(q.jars[0].cap===q.jars[1].cap?"剛好裝滿、沒有剩，表示兩個一樣多。":"看看倒過去以後，有沒有滿出來、有沒有剩。"):"按「倒倒看」，把左邊的倒進右邊看看。";
+    else if(q.t==="level")tip="杯子都一樣大，看果汁的高度就知道。";
+    else if(q.t==="count"||q.t==="fill")tip=q.poured>=q.c?"一個一個數，看看有幾杯。":`按「${q.t==="count"?"倒一杯":"倒一杯進去"}」，一杯一杯倒，邊倒邊數。`;
+    else if(q.t==="cmp")tip="數一數每瓶倒了幾杯。杯數多的比較多，不是看瓶子高不高。";
+    else if(q.t==="diff")tip=`從 ${Math.min(...q.cnt)} 往上數到 ${Math.max(...q.cnt)}，數數看多了幾杯。`;
+    else if(q.sub==="cup")tip="一樣多的果汁，倒的杯數越少，杯子就越大。";
+    else tip=`1 個藍杯等於 2 個綠杯，${q.blue} 個藍杯就是 ${q.blue*2} 個綠杯。`;
+    msg(tip,"bad");say(tip.replace(/ /g,""));
+  }
+  function next(){if(S.round>=S.total)return finish();S.round++;S.miss=0;S.phase="play";S.q=newQ();upd();show()}
+  window.juiceDebug=()=>S.q;
+  const upd=()=>{$("score").textContent=`⭐ ${S.score} / ${S.total}`};
+  function start(){unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.score=0;S.first=0;S.last="";next();
+    try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}}
+  function finish(){
+    S.phase="end";sfx.win();
+    const r=S.first/S.total,st=r>=.9?3:r>=.6?2:1;
+    $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);
+    $("endTitle").textContent=st===3?"太厲害了！":st===2?"做得很好！":"再練習一下！";
+    $("endText").textContent=`${S.total} 題裡面，有 ${S.first} 題第一次就答對。`;
+    $("end").hidden=false;say(`${$("endTitle").textContent}${S.total}題裡面，有${S.first}題第一次就答對`);
+  }
+  $("go").addEventListener("click",start);$("replay").addEventListener("click",start);
+  $("again").addEventListener("click",()=>{if(S.q)say(S.q.say)});
+  S.q=newQ();show();S.phase="start";try{synth&&synth.cancel()}catch(e){}upd();
+})();
+</script>
+</body>
+</html>
