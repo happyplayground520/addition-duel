@@ -127,10 +127,10 @@ h1 .star{font-size:.7em;text-shadow:none}
 /* 設施大小跟著地圖寬度縮放 */
 @supports (container-type:inline-size){
   .map{container-type:inline-size}
-  .spot .icon{width:clamp(44px,9.4cqw,140px);font-size:clamp(24px,5.6cqw,84px);border-width:clamp(3px,.5cqw,6px)}
+  .spot .icon{width:clamp(44px,8.2cqw,140px);font-size:clamp(24px,4.9cqw,84px);border-width:clamp(3px,.5cqw,6px)}
   .spot.big .icon{width:clamp(52px,12cqw,170px);font-size:clamp(30px,7.4cqw,104px)}
-  .spot .name{font-size:clamp(13px,2.25cqw,30px);padding:0 clamp(6px,1cqw,13px)}
-  .spot .tag{font-size:clamp(11px,1.5cqw,19px);padding:0 clamp(5px,.8cqw,10px)}
+  .spot .name{font-size:clamp(13px,1.75cqw,30px);padding:0 clamp(5px,.8cqw,13px)}
+  .spot .tag{font-size:clamp(11px,1.3cqw,19px);padding:0 clamp(5px,.7cqw,10px)}
   .deco{font-size:clamp(14px,3.2cqw,40px)}
   .road-edge{stroke-width:max(18px,5.4cqw)} .road{stroke-width:max(14px,4.4cqw)}
 }
@@ -152,9 +152,9 @@ h1 .star{font-size:.7em;text-shadow:none}
   .map{width:min(100%,calc((100dvh - 56px) * 1.6))}
 }
 </style>
-<script src="zhuyin.js?v=20261123a"></script>
-<script src="rest.js?v=20261123a"></script>
-<script src="warm.js?v=20261123a" defer></script>
+<script src="zhuyin.js?v=20261123b"></script>
+<script src="rest.js?v=20261123b"></script>
+<script src="warm.js?v=20261123b" defer></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
 <style>:root{--text:"Chiron GoRound TC","PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif}
 /* ---- 手機：地圖變成長長的步道，往下捲著逛（一排 2 個，手機橫放一排 4 個） ---- */
@@ -201,6 +201,9 @@ html.phone .bunting{height:36px}
   <a class="spot open" data-k="share" href="share.html" style="--c:#c86a2b">
     <span class="icon">🍪</span><span class="name" data-zy>分點心</span><span class="tag">👤 平分、分數</span>
   </a>
+  <a class="spot open" data-k="blocks" href="blocks.html" style="--c:#2f6fdb">
+    <span class="icon">🧱</span><span class="name" data-zy>數字積木</span><span class="tag">👤 位值、直式</span>
+  </a>
   <a class="spot open" data-k="train" href="train.html" style="--c:#c0392b">
     <span class="icon">🚂</span><span class="name" data-zy>小火車</span><span class="tag">👥 大富翁</span>
   </a>
@@ -211,7 +214,7 @@ html.phone .bunting{height:36px}
     <span class="icon">🎡</span><span class="name" data-zy>摩天輪</span><span class="tag">👤 乘法</span>
   </a>
   <a class="spot open" data-k="carousel" href="carousel.html" style="--c:#d1478f">
-    <span class="icon">🎠</span><span class="name" data-zy>旋轉木馬</span><span class="tag">👤 時鐘、經過時間</span>
+    <span class="icon">🎠</span><span class="name" data-zy>旋轉木馬</span><span class="tag">👤 時鐘、時間</span>
   </a>
   <a class="spot open" data-k="ring" href="ring.html" style="--c:#14a99c">
     <span class="icon"><svg class="ringico" viewBox="0 0 64 64" width="1em" height="1em" aria-hidden="true" style="vertical-align:-.12em"><rect x="27" y="10" width="10" height="20" rx="3" fill="#b9ece4"/><rect x="25.5" y="7" width="13" height="6" rx="2" fill="#7fd6c8"/><rect x="17" y="27" width="30" height="31" rx="10" fill="#b9ece4"/><circle cx="26" cy="42" r="2.2" fill="#1f2b33"/><circle cx="38" cy="42" r="2.2" fill="#1f2b33"/><path d="M28.5 47q3.5 3 7 0" stroke="#1f2b33" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="22" cy="46" r="2.6" fill="#ffb3c7" opacity=".8"/><circle cx="42" cy="46" r="2.6" fill="#ffb3c7" opacity=".8"/><ellipse cx="32" cy="24" rx="17" ry="6" fill="none" stroke="#ff6b9a" stroke-width="5" transform="rotate(-10 32 24)"/><ellipse cx="32" cy="24" rx="17" ry="6" fill="none" stroke="#ffd23f" stroke-width="5" stroke-dasharray="9 9" transform="rotate(-10 32 24)"/></svg></span><span class="name" data-zy>套圈圈</span><span class="tag">👤 九九快答</span>
@@ -251,26 +254,26 @@ html.phone .bunting{height:36px}
   const map=document.querySelector(".map");
   function mkLayout(c,dc,dmid,street,rows,plazaLeft){
     const [r1,r2,r3]=rows;
-    const pos={balloon:[c[0],r1],coaster:[c[1],r1],fish:[c[2],r1],ruler:[street,(r1+r2)/2+2],share:[street,(r2+r3)/2+2],
-               ferris:[c[0],r2],donut:[c[1],r2],ring:[c[2],r2],
-               carousel:[c[0],r3],claw:[c[1],r3],booth:[c[2],r3],
+    const pos={balloon:[c[0],r1],coaster:[c[1],r1],fish:[c[2],r1],ruler:[c[3],r1],
+               ferris:[c[0],r2],donut:[c[1],r2],ring:[c[2],r2],blocks:[c[3],r2],
+               carousel:[c[0],r3],claw:[c[1],r3],booth:[c[2],r3],share:[c[3],r3],
                train:[dc[0],r1],bumper:[dc[1],r1],duel:[dmid,r2],memory:[dc[0],r3],shape:[dc[1],r3]};
     const lines=[];
     rows.forEach(y=>lines.push([[c[0],y],[dc[1],y]]));             // 三條橫的路
     [...c,...dc].forEach(x=>lines.push([[x,r1],[x,r3]]));           // 每一欄一條直的路
     lines.push([[street,104],[street,r1]]);                          // 中間大街（入口往上）
-    return{pos,lines,plaza:{left:plazaLeft+"%",top:"3%",right:"1.5%",bottom:"3%"},gate:street,signs:[[(c[0]+c[2])/2,1.6],[(dc[0]+dc[1])/2,1.6]]};
+    return{pos,lines,plaza:{left:plazaLeft+"%",top:"3%",right:"1.5%",bottom:"3%"},gate:street,signs:[[(c[0]+c[c.length-1])/2,1.6],[(dc[0]+dc[1])/2,1.6]]};
   }
   const LAYOUT={
-    land:Object.assign(mkLayout([9.5,26.5,43.5],[69.5,89.5],79.5,55,[19,50,81],60),
-      {decos:[["🌷",18,35],["🌼",35,35],["🌳",18,66],["🌲",35,66],["🎈",97,95],["🌳",3,95]]}),
+    land:Object.assign(mkLayout([6.5,20.5,34.5,48.5],[72.5,91],81.75,60,[18,48.5,79],63.5),
+      {decos:[["🌷",14.5,35],["🌼",42.5,35],["🌳",14.5,66],["🌲",42.5,66],["🎈",97,95],["🌳",3,95]]}),
     // 直放：上半部草地（一個人玩 3×3），下半部對戰廣場（小火車、馬戲團、碰碰車／翻牌湊十、形狀搶答）
     port:{
       pos:{balloon:[12.5,13],coaster:[37.5,13],fish:[62.5,13],ruler:[87.5,13],
-           ferris:[17,29.5],donut:[50,29.5],ring:[83,29.5],
+           ferris:[12.5,29.5],donut:[37.5,29.5],ring:[62.5,29.5],blocks:[87.5,29.5],
            carousel:[12.5,45.5],claw:[37.5,45.5],booth:[62.5,45.5],share:[87.5,45.5],
            train:[17,71],duel:[50,71],bumper:[83,71],memory:[30,89],shape:[70,89]},
-      lines:[[[12.5,13],[87.5,13]],[[17,29.5],[83,29.5]],[[12.5,45.5],[87.5,45.5]],[[17,71],[83,71]],[[30,89],[70,89]],
+      lines:[[[12.5,13],[87.5,13]],[[12.5,29.5],[87.5,29.5]],[[12.5,45.5],[87.5,45.5]],[[17,71],[83,71]],[[30,89],[70,89]],
              [[17,13],[17,71]],[[83,13],[83,71]],[[50,104],[50,13]]],
       plaza:{left:"1.5%",right:"1.5%",top:"56%",bottom:"1.5%"},gate:50,signs:[[50,1.2],[50,56.6]],
       decos:[["🌷",33,20],["🌼",67,20],["🌳",33,37],["🌲",67,37],["🎈",95,97],["🌳",5,97]]}
@@ -289,7 +292,7 @@ html.phone .bunting{height:36px}
     return d+(closed?" Z":"");
   }
   // 手機版的位置：依地圖寬度決定一排幾個，算出每一排的高度，地圖拉長到放得下全部
-  const SOLO=["balloon","coaster","fish","ferris","donut","ring","carousel","claw","booth","ruler","share"],DUO=["train","bumper","memory","shape"];
+  const SOLO=["balloon","coaster","fish","ferris","donut","ring","carousel","claw","booth","ruler","share","blocks"],DUO=["train","bumper","memory","shape"];
   function phoneLayout(){
     const W=map.clientWidth,cols=W>=640?4:2,rowH=W>=640?158:168,signH=54;
     const pos={},lines=[],yPx={};let y=12;
