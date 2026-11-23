@@ -155,6 +155,7 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
         <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small>20 元以內</small></button>
         <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small>100 元以內</small></button>
         <button type="button" class="opt" data-lv="3" aria-label="高級"><span class="lvst">⭐⭐⭐</span><small>1000 元以內</small></button>
+        <button type="button" class="opt" data-lv="4" aria-label="挑戰" hidden><span class="lvst">🌟</span><small>1000 元以內</small></button>
       </div>
       <span class="lbl">答對後換下一題</span>
       <div class="row" id="advance">
@@ -188,15 +189,24 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
   const LV={1:{min:3,max:20,money:[1,5,10]},2:{min:21,max:100,money:[1,5,10,50]},3:{min:101,max:1000,money:[1,5,10,50,100,500,1000]}};
   const RIDES=[["🎠","旋轉木馬"],["🎡","摩天輪"],["🎢","雲霄飛車"],["🎪","馬戲團表演"],["🎈","射氣球"],["🚂","小火車"],["🛶","碰碰船"],["🏰","鬼屋探險"]];
   const S={mode:pref("booth-mode")==="change"?"change":"pay",adv:pref("booth-advance")==="manual"?"manual":"auto",lv:LV[+pref("park-level")]?+pref("park-level"):1,total:10,round:0,score:0,tries:0,phase:"start",price:0,paid:[],lastRide:-1};
-  const syncLv=()=>document.querySelectorAll("#levels button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
-  document.querySelectorAll("#levels button").forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("park-level",S.lv);syncLv()}));
+  // 找錢的四級：只多一個新難點（10 以內 → 整十不用借位 → 要借位 → 大鈔）
+  const CLV={1:{give:[10],sub:"10 元以內",money:[1,5]},2:{give:[20,50],sub:"50 元以內・整十",money:[1,5,10]},
+             3:{give:[50,100],sub:"100 元以內・要借位",money:[1,5,10,50]},4:{give:[500,1000],sub:"1000 元以內",money:[1,5,10,50,100,500]}};
+  const PSUB={1:"20 元以內",2:"100 元以內",3:"1000 元以內"};
+  S.clv=[1,2,3,4].includes(+pref("booth-change-lv"))?+pref("booth-change-lv"):1;
+  const curLv=()=>S.mode==="change"?S.clv:S.lv;
+  const moneySet=()=>S.mode==="change"?CLV[S.clv].money:LV[S.lv].money;
+  const syncLv=()=>document.querySelectorAll("#levels button").forEach(b=>{const l=+b.dataset.lv;
+    b.hidden=l===4&&S.mode!=="change";b.querySelector("small").textContent=S.mode==="change"?CLV[l].sub:PSUB[l]||"";
+    b.setAttribute("aria-pressed",l===curLv())});
+  document.querySelectorAll("#levels button").forEach(b=>b.addEventListener("click",()=>{const l=+b.dataset.lv;
+    if(S.mode==="change"){S.clv=l;pref("booth-change-lv",l)}else{S.lv=l;pref("park-level",l)}syncLv();renderWallet()}));
   syncLv();
   const syncMode=()=>document.querySelectorAll("#modes button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.mode===S.mode));
-  document.querySelectorAll("#modes button").forEach(b=>b.addEventListener("click",()=>{S.mode=b.dataset.mode;pref("booth-mode",S.mode);syncMode()}));
+  document.querySelectorAll("#modes button").forEach(b=>b.addEventListener("click",()=>{S.mode=b.dataset.mode;pref("booth-mode",S.mode);syncMode();syncLv();renderWallet()}));
   syncMode();
   // 找錢：客人付的錢（比票價大的整數鈔票或硬幣）；找回來的錢 = 客人付的 − 票價
   const CUST=["🐻","🐰","🐼","🐱","🐶","🦊","🐨","🐷"];
-  const PAYWITH={1:[10,20],2:[50,100],3:[500,1000]};
   const target=()=>S.mode==="change"?S.give-S.price:S.price;
   const syncAdv=()=>document.querySelectorAll("#advance button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.adv===S.adv));
   document.querySelectorAll("#advance button").forEach(b=>b.addEventListener("click",()=>{S.adv=b.dataset.adv;pref("booth-advance",S.adv);syncAdv()}));
@@ -291,7 +301,8 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
 
   // ---- 錢包與付款盤 ----
   function renderWallet(){
-    $("wallet").innerHTML=LV[S.lv].money.slice().reverse().map(v=>`<button type="button" class="money" data-v="${v}" aria-label="放一個${label(v)}">${moneySVG(v,S.lv===3?.8:1)}</button>`).join("");
+    const big=S.mode==="change"?S.clv===4:S.lv===3;
+    $("wallet").innerHTML=moneySet().slice().reverse().map(v=>`<button type="button" class="money" data-v="${v}" aria-label="放一個${label(v)}">${moneySVG(v,big?.8:1)}</button>`).join("");
     $("wallet").querySelectorAll(".money").forEach(b=>b.addEventListener("click",()=>add(+b.dataset.v,b)));
   }
   const sum=()=>S.paid.reduce((a,b)=>a+b,0);
@@ -317,7 +328,7 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
     const to=$("paid").querySelector(`.money[data-i="${S.paid.indexOf(v)}"]`);if(src&&to)flyMoney(src,to);
   }
   // 最少要幾個錢幣／紙鈔
-  const fewest=p=>LV[S.lv].money.slice().reverse().reduce((n,v)=>{n+=Math.floor(p/v);p%=v;return n},0);
+  const fewest=p=>moneySet().slice().reverse().reduce((n,v)=>{n+=Math.floor(p/v);p%=v;return n},0);
 
   // ---- 遊戲流程 ----
   function start(){unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.score=0;upd();renderWallet();next();
@@ -334,8 +345,12 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
     const L=LV[S.lv];
     if(S.mode==="change"){
       // 票價要比客人付的錢小；初級 10 元以內的票、付 10 元（偶爾 20 元）
-      const opts=PAYWITH[S.lv];S.give=S.lv===1?(Math.random()<.75?10:20):opts[rnd(0,1)];
-      const lo=S.lv===1?2:S.lv===2?(S.give===50?21:51):(S.give===500?101:501);S.price=rnd(lo,S.give-1);
+      const C=CLV[S.clv];S.give=C.give[rnd(0,C.give.length-1)];
+      if(S.clv===1)S.price=rnd(1,9);
+      else if(S.clv===2){if(Math.random()<.8)S.give=50;else S.give=20;       // 整十：找錢不用借位（大多付 50 元）
+        do{S.price=rnd(1,S.give/10-1)*10}while(S.give===50&&S.price===S.lastPrice);S.lastPrice=S.price}
+      else if(S.clv===3){do{S.price=rnd(S.give===50?11:21,S.give-1)}while(S.price%10===0)} // 個位不是 0：要借位
+      else S.price=rnd(S.give===500?101:501,S.give-1);
     }else S.price=rnd(L.min,L.max);
     let ri;do{ri=rnd(0,RIDES.length-1)}while(ri===S.lastRide);S.lastRide=ri;
     const[ico,name]=RIDES[ri];S.ride=name;
@@ -344,7 +359,7 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;ga
     $("msg").textContent="";$("msg").className="msg";renderPaid();
     const cp=$("custpay");
     if(S.mode==="change"){S.who=CUST[rnd(0,CUST.length-1)];
-      cp.innerHTML=`<span class="who">${S.who}</span><span>${TZY("客人給你")}</span><span class="bill">${moneySVG(S.give,S.give>=100?.55:.7)}<b>${S.give}</b> 元</span><span>${TZY("要找多少錢？")}</span>`;cp.hidden=false;
+      cp.innerHTML=`<span class="who">${S.who}</span><span>${TZY("客人給你")}</span><span class="bill">${S.give===20?moneySVG(10,.7)+moneySVG(10,.7):moneySVG(S.give,S.give>=100?.55:.7)}<b>${S.give}</b> 元</span><span>${TZY("要找多少錢？")}</span>`;cp.hidden=false;
       $("trayName").textContent="找錢盤（點錢幣可以拿回來）";$("pay").setAttribute("aria-label","找錢");
       say(`${name}的門票${S.price}元，客人給你${S.give}元，要找多少錢？把錢放進找錢盤`);
     }else{cp.hidden=true;$("trayName").textContent="付款盤（點錢幣可以拿回來）";$("pay").setAttribute("aria-label","付錢");
