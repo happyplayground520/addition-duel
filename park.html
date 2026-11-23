@@ -92,12 +92,17 @@ h1 .star{font-size:.7em;text-shadow:none}
 .zsign{position:absolute;top:1.6%;transform:translateX(-50%);z-index:4;white-space:nowrap;pointer-events:none;
   font-weight:900;font-size:clamp(13px,1.9cqw,24px);padding:.15em .9em;border-radius:999px;border:3px solid #fff;box-shadow:0 3px 0 rgba(0,0,0,.12)}
 .zsign.solo{background:#7cc35a;color:#fff}
+.zsign.life{background:#e0a21b;color:#fff}
+/* 第二個主題區「數一數・量一量」：淡黃色的沙地，路畫在上面 */
+.zone{position:absolute;pointer-events:none;border-radius:clamp(16px,3cqw,34px);
+  background:radial-gradient(circle,rgba(255,255,255,.5) 1.5px,transparent 2px) 0 0/22px 22px,linear-gradient(#fbe9a6,#f6dc86);
+  box-shadow:inset 0 0 0 4px rgba(255,255,255,.7),0 4px 0 rgba(0,0,0,.06)}
 .zsign.duo{background:#e0602b;color:#fff}
 .bunting{position:absolute;left:0;right:0;top:0;height:7%;display:flex;justify-content:space-around;pointer-events:none;z-index:1}
 .bunting::before{content:"";position:absolute;left:-2%;right:-2%;top:18%;height:2px;background:#fff;opacity:.9}
 .bunting i{width:3.2%;height:100%;clip-path:polygon(0 18%,100% 18%,50% 100%)}
 /* 入口拱門 */
-.gate{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:10%;height:8%;pointer-events:none;z-index:2;
+.gate{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:8.5%;height:8%;pointer-events:none;z-index:2;
   display:flex;justify-content:space-between;align-items:flex-start}
 .gate::before,.gate::after{content:"";width:9%;height:100%;border-radius:6px 6px 0 0;background:repeating-linear-gradient(#e8434f 0 8px,#fff 8px 16px)}
 .gate b{position:absolute;left:-6%;right:-6%;top:-38%;display:flex;align-items:center;justify-content:center;gap:.2em;padding:.1em 0;border-radius:999px;
@@ -182,12 +187,14 @@ html.phone .bunting{height:36px}
 </header>
 
 <div class="map" role="navigation" aria-label="遊樂園地圖">
+  <div class="zone" id="zoneB" aria-hidden="true"></div>
   <svg viewBox="0 0 160 100" preserveAspectRatio="none" aria-hidden="true">
     <path class="road-edge" id="roadEdge"/><path class="road" id="road"/><path class="road-dash" id="roadDash"/>
   </svg>
   <div class="plaza" id="plaza" aria-hidden="true"></div>
   <div class="bunting" aria-hidden="true"></div>
-  <span class="zsign solo" id="signSolo" data-zy>👤 一個人玩</span>
+  <span class="zsign solo" id="signSolo" data-zy>🧮 算一算</span>
+  <span class="zsign life" id="signLife" data-zy>🔢 數一數・量一量</span>
   <span class="zsign duo" id="signDuo" data-zy>👥 兩個人對戰</span>
   <div class="gate" aria-hidden="true"><b data-zy>🎉 入口</b></div>
   <div id="decos" aria-hidden="true"></div>
@@ -252,31 +259,33 @@ html.phone .bunting{height:36px}
   // ---- 位置（百分比：x 是寬度 %、y 是高度 %）----
   // 左邊「一個人玩」草地區 3×3；右邊「兩個人對戰」磚紅色廣場，馬戲團在正中間；中間一條大街，入口在下方
   const map=document.querySelector(".map");
-  function mkLayout(c,dc,dmid,street,rows,plazaLeft){
-    const [r1,r2,r3]=rows;
-    const pos={balloon:[c[0],r1],coaster:[c[1],r1],fish:[c[2],r1],ruler:[c[3],r1],
-               ferris:[c[0],r2],donut:[c[1],r2],ring:[c[2],r2],blocks:[c[3],r2],
-               carousel:[c[0],r3],claw:[c[1],r3],booth:[c[2],r3],share:[c[3],r3],
-               train:[dc[0],r1],bumper:[dc[1],r1],duel:[dmid,r2],memory:[dc[0],r3],shape:[dc[1],r3]};
+  // 三區：左「算一算」（加減乘）、中「數一數・量一量」（位值、比大小、長度、時間、錢、分數）、右「兩個人對戰」
+  const ZA=["balloon","coaster","fish","ferris","donut","ring"],ZB=["blocks","claw","ruler","carousel","booth","share"];
+  function mkLayout(c,dc,dmid,street,rows,zoneB,plazaLeft){
+    const [r1,r2,r3]=rows,pos={};
+    [ZA,ZB].forEach((z,zi)=>z.forEach((k,i)=>pos[k]=[c[zi*2+i%2],rows[i>>1]]));
+    Object.assign(pos,{train:[dc[0],r1],bumper:[dc[1],r1],duel:[dmid,r2],memory:[dc[0],r3],shape:[dc[1],r3]});
     const lines=[];
     rows.forEach(y=>lines.push([[c[0],y],[dc[1],y]]));             // 三條橫的路
     [...c,...dc].forEach(x=>lines.push([[x,r1],[x,r3]]));           // 每一欄一條直的路
-    lines.push([[street,104],[street,r1]]);                          // 中間大街（入口往上）
-    return{pos,lines,plaza:{left:plazaLeft+"%",top:"3%",right:"1.5%",bottom:"3%"},gate:street,signs:[[(c[0]+c[c.length-1])/2,1.6],[(dc[0]+dc[1])/2,1.6]]};
+    lines.push([[street,104],[street,r1]]);                          // 大街（入口往上）
+    return{pos,lines,zone:{left:zoneB[0]+"%",width:(zoneB[1]-zoneB[0])+"%",top:"3%",bottom:"3%"},
+      plaza:{left:plazaLeft+"%",top:"3%",right:"1.5%",bottom:"3%"},gate:street,
+      signs:[[(c[0]+c[1])/2,1.6],[(c[2]+c[3])/2,1.6],[(dc[0]+dc[1])/2,1.6]]};
   }
   const LAYOUT={
-    land:Object.assign(mkLayout([6.5,20.5,34.5,48.5],[72.5,91],81.75,60,[18,48.5,79],63.5),
-      {decos:[["🌷",14.5,35],["🌼",42.5,35],["🌳",14.5,66],["🌲",42.5,66],["🎈",97,95],["🌳",3,95]]}),
+    land:Object.assign(mkLayout([8,24.5,40.5,56],[74.5,91.5],83,32.25,[18.5,46.5,74.5],[32.75,64],65.5),
+      {decos:[["🌷",16.25,34],["🌼",16.25,63],["🌻",48.25,34],["🍄",48.25,63],["🎈",97.5,95],["🌳",3,95]]}),
     // 直放：上半部草地（一個人玩 3×3），下半部對戰廣場（小火車、馬戲團、碰碰車／翻牌湊十、形狀搶答）
     port:{
-      pos:{balloon:[12.5,13],coaster:[37.5,13],fish:[62.5,13],ruler:[87.5,13],
-           ferris:[12.5,29.5],donut:[37.5,29.5],ring:[62.5,29.5],blocks:[87.5,29.5],
-           carousel:[12.5,45.5],claw:[37.5,45.5],booth:[62.5,45.5],share:[87.5,45.5],
-           train:[17,71],duel:[50,71],bumper:[83,71],memory:[30,89],shape:[70,89]},
-      lines:[[[12.5,13],[87.5,13]],[[12.5,29.5],[87.5,29.5]],[[12.5,45.5],[87.5,45.5]],[[17,71],[83,71]],[[30,89],[70,89]],
-             [[17,13],[17,71]],[[83,13],[83,71]],[[50,104],[50,13]]],
-      plaza:{left:"1.5%",right:"1.5%",top:"56%",bottom:"1.5%"},gate:50,signs:[[50,1.2],[50,56.6]],
-      decos:[["🌷",33,20],["🌼",67,20],["🌳",33,37],["🌲",67,37],["🎈",95,97],["🌳",5,97]]}
+      pos:Object.assign({},...[ZA,ZB].flatMap((z,zi)=>z.map((k,i)=>({[k]:[[13,37,63,87][zi*2+i%2],[12.5,30,47.5][i>>1]]}))),
+           {train:[17,73.5],duel:[50,73.5],bumper:[83,73.5],memory:[30,90],shape:[70,90]}),
+      lines:[[[13,12.5],[87,12.5]],[[13,30],[87,30]],[[13,47.5],[87,47.5]],[[17,73.5],[83,73.5]],[[30,90],[70,90]],
+             [[13,12.5],[13,47.5]],[[37,12.5],[37,47.5]],[[63,12.5],[63,47.5]],[[87,12.5],[87,47.5]],
+             [[17,47.5],[17,73.5]],[[83,47.5],[83,73.5]],[[50,104],[50,12.5]]],
+      zone:{left:"51.25%",width:"47.25%",top:"3%",height:"55%"},
+      plaza:{left:"1.5%",right:"1.5%",top:"59.5%",bottom:"1.5%"},gate:50,signs:[[25,1.2],[75,1.2],[50,60.1]],
+      decos:[["🌷",25,21],["🌳",25,39],["🌻",75,21],["🍄",75,39],["🎈",95,97],["🌳",5,97]]}
   };
   const spots={};document.querySelectorAll(".spot").forEach(a=>spots[a.dataset.k]=a);
   const set=(el,x,y)=>{el.style.left=x+"%";el.style.top=y+"%"};
@@ -292,29 +301,32 @@ html.phone .bunting{height:36px}
     return d+(closed?" Z":"");
   }
   // 手機版的位置：依地圖寬度決定一排幾個，算出每一排的高度，地圖拉長到放得下全部
-  const SOLO=["balloon","coaster","fish","ferris","donut","ring","carousel","claw","booth","ruler","share","blocks"],DUO=["train","bumper","memory","shape"];
+  const DUO=["train","bumper","memory","shape"];
   function phoneLayout(){
     const W=map.clientWidth,cols=W>=640?4:2,rowH=W>=640?158:168,signH=54;
     const pos={},lines=[],yPx={};let y=12;
     const rowXs=n=>Array.from({length:n},(_,j)=>50+(j-(n-1)/2)*(100/cols));
     const place=(keys,zone)=>{const rows=[];for(let i=0;i<keys.length;i+=cols)rows.push(keys.slice(i,i+cols));
       rows.forEach(r=>{const xs=rowXs(r.length);r.forEach((k,j)=>{pos[k]=[xs[j],y+58]});zone.push({xs,y:y+58});y+=rowH})};
-    const signs=[[50,0],[50,0]];
-    signs[0][1]=y;y+=signH;const soloRows=[];place(SOLO,soloRows);
-    const plazaTop=y-6;y+=6;signs[1][1]=y;y+=signH;
+    const signs=[[50,0],[50,0],[50,0]];
+    signs[0][1]=y;y+=signH;const soloRows=[];place(ZA,soloRows);
+    const zoneTop=y-6;y+=6;signs[1][1]=y;y+=signH;const lifeRows=[];place(ZB,lifeRows);
+    const zoneBot=y-6;
+    const plazaTop=y+6;y+=18;signs[2][1]=y;y+=signH;
     const duoRows=[];pos.duel=[50,y+64];duoRows.push({xs:[50],y:y+64});y+=rowH+26;place(DUO,duoRows);
     const H=y+64;map.style.height=H+"px";
     const P=v=>v/H*100;
     Object.keys(pos).forEach(k=>pos[k]=[pos[k][0],P(pos[k][1])]);
     // 路：每一排一條橫的、每一欄一條直的，中間一條大街通到最下面的入口
-    [soloRows,duoRows].forEach(rows=>{
+    [soloRows,lifeRows,duoRows].forEach(rows=>{
       rows.forEach(r=>{if(r.xs.length>1)lines.push([[r.xs[0],P(r.y)],[r.xs[r.xs.length-1],P(r.y)]])});
       const xs=[...new Set(rows.flatMap(r=>r.xs))];
       xs.forEach(x=>{const ys=rows.filter(r=>r.xs.includes(x)).map(r=>r.y);if(ys.length>1)lines.push([[x,P(Math.min(...ys))],[x,P(Math.max(...ys))]])});
     });
     lines.push([[50,104],[50,P(soloRows[0].y)]]);
-    const decos=[];soloRows.concat(duoRows).forEach((r,i)=>{if(i%2===0)decos.push([i%4?96:4,P(r.y+rowH/2),["🌳","🌷","🌲","🌼"][i%4]])});
-    return{pos,lines,plaza:{left:"2%",right:"2%",top:P(plazaTop)+"%",bottom:"1.2%"},gate:50,
+    const decos=[];soloRows.concat(lifeRows,duoRows).forEach((r,i)=>{if(i%2===0)decos.push([i%4?96:4,P(r.y+rowH/2),["🌳","🌷","🌲","🌼"][i%4]])});
+    return{pos,lines,zone:{left:"2%",width:"96%",top:P(zoneTop)+"%",height:P(zoneBot-zoneTop)+"%"},
+      plaza:{left:"2%",right:"2%",top:P(plazaTop)+"%",bottom:"1.2%"},gate:50,
       signs:signs.map(([x,yy])=>[x,P(yy+6)]),decos:decos.map(([x,yy,e])=>[e,x,yy])};
   }
   // 手機：畫面寬度 600 以下（直放）或高度 500 以下（橫放）
@@ -328,7 +340,8 @@ html.phone .bunting{height:36px}
     L.lines.forEach(([a,b])=>{const A=S(a),B=S(b);d+=` M${A[0].toFixed(1)} ${A[1]} L${B[0].toFixed(1)} ${B[1]}`});
     ["roadEdge","road","roadDash"].forEach(id=>document.getElementById(id).setAttribute("d",d.trim()));
     Object.assign(document.getElementById("plaza").style,L.plaza);
-    [["signSolo",L.signs[0]],["signDuo",L.signs[1]]].forEach(([id,[x,y]])=>{const e=document.getElementById(id);e.style.left=x+"%";e.style.top=y+"%"});
+    Object.assign(document.getElementById("zoneB").style,{left:"",width:"",top:"",bottom:"",height:""},L.zone);
+    [["signSolo",L.signs[0]],["signLife",L.signs[1]],["signDuo",L.signs[2]]].forEach(([id,[x,y]])=>{const e=document.getElementById(id);e.style.left=x+"%";e.style.top=y+"%"});
     const g=document.querySelector(".gate");g.style.left=L.gate+"%";
     document.getElementById("decos").innerHTML=L.decos.map(([e,x,y])=>`<span class="deco" style="left:${x}%;top:${y}%">${e}</span>`).join("");
   }
