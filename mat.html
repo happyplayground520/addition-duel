@@ -94,12 +94,60 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
 @media (max-height:560px){.panel>.card{gap:8px;padding:14px 18px}.panel>.card h2{font-size:24px}#start .card>p{display:none}.panel .stars{font-size:36px}
   main{gap:6px}.ask{font-size:16px}.ch{font-size:26px;min-width:84px}.msg{font-size:15px}}
 @media (prefers-reduced-motion:reduce){.handle circle,.desk .it.no,.ch.no{animation:none}}
+/* ===== 雙人版：搶地盤 ===== */
+.mode-note{font-size:13px;color:var(--muted);margin:-6px 0 0}
+.solo-only[hidden]{display:none!important}
+#duo{display:none}
+body.duo .top,body.duo main>.ask,body.duo #stage,body.duo #choices,body.duo #msg{display:none!important}
+body.duo{--hh:clamp(140px,19dvh,200px);--bw:min(calc(100vw - 24px),calc((100dvh - 2 * var(--hh) - 124px) * 1.4));--pcell:clamp(12px,min(calc((var(--hh) - 62px) / 3),calc((100vw - 190px) / 7.5)),34px)}
+body.duo #duo{display:grid;grid-template-rows:var(--hh) minmax(0,1fr) var(--hh);position:fixed;inset:0;z-index:1;touch-action:manipulation}
+#duo .dhalf{position:relative;display:grid;grid-template-columns:minmax(0,auto) auto;grid-template-areas:"hd pcs" "msg pcs";align-content:center;justify-content:center;column-gap:clamp(14px,3vw,34px);row-gap:4px;
+  padding:8px 14px;background:var(--pb);border-top:5px solid var(--pc);overflow:hidden;transition:box-shadow .3s}
+#duo .dhalf.p1{transform:rotate(180deg)}
+.dhalf.p0{--pc:#3d7fe0;--pb:#e6f0ff}.dhalf.p1{--pc:#f08a24;--pb:#fff0de}
+#duo .dhalf.on{box-shadow:inset 0 0 0 5px var(--pc)}
+#duo .dhd{grid-area:hd;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:900;font-size:clamp(16px,2.6vmin,22px);white-space:nowrap}
+#duo .dsc{font-family:var(--num);background:#fff;border-radius:999px;padding:0 12px;box-shadow:0 2px 0 rgba(0,0,0,.08)}
+#duo .dsc:empty{display:none}
+#duo .dmsg{grid-area:msg;min-height:1.3em;max-width:clamp(110px,34vw,260px);font-weight:900;font-size:clamp(15px,2.6vmin,22px);text-align:center;color:var(--pc)}
+#duo .dmsg.bad{color:var(--bad)}
+#duo .dpcs{grid-area:pcs;display:flex;gap:clamp(10px,2.4vmin,24px);align-items:center;justify-content:center;min-height:40px}
+#duo .pc{border:0;background:#fff;border-radius:14px;padding:6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;box-shadow:0 3px 0 rgba(0,0,0,.08);font:inherit;color:var(--ink)}
+#duo .pc svg{display:block;width:calc(var(--pcell) * var(--w));height:calc(var(--pcell) * var(--h))}
+#duo .pc.sel{outline:4px solid var(--pc);outline-offset:1px}
+#duo .pc .hint{font-size:12px;font-weight:800;color:var(--pc);white-space:nowrap}
+#duo .pc:not(.sel) .hint{visibility:hidden}
+#duo .wait{font-weight:900;font-size:clamp(16px,2.8vmin,24px);color:var(--pc);background:#fff;border-radius:16px;padding:.3em 1em}
+#duo .dres{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;gap:clamp(14px,4vw,40px);background:var(--pb);padding:6px}
+#duo .dres .rt{display:flex;flex-direction:column;align-items:center;gap:2px}
+#duo .dres b{font-size:clamp(20px,4vmin,34px);white-space:nowrap}
+#duo .dres span{font-family:var(--num);font-weight:800;font-size:clamp(16px,2.8vmin,24px);white-space:nowrap}
+#duo .dres .row{display:flex;gap:10px}
+#duo .dres button,#duo .dres a{display:grid;place-items:center;width:clamp(48px,8vmin,64px);height:clamp(48px,8vmin,64px);border:0;border-radius:50%;font-size:clamp(22px,4vmin,30px);background:var(--pc);cursor:pointer;text-decoration:none;box-shadow:0 4px 0 rgba(0,0,0,.15)}
+#duo .dres a{background:#fff}
+.dfield{position:relative;display:grid;place-items:center;min-height:0}
+#dboard svg{display:block;width:var(--bw);height:auto;filter:drop-shadow(0 6px 10px rgba(60,90,30,.18))}
+#dboard .cellbtn{cursor:pointer}
+#bpcs,#bnum{pointer-events:none}
+#bpcs .drop{animation:pop .35s cubic-bezier(.3,1.6,.5,1);transform-box:fill-box;transform-origin:center}
+#bnum .plus{animation:plusUp 1s ease-out forwards}
+@keyframes plusUp{to{opacity:0;translate:0 -12px}}
+#bnum .num{animation:pop .25s cubic-bezier(.3,1.6,.5,1);transform-box:fill-box;transform-origin:center}
+.dmid{position:absolute;left:max(8px,env(safe-area-inset-left,0px));top:8px;display:flex;gap:8px;z-index:2}
+.dmid a,.dmid button{display:grid;place-items:center;width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.92);text-decoration:none;font-size:22px;border:0;box-shadow:0 3px 0 rgba(0,0,0,.1);cursor:pointer}
+.dbanner{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:6;background:#fff;border-radius:20px;padding:.3em 1em;font-weight:900;font-size:clamp(20px,4.2vmin,38px);box-shadow:0 8px 24px rgba(0,0,0,.18);pointer-events:none;text-align:center;max-width:90vw}
+@media (orientation:landscape){
+  body.duo{--hh:clamp(96px,18dvh,160px);--bw:min(calc(100vw - 140px),calc((100dvh - 2 * var(--hh) - 16px) * 1.4))}
+  .dmid{top:50%;transform:translateY(-50%);flex-direction:column}}
+@media (max-height:500px) and (orientation:landscape){body.duo{--pcell:clamp(12px,calc((var(--hh) - 40px) / 3),20px)}#duo .pc .hint{display:none}#duo .dhalf{padding:4px 14px}}
+@media (max-width:600px) and (orientation:portrait){#duo .dmsg{font-size:14px}#duo .dhd{font-size:15px}}
+@media (prefers-reduced-motion:reduce){#bpcs .drop,#bnum .plus,#bnum .num{animation:none}}
 </style>
-<script src="zhuyin.js?v=20261124a"></script>
-<script src="rest.js?v=20261124a"></script>
+<script src="zhuyin.js?v=20261124b"></script>
+<script src="rest.js?v=20261124b"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261124a">
-<script src="park.js?v=20261124a"></script>
+<link rel="stylesheet" href="park.css?v=20261124b">
+<script src="park.js?v=20261124b"></script>
 </head>
 <body data-park>
 <header class="top">
@@ -118,14 +166,20 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
     <div class="card">
       <h2>🧺 野餐墊</h2>
       <p data-zy>小動物要去野餐！<br>比一比哪一塊墊子比較大，<br>數一數有幾格。</p>
-      <span class="lbl">難度</span>
-      <div class="row" id="levels">
+      <span class="lbl">玩法</span>
+      <div class="row" id="modes">
+        <button type="button" class="opt" data-mode="solo" aria-label="一個人玩"><span class="lvst">👤</span><small data-zy>一個人</small></button>
+        <button type="button" class="opt" data-mode="duo" aria-label="兩個人對戰"><span class="lvst">👥</span><small data-zy>兩個人搶地盤</small></button>
+      </div>
+      <p class="mode-note" id="modeNote" data-zy hidden>兩個人面對面坐，<br>輪流放墊子，搶最大的地盤！</p>
+      <span class="lbl solo-only">難度</span>
+      <div class="row solo-only" id="levels">
         <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small>疊疊看</small></button>
         <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small>數格子</small></button>
         <button type="button" class="opt" data-lv="3" aria-label="高級"><span class="lvst">⭐⭐⭐</span><small>自己做、排順序</small></button>
       </div>
-      <span class="lbl">題數</span>
-      <div class="row" id="counts">
+      <span class="lbl solo-only">題數</span>
+      <div class="row solo-only" id="counts">
         <button type="button" class="opt" data-n="5" aria-label="5 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button>
         <button type="button" class="opt" data-n="10" aria-label="10 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>10</small></button>
         <button type="button" class="opt" data-n="15" aria-label="15 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>15</small></button>
@@ -145,6 +199,11 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
     </div>
   </section>
 </main>
+<div id="duo">
+  <section class="dhalf p1" data-p="1"><div class="dhd"><span data-zy>🟠 橘色</span><span class="dsc"></span></div><div class="dmsg" data-zy></div><div class="dpcs"></div></section>
+  <div class="dfield"><div class="dmid"><a href="park.html" aria-label="回遊樂園地圖">🏠</a><button type="button" id="dAgain" aria-label="再聽一次玩法">🔊</button></div><div id="dboard"></div></div>
+  <section class="dhalf p0" data-p="0"><div class="dhd"><span data-zy>🔵 藍色</span><span class="dsc"></span></div><div class="dmsg" data-zy></div><div class="dpcs"></div></section>
+</div>
 <script>
 (()=>{
   const $=id=>document.getElementById(id);
@@ -152,12 +211,15 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
   const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
   const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
   const pick=a=>a[rnd(0,a.length-1)];
-  const S={lv:[1,2,3].includes(+pref("mat-lv"))?+pref("mat-lv"):1,total:10,round:0,score:0,first:0,miss:0,phase:"start",q:null,last:""};
+  const S={mode:pref("mat-mode")==="duo"?"duo":"solo",lv:[1,2,3].includes(+pref("mat-lv"))?+pref("mat-lv"):1,total:10,round:0,score:0,first:0,miss:0,phase:"start",q:null,last:""};
   const levels=[...document.querySelectorAll("#levels button")],syncLv=()=>levels.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
   levels.forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("mat-lv",S.lv);syncLv()}));syncLv();
   {const n0=+pref("mat-total");if([5,10,15].includes(n0))S.total=n0;
    const cs=[...document.querySelectorAll("#counts button")],sync=()=>cs.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===S.total));
    sync();cs.forEach(b=>b.addEventListener("click",()=>{S.total=+b.dataset.n;pref("mat-total",S.total);sync()}))}
+  const modes=[...document.querySelectorAll("#modes button")],syncMode=()=>{modes.forEach(b=>b.setAttribute("aria-pressed",b.dataset.mode===S.mode));
+    $("modeNote").hidden=S.mode!=="duo";document.querySelectorAll(".solo-only").forEach(e=>e.hidden=S.mode==="duo")};
+  modes.forEach(b=>b.addEventListener("click",()=>{S.mode=b.dataset.mode;pref("mat-mode",S.mode);syncMode()}));syncMode();
   // ---- 語音與音效（和遊樂園一樣） ----
   const synth=window.speechSynthesis;let voice=null;const rate=+(pref("duel-rate")||.9)||.9;
   const quality=v=>{const u=v.voiceURI||"";return /eloquence|speech\.synthesis\.voice/i.test(u)?0:/\.premium\./i.test(u)?3:/enhanced|-premium/i.test(u)?2:1};
@@ -361,7 +423,115 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
   function next(){if(S.round>=S.total)return finish();S.round++;S.miss=0;S.phase="play";S.q=newQ();upd();show()}
   window.matDebug=()=>S.q;
   const upd=()=>{$("score").textContent=`⭐ ${S.score} / ${S.total}`};
-  function start(){unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.score=0;S.first=0;S.last="";S.order=null;next();
+  // ================= 雙人版「搶地盤」：輪流把墊子放到同一塊草地上，都放不下了就數格子，格子多的贏 =================
+  const BW=7,BH=5,DN=["藍色","橘色"],DC=[["#3d7fe0","#5b9bf0","#2a66c4"],["#f08a24","#ffa24a","#d9700f"]],DK=["#1d4f9e","#a85106"];
+  // 小塊（2～3 格）和大塊（4～6 格）各給一塊，讓孩子自己選：大的格子多，但後面比較難放
+  const wait=ms=>new Promise(r=>setTimeout(r,ms));
+  const PCS={small:[[[0,0],[1,0]],[[0,0],[1,0],[2,0]],[[0,0],[1,0],[0,1]]],big:[rect(2,2),[[0,0],[0,1],[0,2],[1,2]],[[0,0],[1,0],[2,0],[1,1]],[[1,0],[2,0],[0,1],[1,1]],rect(3,2)]};
+  const norm=c=>{const mx=Math.min(...c.map(p=>p[0])),my=Math.min(...c.map(p=>p[1]));return c.map(([x,y])=>[x-mx,y-my])};
+  const turn=c=>norm(c.map(([x,y])=>[-y,x]));
+  const DH=[0,1].map(p=>document.querySelector(`#duo .dhalf.p${p}`)),hq=(p,s)=>DH[p].querySelector(s);
+  const D={own:null,pieces:[],turn:0,first:1,offer:[],sel:0,tok:0,busy:false,cnt:[0,0]};
+  const free=(x,y)=>x>=0&&y>=0&&x<BW&&y<BH&&D.own[y][x]<0;
+  const fitsAt=(c,ox,oy)=>c.every(([x,y])=>free(x+ox,y+oy));
+  const anyFit=c=>{for(let y=0;y<BH;y++)for(let x=0;x<BW;x++)if(fitsAt(c,x,y))return true;return false};
+  const ways=c=>{const ok=[];for(let r=0;r<4;r++,c=turn(c))if(anyFit(c))ok.push(c);return ok};
+  function makeOffer(p){
+    const sm=shuffle(PCS.small.map(ways).filter(w=>w.length)),bg=shuffle(PCS.big.map(ways).filter(w=>w.length)),o=[];
+    if(bg.length)o.push(bg[0]);if(sm.length)o.push(sm[0]);if(o.length<2&&sm.length>1)o.push(sm[1]);
+    return shuffle(o).map(w=>({c:pick(w),col:pick(DC[p]),pat:pick(PATS)}));
+  }
+  function pieceG(cells,col,pat,ox=0,oy=0){
+    const has=new Set(cells.map(([x,y])=>`${x},${y}`));let g="";
+    cells.forEach(([x,y])=>{const X=PAD+(x+ox)*U,Y=PAD+(y+oy)*U;
+      g+=`<rect x="${X}" y="${Y}" width="${U}" height="${U}" fill="${col}" stroke="#fff" stroke-width="1.4"/>`;
+      if(pat==="dot")g+=`<circle cx="${X+10}" cy="${Y+10}" r="3.2" fill="#fff" opacity=".6"/>`;
+      if(pat==="stripe")g+=`<path d="M${X+3} ${Y+17}L${X+17} ${Y+3}" stroke="#fff" stroke-width="2.4" opacity=".55"/>`;
+      if(pat==="check"&&(x+y)%2)g+=`<rect x="${X}" y="${Y}" width="${U}" height="${U}" fill="#fff" opacity=".32"/>`;
+      [[0,-1,X,Y,X+U,Y],[0,1,X,Y+U,X+U,Y+U],[-1,0,X,Y,X,Y+U],[1,0,X+U,Y,X+U,Y+U]].forEach(([dx,dy,a,b,c,d])=>{if(!has.has(`${x+dx},${y+dy}`))g+=`<path d="M${a} ${b}L${c} ${d}" stroke="rgba(0,0,0,.35)" stroke-width="2.2" stroke-linecap="round"/>`});
+    });return g;
+  }
+  function pcSVG(o){const [w,h]=dims(o.c);return `<svg viewBox="0 0 ${w*U+PAD*2} ${h*U+PAD*2}" style="--w:${(w+.4).toFixed(1)};--h:${(h+.4).toFixed(1)}" aria-hidden="true">${pieceG(o.c,o.col,o.pat)}</svg>`}
+  function boardSVG(){
+    const W=BW*U+PAD*2,Hh=BH*U+PAD*2;let s=`<rect x="0" y="0" width="${W}" height="${Hh}" rx="6" fill="#8fcf6a"/>`;
+    for(let y=0;y<BH;y++)for(let x=0;x<BW;x++)s+=`<rect class="cellbtn" data-x="${x}" data-y="${y}" x="${PAD+x*U+.6}" y="${PAD+y*U+.6}" width="${U-1.2}" height="${U-1.2}" rx="2.5" fill="#eaf8d9"/>`;
+    return `<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="草地">${s}<g id="bpcs"></g><g id="bnum"></g></svg>`;
+  }
+  function banner(t,ms=1100){const b=document.createElement("div");b.className="dbanner";b.setAttribute("data-zy","");b.textContent=t;document.body.appendChild(b);setTimeout(()=>b.remove(),ms)}
+  const dmsg=(p,t,c="")=>{const m=hq(p,".dmsg");m.textContent=t;m.className="dmsg"+(c?" "+c:"")};
+  const RULE="輪流選一塊墊子，點草地放下去。都放不下的時候，數一數，誰的格子多誰就贏！";
+  function drawOffer(){
+    const p=D.turn,box=hq(p,".dpcs");
+    box.innerHTML=D.offer.map((o,i)=>`<button type="button" class="pc${i===D.sel?" sel":""}" data-i="${i}" aria-label="墊子${i+1}">${pcSVG(o)}<span class="hint" data-zy>點我轉一轉</span></button>`).join("");
+    box.querySelectorAll(".pc").forEach(b=>b.addEventListener("click",()=>{
+      if(D.busy||S.phase!=="duo"||D.turn!==p)return;const i=+b.dataset.i;
+      if(i===D.sel)D.offer[i].c=turn(D.offer[i].c);else D.sel=i;sfx.tick();dmsg(p,"換你了！");drawOffer()}));
+  }
+  function nextTurn(first){
+    if(!first)D.turn=1-D.turn;
+    const p=D.turn,o=makeOffer(p);
+    if(!o.length)return duoCount();
+    D.offer=o;D.sel=0;DH[p].classList.add("on");DH[1-p].classList.remove("on");
+    drawOffer();dmsg(p,"換你了！");dmsg(1-p,"");
+    hq(1-p,".dpcs").innerHTML=`<span class="wait" data-zy>等${DN[p]}放…</span>`;
+    if(!first)say(`換${DN[p]}`);
+  }
+  function boardTap(x,y){
+    if(D.busy||S.phase!=="duo")return;const p=D.turn,o=D.offer[D.sel];if(!o)return;
+    // 點哪裡就放哪裡：讓墊子盡量把點的那一格蓋在中間
+    const c=o.c,cx=c.reduce((a,q)=>a+q[0],0)/c.length,cy=c.reduce((a,q)=>a+q[1],0)/c.length;
+    const ord=c.slice().sort((a,b)=>Math.hypot(a[0]-cx,a[1]-cy)-Math.hypot(b[0]-cx,b[1]-cy));
+    for(const [px,py] of ord){const ox=x-px,oy=y-py;if(fitsAt(c,ox,oy))return place(p,o,ox,oy)}
+    sfx.bad();dmsg(p,"放不下，換地方或轉一轉","bad");
+  }
+  function place(p,o,ox,oy){
+    const id=D.pieces.length,cells=o.c.map(([x,y])=>[x+ox,y+oy]),n=cells.length;
+    D.pieces.push({p,cells});cells.forEach(([x,y])=>D.own[y][x]=id);
+    const ns="http://www.w3.org/2000/svg",g=document.createElementNS(ns,"g");g.setAttribute("class","drop");g.innerHTML=pieceG(o.c,o.col,o.pat,ox,oy);$("bpcs").appendChild(g);
+    const X=PAD+(cells.reduce((a,q)=>a+q[0],0)/n+.5)*U,Y=PAD+(cells.reduce((a,q)=>a+q[1],0)/n+.5)*U;
+    const t=document.createElementNS(ns,"g");t.setAttribute("transform",`translate(${X} ${Y})${p?" rotate(180)":""}`);
+    t.innerHTML=`<text class="plus" y="5" text-anchor="middle" font-size="15" font-weight="900" fill="#fff" stroke="${DK[p]}" stroke-width="3" paint-order="stroke">+${n}</text>`;$("bnum").appendChild(t);setTimeout(()=>t.remove(),1100);
+    sfx.snap();D.busy=true;dmsg(p,`放好了！${n} 格`);hq(p,".dpcs").innerHTML="";
+    const tok=D.tok;setTimeout(()=>{if(D.tok===tok){D.busy=false;nextTurn()}},950);
+  }
+  // 最後一格一格數：藍色先數、橘色再數；橘色的數字轉過來給對面的人看
+  async function duoCount(){
+    S.phase="count";const tok=D.tok;DH.forEach(h=>h.classList.remove("on"));
+    [0,1].forEach(p=>{hq(p,".dpcs").innerHTML=`<span class="wait" data-zy>👀 數一數！</span>`;dmsg(p,"")});
+    banner("都放不下了！數一數",1800);say("都放不下了！數一數，誰的格子比較多？");await wait(2000);
+    const cnt=D.cnt=[0,0];
+    for(const p of [0,1]){
+      for(const pc of D.pieces.filter(q=>q.p===p))for(const [x,y] of pc.cells){
+        if(D.tok!==tok)return;cnt[p]++;const X=PAD+x*U+U/2,Y=PAD+y*U+U/2;
+        $("bnum").insertAdjacentHTML("beforeend",`<g transform="translate(${X} ${Y})${p?" rotate(180)":""}"><text class="num" y="4.5" text-anchor="middle" font-size="12.5" font-weight="900" fill="#fff" stroke="${DK[p]}" stroke-width="2.6" paint-order="stroke"${cnt[p]===6||cnt[p]===9?` text-decoration="underline"`:""}>${cnt[p]}</text></g>`);
+        hq(p,".dsc").textContent=`${cnt[p]} 格`;sfx.tick();await wait(260)}
+      if(D.tok!==tok)return;await wait(700)}
+    duoEnd();
+  }
+  function duoEnd(){
+    S.phase="end";sfx.win();const c=D.cnt,w=c[0]===c[1]?-1:c[0]>c[1]?0:1,d=Math.abs(c[0]-c[1]);
+    [0,1].forEach(p=>{const r=document.createElement("div");r.className="dres";
+      r.innerHTML=`<div class="rt"><b data-zy>${w<0?"🤝 平手！":w===p?"🏆 你贏了！":"👏 下次加油！"}</b><span>🔵 ${c[0]}・🟠 ${c[1]}</span></div>
+        <div class="row"><button type="button" class="dre" aria-label="再玩一次">🔁</button><a href="park.html" aria-label="回遊樂園">🏠</a></div>`;
+      DH[p].appendChild(r);r.querySelector(".dre").addEventListener("click",duoStart)});
+    if(w>=0)try{window.parkWin&&parkWin(DH[w])}catch(e){}
+    say(w<0?`一樣多，都是${c[0]}格，平手！`:`藍色${c[0]}格，橘色${c[1]}格，${DN[w]}多${d}格，${DN[w]}贏了！`);
+  }
+  function duoStart(){
+    unlock();S.duo=true;document.body.classList.add("duo");$("start").hidden=true;$("end").hidden=true;
+    DH.forEach(h=>{h.querySelectorAll(".dres").forEach(e=>e.remove());h.classList.remove("on")});
+    [0,1].forEach(p=>{hq(p,".dsc").textContent="";hq(p,".dpcs").innerHTML="";dmsg(p,"")});
+    const tok=++D.tok;D.own=Array.from({length:BH},()=>Array(BW).fill(-1));D.pieces=[];D.first=1-D.first;D.turn=D.first;D.busy=false;S.phase="duo";
+    $("dboard").innerHTML=boardSVG();
+    banner(`🔵 藍色 VS 🟠 橘色`,1300);say(`${RULE}${DN[D.turn]}先`);
+    setTimeout(()=>{if(D.tok===tok)nextTurn(true)},900);
+    try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}
+  }
+  $("dboard").addEventListener("click",e=>{const r=e.target.closest("[data-x]");if(r)boardTap(+r.dataset.x,+r.dataset.y)});
+  $("dAgain").addEventListener("click",()=>{if(S.duo)say(RULE)});
+  window.matDuo=()=>({D,phase:S.phase,fitsAt,anyFit});
+
+  function start(){if(S.mode==="duo")return duoStart();S.duo=false;document.body.classList.remove("duo");unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.score=0;S.first=0;S.last="";S.order=null;next();
     try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}}
   function finish(){
     S.phase="end";sfx.win();
