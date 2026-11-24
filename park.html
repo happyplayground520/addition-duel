@@ -157,9 +157,9 @@ h1 .star{font-size:.7em;text-shadow:none}
   .map{width:min(100%,calc((100dvh - 56px) * 1.6))}
 }
 </style>
-<script src="zhuyin.js?v=20261123d"></script>
-<script src="rest.js?v=20261123d"></script>
-<script src="warm.js?v=20261123d" defer></script>
+<script src="zhuyin.js?v=20261124a"></script>
+<script src="rest.js?v=20261124a"></script>
+<script src="warm.js?v=20261124a" defer></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
 <style>:root{--text:"Chiron GoRound TC","PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif}
 /* ---- 手機：地圖變成長長的步道，往下捲著逛（一排 2 個，手機橫放一排 4 個） ---- */
@@ -207,6 +207,9 @@ html.phone .bunting{height:36px}
   </a>
   <a class="spot open" data-k="juice" href="juice.html" style="--c:#ef7d22">
     <span class="icon">🥤</span><span class="name" data-zy>果汁攤</span><span class="tag">👤 容量</span>
+  </a>
+  <a class="spot open" data-k="mat" href="mat.html" style="--c:#2f9e6a">
+    <span class="icon">🧺</span><span class="name" data-zy>野餐墊</span><span class="tag">👤 面積</span>
   </a>
   <a class="spot open" data-k="share" href="share.html" style="--c:#c86a2b">
     <span class="icon">🍪</span><span class="name" data-zy>分點心</span><span class="tag">👤 平分、分數</span>
@@ -264,13 +267,13 @@ html.phone .bunting{height:36px}
   const map=document.querySelector(".map");
   // 三區：左「算一算」（加減乘）、中「數一數・量一量」（位值、比大小、長度、時間、錢、分數）、右「兩個人對戰」
   // 三區：「算一算」（加減乘）、「數一數・量一量」（位值、比大小、長度、容量、時間、錢、分數）、「兩個人對戰」
-  const ZA=["balloon","coaster","fish","ferris","donut","ring"],ZB=["blocks","claw","carousel","ruler","juice","booth","share"];
+  const ZA=["balloon","coaster","fish","ferris","donut","ring"],ZB=["blocks","claw","carousel","ruler","juice","mat","booth","share"];
   const DUO=["train","bumper","memory","shape"];
   // 橫放：算一算 2 欄×3 排，數一數・量一量 3 欄×3 排，右邊對戰廣場
   function landLayout(){
     const cA=[6.5,20],cB=[34.5,48,61.5],dc=[77,92.5],dmid=84.75,street=27.25,rows=[18.5,46.5,74.5],pos={};
     ZA.forEach((k,i)=>pos[k]=[cA[i%2],rows[i>>1]]);
-    const gridB=[["blocks","claw","carousel"],["ruler","juice",null],["booth","share",null]],decos=[];
+    const gridB=[["blocks","claw","carousel"],["ruler","juice","mat"],["booth","share",null]],decos=[];
     gridB.forEach((r,ri)=>r.forEach((k,ci)=>{if(k)pos[k]=[cB[ci],rows[ri]];else decos.push([ri%2?"🌳":"🌻",cB[ci],rows[ri]+2])}));
     Object.assign(pos,{train:[dc[0],rows[0]],bumper:[dc[1],rows[0]],duel:[dmid,rows[1]],memory:[dc[0],rows[2]],shape:[dc[1],rows[2]]});
     const lines=[];
@@ -284,7 +287,7 @@ html.phone .bunting{height:36px}
   }
   // 直放：上面左邊算一算（2×3）、右邊數一數・量一量（2×4），中間大街；下面對戰廣場排成一排
   function portLayout(){
-    const pos={},lines=[],rA=[13,32.5,52],rB=[11.5,27,42.5,58],cA=[13,37],cB=[63,87],decos=[];
+    const pos={},lines=[],rA=[13,32.5,52],rB=[12.5,27.8,43.1,58.4],cA=[13,37],cB=[63,87],decos=[];
     ZA.forEach((k,i)=>pos[k]=[cA[i%2],rA[i>>1]]);
     ZB.forEach((k,i)=>pos[k]=[cB[i%2],rB[i>>1]]);
     if(ZB.length%2)decos.push(["🌻",cB[1],rB[ZB.length>>1]+2]);

@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>野餐墊</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
+<style>
+/* 單人小遊戲：面積。初級疊在一起比（直接比較）；進階數格子（個別單位），長長的不一定比較大；高級自己做幾格、排順序、多幾格 */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --ink:#1f2b33; --muted:#5d6b72; --good:#1f9d61; --bad:#d23c3c; --accent:#f0a020; --accent-dark:#b06a00;
+  --num:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
+  --text:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{margin:0;height:100%}
+body{background:radial-gradient(circle,rgba(255,255,255,.5) 2px,transparent 2.5px) 0 0/30px 30px,linear-gradient(#fff6d8,#ffe9b8);color:var(--ink);font-family:var(--text);overflow:hidden;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;display:flex;flex-direction:column}
+[hidden]{display:none!important}
+.top{display:flex;align-items:center;gap:12px;padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.ibtn{width:48px;height:48px;border-radius:14px;border:0;background:rgba(255,255,255,.9);font-size:24px;cursor:pointer;display:grid;place-items:center;text-decoration:none;color:inherit;box-shadow:0 3px 0 rgba(0,0,0,.1);flex:none}
+.ibtn:active{transform:translateY(2px)}
+.ttl{flex:1;text-align:center;font-weight:800;font-size:clamp(18px,3.2vmin,28px)}
+.score{font-family:var(--num);font-weight:800;font-size:clamp(18px,3.4vmin,30px);background:rgba(255,255,255,.9);border-radius:999px;padding:4px 14px;white-space:nowrap;flex:none}
+main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(10px,2.2vh,22px);
+  padding:0 max(12px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+.ask{background:#fff;border-radius:20px;padding:.3em 1em;font-weight:800;font-size:clamp(18px,3.2vmin,28px);box-shadow:0 5px 0 rgba(0,0,0,.08);text-align:center;max-width:96vw}
+/* 野餐墊：方格、墊子、小動物 */
+.stage{--cell:clamp(16px,min(7vmin,calc((100vw - 90px) / 14),calc((100dvh - 400px) / 5.5)),58px);display:flex;flex-direction:column;align-items:center;gap:clamp(8px,1.6vh,14px);width:min(100%,960px)}
+.stage.mk{--cell:clamp(30px,min(9vmin,calc((100vw - 60px) / 6.6),calc((100dvh - 380px) / 4.6)),64px)}
+.mats{display:flex;align-items:flex-start;justify-content:center;gap:clamp(12px,3vmin,34px);flex-wrap:wrap;position:relative}
+.mat{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;border:0;background:none;padding:6px;border-radius:16px;cursor:pointer;font:inherit;color:inherit;
+  transition:transform 1.1s ease-in-out}
+.mat:disabled{cursor:default}
+.mat svg{display:block;height:auto;overflow:visible}
+.mat .nm{font-weight:800;font-size:clamp(18px,3vmin,26px);background:#fff;border-radius:999px;padding:0 10px;box-shadow:0 2px 0 rgba(0,0,0,.08)}
+.mat.no{animation:shake .4s;background:#ffd6d6}
+.mat.yes{background:#c9f5dc}
+.mat.top{z-index:2}
+.mat.top svg .mt{opacity:.82}
+.mat .badge{position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;z-index:3;
+  font-family:var(--num);font-weight:800;font-size:22px;display:grid;place-items:center;box-shadow:0 3px 0 var(--accent-dark);animation:pop .3s cubic-bezier(.3,1.6,.5,1)}
+.seat{animation:pop .3s cubic-bezier(.3,1.6,.5,1);transform-box:fill-box;transform-origin:center}
+.cellbtn{cursor:pointer}
+.counter{font-weight:900;font-size:clamp(18px,3vmin,26px);background:#fff;border-radius:999px;padding:.1em .9em;box-shadow:0 3px 0 rgba(0,0,0,.08)}
+.counter b{font-family:var(--num);color:var(--accent-dark)}
+@keyframes pop{from{transform:scale(.3)}}
+.tool{font:inherit;font-weight:900;font-size:clamp(18px,3.2vmin,24px);border:0;border-radius:999px;padding:.4em 1.1em;background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 5px 0 #e7c98a}
+.tool:active{transform:translateY(3px);box-shadow:0 2px 0 #e7c98a}
+.tool.green{background:#3cb371;color:#fff;box-shadow:0 5px 0 #23804c}
+.tool.green .zy .b,.tool.green .tz-b{color:#fff}
+.tool:disabled{opacity:.45}
+.tools{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.choices{display:flex;gap:clamp(10px,2.4vmin,22px);flex-wrap:wrap;justify-content:center}
+.ch{min-width:clamp(96px,16vmin,150px);border:0;border-radius:20px;background:#fff;cursor:pointer;padding:.25em .6em;box-shadow:0 6px 0 #e7c98a;
+  font-family:var(--num);font-weight:800;font-size:clamp(28px,5.4vmin,46px);color:var(--ink);line-height:1.15}
+.ch small{font-family:var(--text);font-size:.45em;margin-left:.15em}
+.ch.word{font-family:var(--text);font-size:clamp(20px,3.6vmin,30px);padding:.45em .9em}
+.ch:active{transform:translateY(4px);box-shadow:0 2px 0 #e7c98a}
+.ch.no{background:#ffd6d6;box-shadow:0 6px 0 #e8a0a0;animation:shake .4s}
+.ch.yes{background:#c9f5dc;box-shadow:0 6px 0 #7bd3a2}
+@keyframes shake{25%{translate:-8px 0}75%{translate:8px 0}}
+.msg{min-height:1.4em;font-weight:800;font-size:clamp(17px,2.8vmin,24px);text-align:center}
+.msg.good{color:var(--good)}.msg.bad{color:var(--bad)}
+/* 手機橫放：左邊墊子、右邊題目和答案 */
+@media (max-height:500px) and (orientation:landscape){
+  main{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"st ask" "st ch" "st msg";align-content:center;justify-content:center;column-gap:18px;row-gap:10px}
+  #ask{grid-area:ask;align-self:end} #stage{grid-area:st;width:auto;max-width:58vw;align-self:center} #choices{grid-area:ch;align-self:center} #msg{grid-area:msg;align-self:start}
+  .stage{--cell:clamp(14px,min(calc((100dvh - 170px) / 6),calc(55vw / 14)),30px);gap:6px}
+  .ask{font-size:16px}.ch{font-size:24px;min-width:70px}.ch.word{font-size:18px}.msg{font-size:15px}.tool{font-size:15px;padding:.3em .9em}.mat{padding:2px}.counter{font-size:16px}
+}
+@media (prefers-reduced-motion:reduce){.mat{transition:none}.mat.no,.ch.no,.seat{animation:none}}
+.mat .mt,.mat .seats{pointer-events:none}
+/* 開始／結束畫面 */
+.panel{position:fixed;inset:0;z-index:20;display:grid;place-items:start center;overflow-y:auto;-webkit-overflow-scrolling:touch;background:rgba(255,246,216,.8);
+  padding:max(12px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.panel>.card{margin:auto 0}
+.card{background:#fff;border-radius:24px;padding:clamp(18px,4vmin,34px);width:min(480px,100%);box-shadow:0 12px 40px rgba(0,0,0,.18);display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center}
+.card h2{margin:0;font-size:clamp(26px,5.5vmin,44px)}
+.card p{margin:0;color:var(--muted);font-size:clamp(15px,2.6vmin,20px);line-height:1.5}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.opt{font:inherit;font-size:18px;font-weight:700;border:2px solid #cfd8dc;background:#fff;border-radius:14px;padding:10px 16px;cursor:pointer;color:inherit}
+.opt small{display:block;font-size:13px;font-weight:600;opacity:.8;margin-top:2px}
+.opt[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:#fff}
+.lbl{font-size:14px;font-weight:700;color:var(--muted)}
+.big{font-family:var(--text);font-weight:800;font-size:clamp(20px,4vmin,30px);border:0;border-radius:999px;padding:.5em 1.6em;background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 5px 0 var(--accent-dark);text-decoration:none;display:inline-block}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 var(--accent-dark)}
+.big.alt{background:#fff;color:var(--ink);box-shadow:0 5px 0 #cfd8dc;border:2px solid #cfd8dc}
+.stars{font-size:clamp(40px,9vmin,72px);letter-spacing:.1em;line-height:1}
+#start .card>.big{position:sticky;bottom:0;z-index:1}
+@media (max-height:560px){.panel>.card{gap:8px;padding:14px 18px}.panel>.card h2{font-size:24px}#start .card>p{display:none}.panel .stars{font-size:36px}
+  main{gap:6px}.ask{font-size:16px}.ch{font-size:26px;min-width:84px}.msg{font-size:15px}}
+@media (prefers-reduced-motion:reduce){.handle circle,.desk .it.no,.ch.no{animation:none}}
+</style>
+<script src="zhuyin.js?v=20261124a"></script>
+<script src="rest.js?v=20261124a"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="park.css?v=20261124a">
+<script src="park.js?v=20261124a"></script>
+</head>
+<body data-park>
+<header class="top">
+  <a class="ibtn" href="park.html" aria-label="回遊樂園地圖">🏠</a>
+  <div class="ttl">🧺<span class="tx"> 野餐墊</span></div>
+  <span class="score" id="score">⭐ 0</span>
+  <button type="button" class="ibtn" id="again" aria-label="再念一次題目">🔊</button>
+</header>
+<main>
+  <div class="ask" id="ask" data-zy>比一比，哪一塊比較大？</div>
+  <div class="stage" id="stage"></div>
+  <div class="choices" id="choices" hidden></div>
+  <div class="msg" id="msg" data-zy aria-live="polite"></div>
+
+  <section class="panel" id="start">
+    <div class="card">
+      <h2>🧺 野餐墊</h2>
+      <p data-zy>小動物要去野餐！<br>比一比哪一塊墊子比較大，<br>數一數有幾格。</p>
+      <span class="lbl">難度</span>
+      <div class="row" id="levels">
+        <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small>疊疊看</small></button>
+        <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small>數格子</small></button>
+        <button type="button" class="opt" data-lv="3" aria-label="高級"><span class="lvst">⭐⭐⭐</span><small>自己做、排順序</small></button>
+      </div>
+      <span class="lbl">題數</span>
+      <div class="row" id="counts">
+        <button type="button" class="opt" data-n="5" aria-label="5 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button>
+        <button type="button" class="opt" data-n="10" aria-label="10 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>10</small></button>
+        <button type="button" class="opt" data-n="15" aria-label="15 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>15</small></button>
+      </div>
+      <button type="button" class="big" id="go" aria-label="開始">READY</button>
+    </div>
+  </section>
+  <section class="panel" id="end" hidden>
+    <div class="card">
+      <div class="stars" id="stars"></div>
+      <h2 id="endTitle"></h2>
+      <p id="endText" data-zy></p>
+      <div class="row">
+        <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+        <a class="big alt ico-btn" href="park.html" aria-label="回遊樂園">🏠</a>
+      </div>
+    </div>
+  </section>
+</main>
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
+  const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+  const pick=a=>a[rnd(0,a.length-1)];
+  const S={lv:[1,2,3].includes(+pref("mat-lv"))?+pref("mat-lv"):1,total:10,round:0,score:0,first:0,miss:0,phase:"start",q:null,last:""};
+  const levels=[...document.querySelectorAll("#levels button")],syncLv=()=>levels.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
+  levels.forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("mat-lv",S.lv);syncLv()}));syncLv();
+  {const n0=+pref("mat-total");if([5,10,15].includes(n0))S.total=n0;
+   const cs=[...document.querySelectorAll("#counts button")],sync=()=>cs.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===S.total));
+   sync();cs.forEach(b=>b.addEventListener("click",()=>{S.total=+b.dataset.n;pref("mat-total",S.total);sync()}))}
+  // ---- 語音與音效（和遊樂園一樣） ----
+  const synth=window.speechSynthesis;let voice=null;const rate=+(pref("duel-rate")||.9)||.9;
+  const quality=v=>{const u=v.voiceURI||"";return /eloquence|speech\.synthesis\.voice/i.test(u)?0:/\.premium\./i.test(u)?3:/enhanced|-premium/i.test(u)?2:1};
+  function pickVoice(){if(!synth)return;const vs=synth.getVoices().filter(v=>/^(zh|cmn)/i.test(v.lang));const want=pref("duel-voice");
+    const tw=vs.filter(v=>/TW|Hant/i.test(v.lang)&&quality(v)>0).sort((a,b)=>quality(b)-quality(a));
+    voice=(want&&vs.find(v=>(v.voiceURI||v.name)===want))||tw[0]||vs.find(v=>quality(v)>0)||vs[0]||null}
+  if(synth){pickVoice();try{synth.addEventListener("voiceschanged",pickVoice)}catch(e){}}
+  function say(t){if(!synth)return;try{const u=new SpeechSynthesisUtterance(t);u.lang=voice?voice.lang.replace("_","-"):"zh-TW";if(voice)u.voice=voice;u.rate=rate;u.pitch=1.1;
+    if(synth.speaking||synth.pending){synth.cancel();setTimeout(()=>{try{synth.speak(u)}catch(e){}},90)}else synth.speak(u)}catch(e){}}
+  let ac=null;
+  function tone(fs,dur=.12,type="triangle",vol=.15){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume();
+    fs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*dur;o.type=type;o.frequency.value=f;
+      g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)})}catch(e){}}
+  const sfx={good:()=>tone([784,1175],.14,"sine",.3),bad:()=>tone([150],.3,"square",.16),tick:()=>tone([900],.03,"sine",.06),snap:()=>tone([660],.05,"sine",.12),win:()=>tone([523,659,784,1047],.16)};
+  {const _g=sfx.good;sfx.good=(...a)=>{try{window.parkBurst&&parkBurst()}catch(err){}return _g(...a)}}
+  function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
+    try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}}
+
+
+  // ---- 墊子：一格一格的方塊組成；畫的時候每一格一樣大，所以可以直接比 ----
+  const U=20,PAD=4;
+  const MATC=["#ff6b8b","#3d9bff","#34c27a","#ffb02e","#a070ff","#ff7a45"],PATS=["dot","stripe","check","plain"];
+  const OWN=[{e:"🐻",n:"小熊"},{e:"🐰",n:"小兔子"},{e:"🐼",n:"貓熊"},{e:"🐱",n:"小貓"},{e:"🐶",n:"小狗"},{e:"🦊",n:"狐狸"}];
+  const THEME=[{n:"野餐墊",s:"🐰"},{n:"菜園",s:"🥕"},{n:"地墊",s:"🧸"},{n:"拼布",s:"⭐"}];
+  const rect=(w,h)=>{const c=[];for(let y=0;y<h;y++)for(let x=0;x<w;x++)c.push([x,y]);return c};
+  // 長出一塊 n 格、在 W×H 裡面、黏在一起的形狀
+  function grow(n,W,H){
+    for(let t=0;t<200;t++){
+      const set=new Set([`${rnd(0,W-1)},${rnd(0,H-1)}`]);let guard=0;
+      while(set.size<n&&guard++<500){const [x,y]=pick([...set]).split(",").map(Number),[dx,dy]=pick([[1,0],[-1,0],[0,1],[0,-1]]);
+        const nx=x+dx,ny=y+dy;if(nx>=0&&ny>=0&&nx<W&&ny<H)set.add(`${nx},${ny}`)}
+      if(set.size===n){const c=[...set].map(s=>s.split(",").map(Number)),mx=Math.min(...c.map(p=>p[0])),my=Math.min(...c.map(p=>p[1]));return c.map(([x,y])=>[x-mx,y-my])}
+    }
+    return rect(n,1);
+  }
+  const dims=c=>[Math.max(...c.map(p=>p[0]))+1,Math.max(...c.map(p=>p[1]))+1];
+  function matSVG(m,cols,rows,opt={}){
+    const has=new Set(m.cells.map(([x,y])=>`${x},${y}`)),W=cols*U+PAD*2,H=rows*U+PAD*2;let s="";
+    if(opt.grid)for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)s+=`<rect x="${PAD+x*U}" y="${PAD+y*U}" width="${U}" height="${U}" fill="#fffdf4" stroke="#e3d6ad" stroke-width="1"${opt.pick?` class="cellbtn" data-x="${x}" data-y="${y}"`:""}/>`;
+    let g="";
+    m.cells.forEach(([x,y],i)=>{const X=PAD+x*U,Y=PAD+y*U;
+      g+=`<rect x="${X}" y="${Y}" width="${U}" height="${U}" fill="${m.col}"${opt.plain?` shape-rendering="crispEdges"`:` stroke="#fff" stroke-width="1.4"`}/>`;
+      if(m.pat==="dot")g+=`<circle cx="${X+10}" cy="${Y+10}" r="3.2" fill="#fff" opacity=".6"/>`;
+      if(m.pat==="stripe")g+=`<path d="M${X+3} ${Y+17}L${X+17} ${Y+3}" stroke="#fff" stroke-width="2.4" opacity=".55"/>`;
+      if(m.pat==="check"&&(x+y)%2)g+=`<rect x="${X}" y="${Y}" width="${U}" height="${U}" fill="#fff" opacity=".32"/>`;
+      // 外框：旁邊沒有格子的那一邊畫深色邊
+      [[0,-1,X,Y,X+U,Y],[0,1,X,Y+U,X+U,Y+U],[-1,0,X,Y,X,Y+U],[1,0,X+U,Y,X+U,Y+U]].forEach(([dx,dy,a,b,c,d])=>{if(!has.has(`${x+dx},${y+dy}`))g+=`<path d="M${a} ${b}L${c} ${d}" stroke="rgba(0,0,0,.35)" stroke-width="2.2" stroke-linecap="round"/>`});
+    });
+    return `<svg viewBox="0 0 ${W} ${H}" style="width:calc(var(--cell) * ${(W/U).toFixed(2)})" aria-hidden="true">${s}<g class="mt">${g}</g><g class="seats"></g></svg>`;
+  }
+  const look=i=>({col:MATC[i%MATC.length],pat:PATS[rnd(0,PATS.length-1)]});
+
+  // ---- 出題 ----
+  // 初級：overlay（兩塊疊在一起比，可能一樣大）、look（三塊一眼看出最大、最小）
+  // 進階：count（有幾格）、cmp（數格子比大小，長長的不一定比較大）
+  // 高級：make（自己做 N 格）、order（三塊排順序）、diff（多幾格）
+  function newQ(){
+    if(S.round<=1||!S.order){const L={1:["look","overlay","overlay","look","overlay"],2:["count","cmp","count","cmp","cmp"],3:["diff","make","order","diff","make","order"]}[S.lv];
+      S.order=[L[0],...shuffle(L.slice(1))]}
+    const t=S.order[(Math.max(1,S.round)-1)%S.order.length],easy=S.round<=2;
+    const q={t},T=pick(THEME),own=shuffle(OWN.slice()),ci=rnd(0,5);q.T=T;q.more=Math.random()<.6;
+    const mk=(cells,i)=>({cells,...look(ci+i),own:own[i]});
+    if(t==="overlay"){
+      // 大的那塊長和寬都比較大（疊起來看得出來）；有時候一樣大
+      const w1=rnd(3,6),h1=rnd(easy?3:2,4),same=!easy&&Math.random()<.22;   // 前兩題大小差多一點（3×3 以上才找得到差 4 格的小墊子）
+      let w2=w1,h2=h1;if(!same){let g=0;do{w2=rnd(2,w1);h2=rnd(2,h1)}while(w1*h1-w2*h2<(easy?4:2)&&g++<50);if(w1*h1-w2*h2<2){w2=2;h2=2}}
+      const big=Math.random()<.5?0:1,ms=[];ms[big]=mk(rect(w1,h1),big);ms[1-big]=mk(rect(w2,h2),1-big);
+      q.mats=ms;q.cols=w1;q.rows=h1;q.ans=same?2:(q.more?big:1-big);
+      q.ask=`哪一塊${T.n}<b>比較${q.more?"大":"小"}</b>？`;q.say=`哪一塊${T.n}比較${q.more?"大":"小"}？可以按疊疊看`;
+    }else if(t==="look"){
+      const sz=[[2,2],[3,2],[3,3],[4,3],[5,3],[5,4]];let ids;do{ids=shuffle([0,1,2,3,4,5]).slice(0,3)}while(Math.max(...ids)-Math.min(...ids)<3||new Set(ids.map(i=>sz[i][0]*sz[i][1])).size<3);
+      q.mats=ids.map((k,i)=>mk(rect(...sz[k]),i));q.cols=Math.max(...ids.map(k=>sz[k][0]));q.rows=Math.max(...ids.map(k=>sz[k][1]));
+      const ar=ids.map(k=>sz[k][0]*sz[k][1]);q.ans=ar.indexOf(q.more?Math.max(...ar):Math.min(...ar));
+      q.ask=`哪一塊${T.n}<b>${q.more?"最大":"最小"}</b>？`;q.say=`哪一塊${T.n}${q.more?"最大":"最小"}？`;
+    }else if(t==="count"){
+      const n=easy?rnd(3,6):rnd(5,10),c=grow(n,5,4);q.mats=[mk(c,0)];[q.cols,q.rows]=dims(c);q.ans=n;
+      q.ask=`這塊${T.n}有<b>幾格</b>？`;q.say=`這塊${T.n}有幾格？`;
+    }else if(t==="cmp"||t==="diff"){
+      let a,b;const same=t==="cmp"&&!easy&&Math.random()<.18;
+      do{a=rnd(5,9);b=same?a:rnd(4,9)}while(!same&&(Math.abs(a-b)<1||(easy&&Math.abs(a-b)<2)||(t==="cmp"&&Math.abs(a-b)>3)));
+      // 格子少的那塊故意長長的（看起來比較大）
+      const longIdx=a<b?0:1,cs=[a,b].map((n,i)=>i===longIdx?grow(n,Math.min(n,7),2):grow(n,3,4));
+      q.mats=cs.map((c,i)=>mk(c,i));q.cnt=[a,b];q.cols=Math.max(...cs.map(c=>dims(c)[0]));q.rows=Math.max(...cs.map(c=>dims(c)[1]));
+      if(t==="cmp"){q.ans=a===b?2:((a>b)===q.more?0:1);q.ask=`哪一塊${T.n}<b>比較${q.more?"大":"小"}</b>？<br>數數看有幾格！`;q.say=`哪一塊${T.n}比較${q.more?"大":"小"}？數數看有幾格`}
+      else{const hi=a>b?0:1,lo=1-hi;q.ans=Math.abs(a-b);
+        q.ask=`${own[hi].e} 的${T.n}比 ${own[lo].e} 的<br><b>多幾格</b>？`;q.say=`${own[hi].n}的${T.n}比${own[lo].n}的多幾格？`}
+    }else if(t==="make"){
+      const n=rnd(5,10);q.n=n;q.ans=n;q.cols=6;q.rows=4;q.picked=new Set();q.mats=[{cells:[],...look(ci),own:own[0]}];
+      q.ask=`點一點方格，<br>做一塊<b>剛好 ${n} 格</b>的${T.n}！`;q.say=`點一點方格，做一塊剛好${n}格的${T.n}`;
+    }else{
+      let ns;do{ns=shuffle([4,5,6,7,8,9,10]).slice(0,3)}while(Math.max(...ns)-Math.min(...ns)<3);
+      const boxes=shuffle([[6,2],[3,4],[4,3]]);const cs=ns.map((n,i)=>grow(n,...boxes[i]));
+      q.mats=cs.map((c,i)=>mk(c,i));q.cnt=ns;q.cols=Math.max(...cs.map(c=>dims(c)[0]));q.rows=Math.max(...cs.map(c=>dims(c)[1]));q.seq=[];
+      q.ans=ns.map((n,i)=>[n,i]).sort((x,y)=>y[0]-x[0]).map(x=>x[1]);
+      q.ask=`從<b>最大</b>排到<b>最小</b>，<br>依序點一點！`;q.say=`從最大排到最小，依序點一點`;
+    }
+    const key=t+JSON.stringify(q.cnt||q.ans)+(q.cols||"")+(q.rows||"");if(key===S.last&&Math.random()<.85)return newQ();S.last=key;
+    return q;
+  }
+
+  // ---- 畫面 ----
+  const stage=$("stage"),msg=(t,c="")=>{$("msg").textContent=t;$("msg").className="msg"+(c?" "+c:"")};
+  // 每塊墊子只畫自己的方格（格子一樣大，所以還是可以比）；「自己做」用整片方格
+  const matBtn=(m,i,q,opt={})=>{const [c,r]=q.t==="make"?[q.cols,q.rows]:dims(m.cells);return `<button type="button" class="mat" data-i="${i}" aria-label="${m.own.n}的${q.T.n}">${matSVG(m,c,r,opt)}<span class="nm">${m.own.e}</span></button>`};
+  function showChoices(list,render,word){const ch=$("choices");ch.hidden=false;
+    ch.innerHTML=list.map(v=>`<button type="button" class="ch${word&&word(v)?" word":""}" data-v="${v}"${word&&word(v)?" data-zy":""}>${render(v)}</button>`).join("");
+    ch.querySelectorAll(".ch").forEach(b=>b.addEventListener("click",()=>answer(+b.dataset.v,b)))}
+  const nums=n=>shuffle([...new Set([n,n+1,n>1?n-1:n+2])]);
+  function bindMats(fn){stage.querySelectorAll(".mat").forEach(b=>b.addEventListener("click",()=>fn(+b.dataset.i,b)))}
+  // 一格坐一個小動物（幫忙數）
+  function seat(i,fast){
+    const q=S.q,b=stage.querySelectorAll(".mat")[i],g=b&&b.querySelector(".seats");if(!g||g.childElementCount)return;
+    q.mats[i].cells.forEach(([x,y],k)=>setTimeout(()=>{if(S.q!==q)return;g.insertAdjacentHTML("beforeend",`<text class="seat" x="${PAD+x*U+10}" y="${PAD+y*U+15}" font-size="13" text-anchor="middle">${q.T.s}</text>`);if(!fast)sfx.tick()},k*(fast?60:220)));
+  }
+  function show(){
+    const q=S.q;$("ask").innerHTML=q.ask;msg("");$("choices").hidden=true;$("choices").innerHTML="";stage.className="stage"+(q.t==="make"?" mk":"");
+    if(q.t==="overlay"){
+      stage.innerHTML=`<div class="mats">${q.mats.map((m,i)=>matBtn(m,i,q,{plain:true})).join("")}</div>
+        <div class="tools"><button type="button" class="tool green" id="overBtn"><span data-zy id="overTx">疊疊看</span></button></div>`;
+      $("overBtn").addEventListener("click",overlay);bindMats((i,b)=>answer(i,b));showChoices([2],()=>"一樣大",()=>true);
+    }else if(q.t==="look"){
+      stage.innerHTML=`<div class="mats">${q.mats.map((m,i)=>matBtn(m,i,q,{plain:true})).join("")}</div>`;bindMats((i,b)=>answer(i,b));
+    }else if(q.t==="count"){
+      stage.innerHTML=`<div class="mats">${matBtn(q.mats[0],0,q,{grid:true})}</div>
+        <div class="tools"><button type="button" class="tool green" id="seatBtn" data-zy>${q.T.s} 一格放一個</button></div>`;
+      stage.querySelector(".mat").disabled=true;$("seatBtn").addEventListener("click",()=>{seat(0);$("seatBtn").disabled=true});
+      showChoices(nums(q.ans),v=>`${v}<small>格</small>`);
+    }else if(q.t==="cmp"||q.t==="diff"){
+      stage.innerHTML=`<div class="mats">${q.mats.map((m,i)=>matBtn(m,i,q,{grid:true})).join("")}</div>
+        <div class="tools"><button type="button" class="tool green" id="seatBtn" data-zy>${q.T.s} 一格放一個</button></div>`;
+      $("seatBtn").addEventListener("click",()=>{seat(0);seat(1);$("seatBtn").disabled=true});
+      if(q.t==="cmp"){bindMats((i,b)=>answer(i,b));showChoices([2],()=>"一樣大",()=>true)}
+      else{stage.querySelectorAll(".mat").forEach(b=>b.disabled=true);showChoices(nums(q.ans),v=>`${v}<small>格</small>`)}
+    }else if(q.t==="make"){
+      stage.innerHTML=`<div class="mats">${matBtn(q.mats[0],0,q,{grid:true,pick:true})}</div><div class="counter" data-zy>塗了 <b id="cnt">0</b> 格</div>
+        <div class="tools"><button type="button" class="tool green" id="doneBtn" data-zy>✔ 做好了</button><button type="button" class="tool" id="clearBtn" data-zy>↩ 清空</button></div>`;
+      const b=stage.querySelector(".mat");b.disabled=true;b.style.cursor="default";
+      b.querySelectorAll(".cellbtn").forEach(r=>r.addEventListener("click",()=>toggleCell(+r.dataset.x,+r.dataset.y)));
+      $("doneBtn").addEventListener("click",makeDone);$("clearBtn").addEventListener("click",()=>{if(S.phase!=="play")return;q.picked.clear();drawMake()});
+    }else{
+      stage.innerHTML=`<div class="mats">${q.mats.map((m,i)=>matBtn(m,i,q,{grid:true})).join("")}</div>
+        <div class="tools"><button type="button" class="tool green" id="seatBtn" data-zy>${q.T.s} 一格放一個</button><button type="button" class="tool" id="resetBtn" data-zy>↩ 重排</button></div>`;
+      $("seatBtn").addEventListener("click",()=>{[0,1,2].forEach(i=>seat(i));$("seatBtn").disabled=true});$("resetBtn").addEventListener("click",orderReset);bindMats(orderTap);
+    }
+    say(q.say);
+  }
+  // 疊疊看：右邊那塊移到左邊那塊上面，左上角對齊
+  function overlay(){
+    const q=S.q;if(S.phase!=="play")return;const [A,B]=stage.querySelectorAll(".mat");
+    if(q.over){B.style.transform="";B.classList.remove("top");B.querySelector(".nm").style.opacity="";q.over=false;$("overTx").textContent="疊疊看";msg("");return}
+    const a=A.querySelector("svg").getBoundingClientRect(),b=B.querySelector("svg").getBoundingClientRect();
+    B.classList.add("top");B.querySelector(".nm").style.opacity="0";B.style.transform=`translate(${a.left-b.left}px,${a.top-b.top}px)`;q.over=true;$("overTx").textContent="拆開";sfx.snap();
+    setTimeout(()=>{if(S.q!==q||!q.over)return;const [m0,m1]=q.mats,s0=m0.cells.length,s1=m1.cells.length;
+      const t=s0===s1?"疊起來剛剛好，一樣大！":`${(s0>s1?m0:m1).own.e} 的${q.T.n}露出來了！`;msg(t);say(t.replace(/[🐻🐰🐼🐱🐶🦊] /,""))},1150);
+  }
+  // 自己做
+  function drawMake(){const q=S.q,b=stage.querySelector(".mat"),m=q.mats[0];m.cells=[...q.picked].map(s=>s.split(",").map(Number));
+    b.querySelector(".mt").outerHTML=matSVG(m,q.cols,q.rows,{}).match(/<g class="mt">[\s\S]*?<\/g>/)[0];
+    // 讓塗好的格子也可以點掉
+    b.querySelectorAll(".mt rect").forEach(r=>{r.style.pointerEvents="none"});
+    $("cnt").textContent=q.picked.size}
+  function toggleCell(x,y){const q=S.q;if(S.phase!=="play")return;const k=`${x},${y}`;
+    if(q.picked.has(k))q.picked.delete(k);else q.picked.add(k);sfx.tick();drawMake();msg("")}
+  function makeDone(){const q=S.q;if(S.phase!=="play")return;const k=q.picked.size;
+    if(k===q.n){ok(null);seat(0,true);return}
+    S.miss++;sfx.bad();const tip=k<q.n?`現在 ${k} 格，還要再塗 ${q.n-k} 格。`:`現在 ${k} 格，多了 ${k-q.n} 格。`;msg(tip,"bad");say(tip.replace(/ /g,""))}
+  // 排順序
+  function orderReset(){const q=S.q;if(S.phase!=="play")return;q.seq=[];stage.querySelectorAll(".mat .badge").forEach(b=>b.remove());stage.querySelectorAll(".mat").forEach(b=>b.classList.remove("no","yes"));msg("")}
+  function orderTap(i,el){
+    const q=S.q;if(S.phase!=="play"||q.seq.includes(i))return;q.seq.push(i);sfx.tick();
+    el.insertAdjacentHTML("beforeend",`<span class="badge">${q.seq.length}</span>`);
+    if(q.seq.length<3)return;
+    if(q.seq.every((v,k)=>v===q.ans[k])){ok(null);stage.querySelectorAll(".mat").forEach(b=>b.classList.add("yes"));return}
+    S.miss++;sfx.bad();stage.querySelectorAll(".mat").forEach(b=>{b.classList.remove("no");void b.offsetWidth;b.classList.add("no")});
+    const tip="數數看每一塊有幾格，格子最多的排第 1。";msg(tip,"bad");say(tip.replace(/ /g,""));S.phase="wait";
+    setTimeout(()=>{if(S.q===q&&S.phase==="wait"){S.phase="play";orderReset();msg(tip,"bad")}},1300);
+  }
+
+  // ---- 作答 ----
+  function ok(el){
+    const q=S.q;S.phase="ok";S.score++;if(!S.miss)S.first++;sfx.good();upd();el&&el.classList.add("yes");
+    msg(["答對了！","好棒！","真會比！"][rnd(0,2)],"good");
+    // 小動物坐上答對的那塊墊子
+    let wait=1600;
+    if(["overlay","look","cmp"].includes(q.t)&&q.ans!==2){seat(q.ans,true);wait=2000}
+    if(q.t==="count"){seat(0,true);wait=2000}
+    setTimeout(next,wait);
+  }
+  function answer(v,el){
+    if(S.phase!=="play")return;const q=S.q;
+    if(v===q.ans){ok(el);return}
+    S.miss++;sfx.bad();el.classList.remove("no");void el.getBoundingClientRect();el.classList.add("no");
+    let tip="再想一想！";
+    if(q.t==="overlay")tip=q.over?"看看疊起來以後，哪一塊露出來。":"按「疊疊看」，把兩塊疊在一起比。";
+    else if(q.t==="look")tip="想像把它們疊在一起，哪一塊會露出來？";
+    else if(q.t==="count")tip=`一格一格數，可以按「一格放一個」幫忙數。`;
+    else if(q.t==="cmp")tip="數一數每塊有幾格。格子多的比較大，不是看長不長。";
+    else if(q.t==="diff")tip=`從 ${Math.min(...q.cnt)} 往上數到 ${Math.max(...q.cnt)}，數數看多了幾格。`;
+    msg(tip,"bad");say(tip.replace(/ /g,""));
+  }
+  function next(){if(S.round>=S.total)return finish();S.round++;S.miss=0;S.phase="play";S.q=newQ();upd();show()}
+  window.matDebug=()=>S.q;
+  const upd=()=>{$("score").textContent=`⭐ ${S.score} / ${S.total}`};
+  function start(){unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.score=0;S.first=0;S.last="";S.order=null;next();
+    try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}}
+  function finish(){
+    S.phase="end";sfx.win();
+    const r=S.first/S.total,st=r>=.9?3:r>=.6?2:1;
+    $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);
+    $("endTitle").textContent=st===3?"太厲害了！":st===2?"做得很好！":"再練習一下！";
+    $("endText").textContent=`${S.total} 題裡面，有 ${S.first} 題第一次就答對。`;
+    $("end").hidden=false;say(`${$("endTitle").textContent}${S.total}題裡面，有${S.first}題第一次就答對`);
+  }
+  $("go").addEventListener("click",start);$("replay").addEventListener("click",start);
+  $("again").addEventListener("click",()=>{if(S.q)say(S.q.say)});
+  S.q=newQ();show();S.phase="start";try{synth&&synth.cancel()}catch(e){}upd();
+})();
+</script>
+</body>
+</html>
