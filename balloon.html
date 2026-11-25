@@ -92,11 +92,11 @@ body{background:linear-gradient(#8fd3ff,#d9f1ff 70%,#c3eaa8 70%);color:var(--ink
   .panel .stars{font-size:36px}
 }
 </style>
-<script src="zhuyin.js?v=20261125e"></script>
-<script src="rest.js?v=20261125e"></script>
+<script src="zhuyin.js?v=20261125f"></script>
+<script src="rest.js?v=20261125f"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261125e">
-<script src="park.js?v=20261125e"></script>
+<link rel="stylesheet" href="park.css?v=20261125f">
+<script src="park.js?v=20261125f"></script>
 </head>
 <body data-park>
 <header class="top">
@@ -313,7 +313,7 @@ body{background:linear-gradient(#8fd3ff,#d9f1ff 70%,#c3eaa8 70%);color:var(--ink
   }
   function finish(){
     S.phase="end";cancelAnimationFrame(raf);clearBalloons();sfx.win();
-    const r=S.firstTry/S.total,stars=r>=.9?3:r>=.6?2:1;
+    const r=S.firstTry/S.total,stars=r>=.9?3:r>=.6?2:1;window.parkRec&&parkRec({ok:S.firstTry,n:S.total});
     $("stars").textContent="⭐".repeat(stars)+"☆".repeat(3-stars);
     $("endTitle").textContent=stars===3?"太厲害了！":stars===2?"做得很好！":"再練習一下！";
     $("endText").textContent=`${S.total} 題裡面，有 ${S.firstTry} 題第一次就戳對。`;

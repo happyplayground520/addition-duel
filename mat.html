@@ -151,11 +151,11 @@ body.duo #duo{display:grid;grid-template-rows:var(--hh) minmax(0,1fr) var(--hh);
 @media (max-width:600px) and (orientation:portrait){#duo .dmsg{font-size:14px}#duo .dhd{font-size:15px}}
 @media (prefers-reduced-motion:reduce){#bpcs .drop,#bnum .plus,#bnum .num{animation:none}}
 </style>
-<script src="zhuyin.js?v=20261125e"></script>
-<script src="rest.js?v=20261125e"></script>
+<script src="zhuyin.js?v=20261125f"></script>
+<script src="rest.js?v=20261125f"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261125e">
-<script src="park.js?v=20261125e"></script>
+<link rel="stylesheet" href="park.css?v=20261125f">
+<script src="park.js?v=20261125f"></script>
 </head>
 <body data-park>
 <header class="top">
@@ -572,7 +572,7 @@ body.duo #duo{display:grid;grid-template-rows:var(--hh) minmax(0,1fr) var(--hh);
     try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}}
   function finish(){
     S.phase="end";sfx.win();
-    const r=S.first/S.total,st=r>=.9?3:r>=.6?2:1;
+    const r=S.first/S.total,st=r>=.9?3:r>=.6?2:1;window.parkRec&&parkRec({ok:S.first,n:S.total});
     $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);
     $("endTitle").textContent=st===3?"太厲害了！":st===2?"做得很好！":"再練習一下！";
     $("endText").textContent=`${S.total} 題裡面，有 ${S.first} 題第一次就答對。`;

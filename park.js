@@ -82,8 +82,39 @@
     el.innerHTML=[...t].map((c,i)=>`<span style="--i:${i}" class="${c==="⭐"?"on":"off"}">${c}</span>`).join("");
     el.dataset.pk=el.textContent;
   }
+  // ---- 學習紀錄：單人關卡每玩完一回，記下關卡、設定、答對幾題（或限時得幾分）、花多久。只存在這台裝置，家長紀錄頁（record.html）讀這裡 ----
+  const LOGK="park-log",LOGMAX=800;
+  let t0=0;
+  const plain=el=>{if(!el)return"";const c=el.cloneNode(true);c.querySelectorAll(".zy-b,.zy-t,.zy-lt,rt").forEach(x=>x.remove());return c.textContent.replace(/\s+/g," ").trim()};
+  function settings(){
+    const out=[];
+    document.querySelectorAll('#start [aria-pressed="true"]').forEach(b=>{
+      if(b.closest("#counts"))return;
+      for(let e=b.parentElement;e&&e.id!=="start";e=e.parentElement)if(e.hidden)return;
+      const st=b.querySelector(".lvst"),sm=b.querySelector("small");
+      let t=st||sm?[plain(st),plain(sm)].filter(Boolean).join(" "):plain(b);
+      if(!t)t=b.getAttribute("aria-label")||"";if(t&&!/^👤/.test(t))out.push(t);
+    });
+    return out.join("・");
+  }
+  window.parkRec=function(o){
+    try{
+      if(!isPark())return;
+      const h=document.querySelector("#start h2"),g=location.pathname.split("/").pop().replace(/\.html$/,"")||"?";
+      const r={g,name:plain(h)||document.title,s:settings(),t:Date.now()};
+      if(t0)r.d=Math.max(1,Math.round((Date.now()-t0)/1000));
+      if(o.n!=null){r.ok=+o.ok||0;r.n=+o.n}else{r.sc=+o.sc||0;r.miss=+o.miss||0;if(o.u)r.u=o.u}
+      let L;try{L=JSON.parse(localStorage.getItem(LOGK))||[]}catch(e){L=[]}
+      L.push(r);if(L.length>LOGMAX)L=L.slice(-LOGMAX);
+      localStorage.setItem(LOGK,JSON.stringify(L));
+    }catch(e){}
+    t0=0;
+  };
+  function recHook(){
+    ["go","replay"].forEach(id=>{const b=document.getElementById(id);b&&b.addEventListener("click",()=>{t0=Date.now()},true)});
+  }
   function init(){
-    finaleHook();
+    finaleHook();recHook();
     const st=document.getElementById("stars");
     if(st){popStars(st);new MutationObserver(()=>popStars(st)).observe(st,{childList:true,characterData:true,subtree:true})}
     const r=document.getElementById("result");

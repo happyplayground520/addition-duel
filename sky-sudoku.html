@@ -120,11 +120,11 @@ body.two .ask{display:none}
 @media (max-width:400px) and (orientation:portrait){.pal{gap:10px}.pb{width:66px;font-size:36px}.board{gap:5px;padding:8px}}
 @media (prefers-reduced-motion:reduce){.cell,.pb{animation:none!important}}
 </style>
-<script src="zhuyin.js?v=20261125e"></script>
-<script src="rest.js?v=20261125e"></script>
+<script src="zhuyin.js?v=20261125f"></script>
+<script src="rest.js?v=20261125f"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261125e">
-<script src="park.js?v=20261125e"></script>
+<link rel="stylesheet" href="park.css?v=20261125f">
+<script src="park.js?v=20261125f"></script>
 </head>
 <body data-park>
 <header class="top">
@@ -338,7 +338,7 @@ body.two .ask{display:none}
       $("stars").textContent=w<0?"🤝":"🏆";$("endTitle").textContent=w<0?"平手！":`${PN[w]}贏了！`;
       $("endText").textContent=`藍色 ${a} 分，橘色 ${b} 分。`;$("end").hidden=false;
       say(w<0?`平手！兩個人都是${a}分`:`${PN[w]}贏了！藍色${a}分，橘色${b}分`);return}
-    const r=S.cells?S.first/S.cells:0,st=r>=.9?3:r>=.6?2:1;
+    const r=S.cells?S.first/S.cells:0,st=r>=.9?3:r>=.6?2:1;window.parkRec&&parkRec({ok:S.first,n:S.cells||0});
     $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);
     $("endTitle").textContent=st===3?"太厲害了！":st===2?"做得很好！":"再練習一下！";
     $("endText").textContent=`完成 ${S.total} 題數獨，${S.cells} 格裡面有 ${S.first} 格一次就放對。`;

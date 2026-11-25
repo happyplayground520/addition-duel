@@ -128,13 +128,13 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
   #mkpal{gap:6px}#mkpal .ch{width:48px;font-size:26px;border-radius:14px}.mkrow{gap:8px}.mkb{font-size:15px;min-height:42px;padding:.25em .8em}}
 @media (prefers-reduced-motion:reduce){.train{transition:none}.car.blank{animation:none}}
 </style>
-<script src="zhuyin.js?v=20261125e"></script>
-<script src="rest.js?v=20261125e"></script>
+<script src="zhuyin.js?v=20261125f"></script>
+<script src="rest.js?v=20261125f"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261125e">
-<script src="park.js?v=20261125e"></script>
-<link rel="stylesheet" href="duo.css?v=20261125e">
-<script src="duo.js?v=20261125e"></script>
+<link rel="stylesheet" href="park.css?v=20261125f">
+<script src="park.js?v=20261125f"></script>
+<link rel="stylesheet" href="duo.css?v=20261125f">
+<script src="duo.js?v=20261125f"></script>
 </head>
 <body data-park>
 <header class="top">
@@ -417,7 +417,7 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
       $("stars").textContent=w<0?"🤝":"🏆";$("endTitle").textContent=w<0?"平手！":`${PN[w]}贏了！`;
       $("endText").textContent=`藍色猜對 ${a} 題，橘色猜對 ${b} 題。`;$("end").hidden=false;
       say(w<0?`平手！兩個人都猜對${a}題`:`${PN[w]}贏了！`);return}
-    const r=S.score/S.total,st=r>=.9?3:r>=.6?2:1;
+    const r=S.score/S.total,st=r>=.9?3:r>=.6?2:1;window.parkRec&&parkRec({ok:S.score,n:S.total});
     $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);
     $("endTitle").textContent=st===3?"太厲害了！":st===2?"做得很好！":"再練習一下！";
     $("endText").textContent=`${S.total} 題裡面，有 ${S.score} 題第一次就答對。`;

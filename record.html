@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>學習紀錄</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<style>
+/* 家長學習紀錄：讀 park.js 存在這台裝置的 park-log，整理成「玩了多少、哪裡要多練、哪裡已經很熟」 */
+*,*::before,*::after{box-sizing:border-box}
+:root{--ink:#1f2b33;--muted:#5d6b72;--line:#e6edf2;--good:#1f9d61;--mid:#e09b12;--low:#e0455a;--accent:#5b7cfa;
+  --text:"Chiron GoRound TC","PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;--num:"Baloo 2","Chiron GoRound TC",system-ui,sans-serif;color-scheme:light}
+html,body{margin:0}
+body{font-family:var(--text);color:var(--ink);background:linear-gradient(#e9f6ff,#fffaf0 40%);min-height:100dvh;-webkit-tap-highlight-color:transparent;
+  padding:max(12px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(24px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+[hidden]{display:none!important}
+.wrap{width:min(1040px,100%);margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.back{display:grid;place-items:center;width:52px;height:52px;border-radius:16px;background:#fff;text-decoration:none;font-size:24px;box-shadow:0 4px 0 #cfe3ef;flex:none}
+h1{margin:0;font-size:clamp(24px,4vmin,34px);font-weight:900;flex:1;min-width:0}
+.range{display:flex;background:#fff;border-radius:999px;padding:4px;box-shadow:0 3px 0 #cfe3ef}
+.range button{font:inherit;font-weight:800;font-size:16px;border:0;background:none;border-radius:999px;padding:8px 14px;cursor:pointer;color:var(--muted);min-height:44px}
+.range button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.range button[aria-pressed="true"] .zy-b{color:#fff}
+.note{margin:0;font-size:15px;color:var(--muted);font-weight:700;line-height:1.9}
+.card{background:#fff;border-radius:22px;padding:16px clamp(14px,2.4vw,22px);box-shadow:0 4px 0 #dbe8f0}
+.card h2{margin:0 0 10px;font-size:clamp(19px,2.8vmin,24px);font-weight:900;display:flex;align-items:center;gap:8px}
+.card h2 small{font-size:14px;color:var(--muted);font-weight:700}
+.sum{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.st{background:#fff;border-radius:20px;padding:12px 10px;text-align:center;box-shadow:0 4px 0 #dbe8f0}
+.st .v{font-family:var(--num);font-weight:800;font-size:clamp(28px,5vmin,40px);line-height:1.15}
+.st .v small{font-family:var(--text);font-size:.45em;margin-left:2px}
+.st .k{font-size:15px;font-weight:800;color:var(--muted)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+/* 每天玩幾分鐘 */
+.bars{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:6px;align-items:end;height:160px;padding-top:18px}
+.bar{display:flex;flex-direction:column;align-items:center;justify-content:end;height:100%;gap:4px;min-width:0}
+.bar i{display:block;width:min(30px,80%);border-radius:8px 8px 3px 3px;background:#8fb3ff;min-height:3px;position:relative}
+.bar i b{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-style:normal;font-family:var(--num);font-size:13px;color:var(--muted);white-space:nowrap}
+.bar.today i{background:var(--accent)}
+.bar em{font-style:normal;font-size:12px;color:var(--muted);font-weight:700;line-height:1}
+.bar span{font-size:12px;color:var(--muted);font-weight:700;white-space:nowrap;font-family:var(--num)}
+/* 一列一個項目 */
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.it{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:14px;background:#f7fafc}
+.it .ic{font-size:26px;flex:none;width:34px;text-align:center}
+.it .tx{flex:1;min-width:0}
+.it .nm{font-weight:900;font-size:17px}
+.it .sub{font-size:14px;color:var(--muted);font-weight:700;overflow-wrap:anywhere}
+.pct{flex:none;font-family:var(--num);font-weight:800;font-size:22px;min-width:3.2em;text-align:right}
+.pct.g{color:var(--good)}.pct.m{color:var(--mid)}.pct.l{color:var(--low)}
+.meter{height:8px;border-radius:99px;background:#e9eef3;overflow:hidden;margin-top:4px}
+.meter i{display:block;height:100%;border-radius:99px}
+.go{flex:none;font:inherit;font-weight:900;font-size:15px;text-decoration:none;color:#fff;background:var(--good);border-radius:999px;padding:6px 12px;box-shadow:0 3px 0 #136b41;white-space:nowrap}
+.go .zy-b{color:#fff}
+.empty{color:var(--muted);font-weight:700;font-size:16px;padding:6px 2px;line-height:1.9}
+/* 各關卡：可以點開看每一種設定 */
+details.gm{border-radius:14px;background:#f7fafc}
+details.gm+details.gm{margin-top:8px}
+details.gm summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:8px 10px}
+details.gm summary::-webkit-details-marker{display:none}
+details.gm summary::after{content:"▾";color:var(--muted);font-size:18px;transition:transform .2s;flex:none}
+details.gm[open] summary::after{transform:rotate(180deg)}
+details.gm .rows{padding:0 10px 10px 54px;display:flex;flex-direction:column;gap:6px}
+details.gm .row{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700}
+details.gm .row .s{flex:1;min-width:0;overflow-wrap:anywhere}
+details.gm .row .pct{font-size:18px}
+.recent .it{background:none;border-bottom:2px solid var(--line);border-radius:0;padding:6px 2px}
+.recent .when{flex:none;width:6.6em;font-family:var(--num);font-size:14px;color:var(--muted);font-weight:700}
+.res{flex:none;font-weight:800;font-size:15px;text-align:right}
+.foot{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.clear{font:inherit;font-weight:800;font-size:16px;border:2px solid #f2c4cb;background:#fff;color:var(--low);border-radius:999px;padding:8px 18px;cursor:pointer;min-height:48px}
+.clear .zy-b{color:var(--low)}
+/* 確認清除 */
+.ov{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:16px;background:rgba(31,43,51,.4)}
+.box{background:#fffdf6;border-radius:24px;padding:22px;width:min(400px,100%);text-align:center;box-shadow:0 18px 40px rgba(0,0,0,.25)}
+.box p{margin:0 0 16px;font-size:18px;font-weight:800;line-height:1.9}
+.box .btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.box button{font:inherit;font-weight:900;font-size:18px;border:0;border-radius:999px;padding:10px 22px;cursor:pointer;min-height:48px}
+.box .no{background:#e9eef3;color:var(--ink)}.box .yes{background:var(--low);color:#fff}.box .yes .zy-b{color:#fff}
+@media (max-width:760px){.two{grid-template-columns:1fr}.sum{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:600px){.card h2{flex-wrap:wrap;row-gap:0}.card h2 small{flex-basis:100%}
+  #weak .it,#strong .it{flex-wrap:wrap;row-gap:4px}#weak .tx,#strong .tx{flex:1 1 calc(100% - 50px)}#weak .pct,#strong .pct{margin-left:44px;text-align:left;flex:1}
+  .recent .it{flex-wrap:wrap;row-gap:0}.recent .tx{flex:1 1 0}.recent .res{flex-basis:100%;padding-left:calc(5.4em + 48px)}}
+@media (max-width:420px){.range button{padding:8px 10px;font-size:15px}.recent .when{width:5.4em;font-size:13px}.go{padding:6px 10px}details.gm .rows{padding-left:12px}}
+</style>
+<script src="zhuyin.js?v=20261125f"></script>
+</head>
+<body>
+<div class="wrap" data-zy>
+  <header>
+    <a class="back" href="index.html" aria-label="回選地圖">🏠</a>
+    <h1>👪 學習紀錄</h1>
+    <div class="range" id="range" role="group" aria-label="時間範圍">
+      <button type="button" data-d="7">這 7 天</button>
+      <button type="button" data-d="30">這 30 天</button>
+      <button type="button" data-d="0">全部</button>
+    </div>
+  </header>
+  <p class="note" data-zy>數學遊樂園和天空島的單人關卡，每玩完一回就會記下來。「答對率」是第一次就答對的題數比例。紀錄只存在這台裝置上。</p>
+
+  <div class="sum" id="sum"></div>
+
+  <section class="card"><h2 data-zy>📅 每天玩了幾分鐘</h2><div class="bars" id="bars"></div></section>
+  <section class="card"><h2 data-zy>💪 需要多練習 <small>答對率不到 7 成</small></h2><ul class="list" id="weak"></ul></section>
+  <section class="card"><h2 data-zy>🌟 已經很熟練 <small>答對率 9 成以上</small></h2><ul class="list" id="strong"></ul></section>
+  <section class="card"><h2 data-zy>🎡 各關卡 <small>點一下看每種難度</small></h2><div id="games"></div></section>
+  <section class="card recent"><h2 data-zy>🕘 最近玩過</h2><ul class="list" id="recent"></ul></section>
+
+  <div class="foot"><button type="button" class="clear" id="clear">🗑️ 清除全部紀錄</button></div>
+</div>
+
+<div class="ov" id="ov" hidden>
+  <div class="box" role="dialog" aria-modal="true">
+    <p data-zy>確定要清除全部的學習紀錄嗎？<br>清除後就找不回來了。</p>
+    <div class="btns"><button type="button" class="no" id="cNo">不要清除</button><button type="button" class="yes" id="cYes">清除</button></div>
+  </div>
+</div>
+
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const KEY="park-log",PK="rec-range";
+  const load=()=>{try{const a=JSON.parse(localStorage.getItem(KEY));return Array.isArray(a)?a.filter(r=>r&&r.t&&r.g):[]}catch(e){return[]}};
+  const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
+  const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
+  const DAY=864e5,day0=t=>{const d=new Date(t);d.setHours(0,0,0,0);return d.getTime()};
+  const isQuiz=r=>r.n!=null;
+  // 關卡名稱前面的圖示（存的名字像「🍡 丸子攤」）
+  const split=name=>{const m=String(name||"").match(/^(\p{Extended_Pictographic}[️‍\p{Extended_Pictographic}]*)\s*(.*)$/u);return m?{ic:m[1],nm:m[2]}:{ic:"🎮",nm:name||"?"}};
+  const cls=p=>p>=.9?"g":p>=.7?"m":"l",col=p=>p>=.9?"#1f9d61":p>=.7?"#f0b429":"#e0455a";
+  const pctTxt=p=>Math.round(p*100)+"%";
+  const when=t=>{const d=new Date(t),now=Date.now();const hm=`${d.getHours()}:${String(d.getMinutes()).padStart(2,"0")}`;
+    if(day0(t)===day0(now))return"今天 "+hm;if(day0(t)===day0(now)-DAY)return"昨天 "+hm;return`${d.getMonth()+1}/${d.getDate()} ${hm}`};
+  const ago=t=>{const n=Math.round((day0(Date.now())-day0(t))/DAY);return n<=0?"今天":n===1?"昨天":n+" 天前"};
+  const res=r=>isQuiz(r)?`${r.ok} / ${r.n} 題`:`${r.sc} ${r.u||"分"}`+(r.miss?`（錯 ${r.miss}）`:"");
+
+  let range=(v=>v!==null&&[7,30,0].includes(+v)?+v:7)(pref(PK));
+  const btns=[...$("range").querySelectorAll("button")];
+  const sync=()=>btns.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.d===range));
+  btns.forEach(b=>b.addEventListener("click",()=>{range=+b.dataset.d;pref(PK,range);sync();render()}));
+
+  function render(){
+    const all=load(),from=range?day0(Date.now())-(range-1)*DAY:0,L=all.filter(r=>r.t>=from);
+    // ---- 總覽 ----
+    const Q=L.filter(isQuiz),qn=Q.reduce((a,r)=>a+r.n,0),qok=Q.reduce((a,r)=>a+r.ok,0),sec=L.reduce((a,r)=>a+(r.d||0),0);
+    const mins=Math.round(sec/60);
+    $("sum").innerHTML=[
+      [L.length,"回","玩了"],[qn,"題","做了"],[qn?Math.round(qok/qn*100):"–",qn?"%":"","答對率"],[mins<60?mins:(sec/3600).toFixed(1),mins<60?"分鐘":"小時","玩了多久"]
+    ].map(([v,u,k])=>`<div class="st"><div class="v">${v}<small>${u}</small></div><div class="k" data-zy>${k}</div></div>`).join("");
+
+    // ---- 每天玩幾分鐘（最近 7 天或 14 天） ----
+    const nd=range===7?7:14,today=day0(Date.now()),per=[];
+    for(let i=nd-1;i>=0;i--){const d0=today-i*DAY;per.push({d0,s:all.filter(r=>r.t>=d0&&r.t<d0+DAY).reduce((a,r)=>a+(r.d||0),0)})}
+    const mx=Math.max(60,...per.map(p=>p.s));
+    $("bars").innerHTML=per.map(p=>{const d=new Date(p.d0),m=Math.round(p.s/60);
+      return`<div class="bar${p.d0===today?" today":""}"><i style="height:${Math.max(2,p.s/mx*100)}%">${m?`<b>${m}</b>`:""}</i><span>${d.getDate()===1||p===per[0]?(d.getMonth()+1)+"/":""}${d.getDate()}</span></div>`}).join("");
+
+    // ---- 依「關卡＋設定」分組 ----
+    const G=new Map();
+    L.forEach(r=>{const k=r.g+"|"+(r.s||"");if(!G.has(k))G.set(k,{g:r.g,name:r.name,s:r.s||"",rs:[]});G.get(k).rs.push(r)});
+    const combos=[...G.values()].map(c=>{const q=c.rs.filter(isQuiz),n=q.reduce((a,r)=>a+r.n,0),ok=q.reduce((a,r)=>a+r.ok,0);
+      const last=c.rs[c.rs.length-1];return{...c,n,ok,p:n?ok/n:null,last}});
+    const itemHTML=(c,extra)=>{const{ic,nm}=split(c.name);
+      return`<li class="it"><span class="ic">${ic}</span><span class="tx"><div class="nm" data-zy>${esc(nm)}</div><div class="sub" data-zy>${esc(c.s||"")}${c.s?"　":""}玩了 ${c.rs.length} 回、${c.n} 題・${ago(c.last.t)}</div>
+        <div class="meter"><i style="width:${Math.round(c.p*100)}%;background:${col(c.p)}"></i></div></span><span class="pct ${cls(c.p)}">${pctTxt(c.p)}</span>${extra||""}</li>`};
+    const weak=combos.filter(c=>c.p!=null&&c.n>=5&&c.p<.7).sort((a,b)=>a.p-b.p||b.n-a.n).slice(0,6);
+    $("weak").innerHTML=weak.length?weak.map(c=>itemHTML(c,`<a class="go" href="${esc(c.g)}.html" data-zy>去練習</a>`)).join("")
+      :`<li class="empty" data-zy>${Q.length?"目前沒有，每一種都答得不錯！":"還沒有紀錄。"}</li>`;
+    const strong=combos.filter(c=>c.p!=null&&c.n>=10&&c.p>=.9).sort((a,b)=>b.p-a.p||b.n-a.n).slice(0,6);
+    $("strong").innerHTML=strong.length?strong.map(c=>itemHTML(c)).join("")
+      :`<li class="empty" data-zy>${Q.length?"同一種多玩幾回（10 題以上）、答對率到 9 成，就會出現在這裡。":"還沒有紀錄。"}</li>`;
+
+    // ---- 各關卡 ----
+    const byG=new Map();combos.forEach(c=>{if(!byG.has(c.g))byG.set(c.g,[]);byG.get(c.g).push(c)});
+    const games=[...byG.values()].map(cs=>{const rs=cs.flatMap(c=>c.rs),q=rs.filter(isQuiz),n=q.reduce((a,r)=>a+r.n,0),ok=q.reduce((a,r)=>a+r.ok,0);
+      return{cs,rs,n,ok,p:n?ok/n:null,last:Math.max(...rs.map(r=>r.t)),name:rs[rs.length-1].name}}).sort((a,b)=>b.last-a.last);
+    $("games").innerHTML=games.length?games.map(gm=>{const{ic,nm}=split(gm.name),timed=gm.p==null;
+      const best=timed?Math.max(...gm.rs.map(r=>r.sc||0)):0,u=timed?(gm.rs[0].u||"分"):"";
+      const head=timed?`<span class="pct g" data-zy>最佳 ${best}<small style="font-size:.6em"> ${esc(u)}</small></span>`:`<span class="pct ${cls(gm.p)}">${pctTxt(gm.p)}</span>`;
+      const rows=gm.cs.sort((a,b)=>b.last.t-a.last.t).map(c=>{const sub=c.p==null?`最佳 ${Math.max(...c.rs.map(r=>r.sc||0))} ${esc(u)}、平均 ${Math.round(c.rs.reduce((a,r)=>a+(r.sc||0),0)/c.rs.length)} ${esc(u)}`:`${c.ok} / ${c.n} 題`;
+        return`<div class="row"><span class="s" data-zy>${esc(c.s||"一般")}・${c.rs.length} 回・${sub}</span>${c.p==null?"":`<span class="pct ${cls(c.p)}">${pctTxt(c.p)}</span>`}</div>`}).join("");
+      return`<details class="gm"><summary><span class="ic" style="font-size:26px;width:34px;text-align:center;flex:none">${ic}</span><span class="tx" style="flex:1;min-width:0"><div class="nm" data-zy style="font-weight:900;font-size:17px">${esc(nm)}</div>
+        <div class="sub" data-zy style="font-size:14px;color:var(--muted);font-weight:700">玩了 ${gm.rs.length} 回${timed?"":`、${gm.n} 題`}・${ago(gm.last)}</div></span>${head}</summary><div class="rows">${rows}</div></details>`}).join("")
+      :`<div class="empty" data-zy>這段時間還沒有玩過。</div>`;
+
+    // ---- 最近玩過 ----
+    const rec=L.slice(-15).reverse();
+    $("recent").innerHTML=rec.length?rec.map(r=>{const{ic,nm}=split(r.name),p=isQuiz(r)&&r.n?r.ok/r.n:null;
+      return`<li class="it"><span class="when">${when(r.t)}</span><span class="ic" style="font-size:22px;width:28px">${ic}</span><span class="tx"><div class="nm" data-zy style="font-size:16px">${esc(nm)}</div><div class="sub" data-zy>${esc(r.s||"")}</div></span>
+        <span class="res ${p==null?"":"pct "+cls(p)}" data-zy style="font-size:15px">${res(r)}</span></li>`}).join("")
+      :`<li class="empty" data-zy>這段時間還沒有玩過。</li>`;
+    $("clear").hidden=!all.length;
+  }
+  $("clear").addEventListener("click",()=>{$("ov").hidden=false});
+  $("cNo").addEventListener("click",()=>{$("ov").hidden=true});
+  $("cYes").addEventListener("click",()=>{try{localStorage.removeItem(KEY)}catch(e){}$("ov").hidden=true;render()});
+  addEventListener("storage",e=>{if(e.key===KEY)render()});
+  addEventListener("pageshow",render);
+  sync();render();
+  window.recDebug={render};
+})();
+</script>
+</body>
+</html>

@@ -21,6 +21,10 @@ body{font-family:var(--text);color:var(--ink);-webkit-user-select:none;user-sele
   display:flex;justify-content:space-between;align-items:center;z-index:5;pointer-events:none}
 .topbar>*{pointer-events:auto}
 .help{width:52px;height:52px;border-radius:16px;border:0;background:#fff;font-size:26px;cursor:pointer;box-shadow:0 4px 0 #b9dff5,0 8px 16px rgba(0,0,0,.1)}
+.tl{display:flex;gap:10px}
+.help.rec{display:flex;align-items:center;gap:4px;text-decoration:none;color:var(--ink);font-size:22px;line-height:1;width:auto;padding:0 12px 0 10px}
+.help.rec small{font-size:16px;font-weight:900;white-space:nowrap}
+@media (max-width:440px){.help.rec small{display:none}.help.rec{width:52px;padding:0;justify-content:center}}
 /* 注音開關（和以前數學遊樂園右上角的一樣） */
 .zybtn{display:flex;align-items:center;gap:8px;font:inherit;font-weight:800;font-size:17px;color:var(--ink);background:#fff;border:0;border-radius:999px;
   padding:6px 8px 6px 14px;cursor:pointer;box-shadow:0 4px 0 #b9dff5,0 8px 16px rgba(0,0,0,.1);min-height:48px}
@@ -90,14 +94,17 @@ body.is3d h1{position:fixed;top:max(12px,env(safe-area-inset-top,0px));left:50%;
 @media (max-width:600px){.lab b{font-size:clamp(13px,4.1vw,17px);padding:1px 10px;border-width:2px}.lab .lt{display:none}}
 @media (max-height:500px) and (orientation:landscape){.lab b{font-size:clamp(13px,2vw,16px);padding:1px 9px;border-width:2px}.lab .lt{display:none}body.is3d h1{font-size:20px}}
 </style>
-<script src="zhuyin.js?v=20261125e"></script>
-<script src="rest.js?v=20261125e"></script>
-<script src="warm.js?v=20261125e" defer></script>
-<script src="en.js?v=20261125e"></script>
+<script src="zhuyin.js?v=20261125f"></script>
+<script src="rest.js?v=20261125f"></script>
+<script src="warm.js?v=20261125f" defer></script>
+<script src="en.js?v=20261125f"></script>
 </head>
 <body>
 <div class="topbar">
+  <div class="tl">
   <button type="button" class="help" id="helpBtn" aria-label="使用說明">❓</button>
+  <a class="help rec" href="record.html" aria-label="家長看學習紀錄"><span>👪</span><small data-zy>紀錄</small></a>
+  </div>
   <button type="button" class="zybtn" id="zyBtn" aria-pressed="true" data-zy-skip>ㄅㄆㄇ 注音<span class="sw" aria-hidden="true"></span><span class="st" id="zySt">開</span></button>
 </div>
 <h1>選地圖</h1>
@@ -179,6 +186,6 @@ body.is3d h1{position:fixed;top:max(12px,env(safe-area-inset-top,0px));left:50%;
 })();
 </script>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js"}}</script>
-<script type="module" src="hub3d.js?v=20261125e"></script>
+<script type="module" src="hub3d.js?v=20261125f"></script>
 </body>
 </html>
