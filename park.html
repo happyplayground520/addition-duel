@@ -157,9 +157,9 @@ h1 .star{font-size:.7em;text-shadow:none}
   .map{width:min(100%,calc((100dvh - 56px) * 1.6))}
 }
 </style>
-<script src="zhuyin.js?v=20261125c"></script>
-<script src="rest.js?v=20261125c"></script>
-<script src="warm.js?v=20261125c" defer></script>
+<script src="zhuyin.js?v=20261125d"></script>
+<script src="rest.js?v=20261125d"></script>
+<script src="warm.js?v=20261125d" defer></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
 <style>:root{--text:"Chiron GoRound TC","PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif}
 /* ---- 手機：地圖變成長長的步道，往下捲著逛（一排 2 個，手機橫放一排 4 個） ---- */
@@ -210,6 +210,9 @@ html.phone .bunting{height:36px}
   </a>
   <a class="spot open" data-k="mat" href="mat.html" style="--c:#2f9e6a">
     <span class="icon">🧺</span><span class="name" data-zy>野餐墊</span><span class="tag">👤👥 面積</span>
+  </a>
+  <a class="spot open" data-k="calendar" href="calendar.html" style="--c:#5b7cfa">
+    <span class="icon">📅</span><span class="name" data-zy>看月曆</span><span class="tag">👤 日期、星期</span>
   </a>
   <a class="spot open" data-k="share" href="share.html" style="--c:#c86a2b">
     <span class="icon">🍪</span><span class="name" data-zy>分點心</span><span class="tag">👤 平分、分數</span>
@@ -270,7 +273,7 @@ html.phone .bunting{height:36px}
   const map=document.querySelector(".map");
   // 三區：左「算一算」（加減乘）、中「數一數・量一量」（位值、比大小、長度、時間、錢、分數）、右「兩個人對戰」
   // 三區：「算一算」（加減乘）、「數一數・量一量」（位值、比大小、長度、容量、時間、錢、分數）、「兩個人對戰」
-  const ZA=["balloon","coaster","fish","ferris","donut","ring","dango"],ZB=["blocks","claw","carousel","ruler","juice","mat","booth","share"];
+  const ZA=["balloon","coaster","fish","ferris","donut","ring","dango"],ZB=["blocks","claw","carousel","ruler","juice","mat","booth","share","calendar"];
   const DUO=["train","bumper","memory","shape"];
   // 橫放：算一算 3 欄×3 排，數一數・量一量 3 欄×3 排，右邊對戰廣場；空出來的位置種花
   function landLayout(){
@@ -278,7 +281,7 @@ html.phone .bunting{height:36px}
     const fill=(keys,cols,flowers)=>{for(let i=0;i<9;i++){const x=cols[i%3],y=rows[Math.floor(i/3)];if(keys[i])pos[keys[i]]=[x,y];else decos.push([flowers[i%flowers.length],x,y+2])}};
     fill(ZA,cA,["🌷","🌻"]);
     // 夾娃娃機的說明比較長，旁邊留空位種花
-    fill(["blocks","ruler","carousel","juice","mat","booth","share",null,"claw"],cB,["🌻","🌳"]);
+    fill(["blocks","ruler","carousel","juice","mat","booth","share","calendar","claw"],cB,["🌻","🌳"]);
     Object.assign(pos,{train:[dc[0],rows[0]],bumper:[dc[1],rows[0]],duel:[dmid,rows[1]],memory:[dc[0],rows[2]],shape:[dc[1],rows[2]]});
     const lines=[];
     rows.forEach(y=>lines.push([[cA[0],y],[dc[1],y]]));
@@ -289,21 +292,20 @@ html.phone .bunting{height:36px}
       signs:[[cA[1],1.6],[cB[1],1.6],[dmid,1.6]],
       decos:decos.concat([["🎈",97.5,95],["🌳",2.5,95]])};
   }
-  // 直放：上面左邊算一算（2×3）、右邊數一數・量一量（2×4），中間大街；下面對戰廣場排成一排
+  // 直放：上面左邊算一算（2 欄×4 排）、右邊數一數・量一量（3 欄×3 排），中間一條街；下面對戰廣場排成一排
   function portLayout(){
-    const pos={},lines=[],rA=[12.5,27.8,43.1,58.4],rB=[12.5,27.8,43.1,58.4],cA=[13,37],cB=[63,87],decos=[];
+    const pos={},lines=[],rA=[12.5,27.8,43.1,58.4],rB=[12.5,27.8,43.1],cA=[9.5,28],cB=[47.5,67.5,87.5],street=37.75,decos=[];
     ZA.forEach((k,i)=>pos[k]=[cA[i%2],rA[i>>1]]);
-    ZB.forEach((k,i)=>pos[k]=[cB[i%2],rB[i>>1]]);
-    if(ZB.length%2)decos.push(["🌻",cB[1],rB[ZB.length>>1]+2]);
     if(ZA.length%2)decos.push(["🌷",cA[1],rA[ZA.length>>1]+2]);
-    rA.forEach(y=>lines.push([[cA[0],y],[50,y]]));rB.forEach(y=>lines.push([[50,y],[cB[1],y]]));
-    cA.forEach(x=>lines.push([[x,rA[0]],[x,rA[3]]]));cB.forEach(x=>lines.push([[x,rB[0]],[x,rB[3]]]));
+    ZB.forEach((k,i)=>pos[k]=[cB[i%3],rB[Math.floor(i/3)]]);
+    rA.forEach(y=>lines.push([[cA[0],y],[street,y]]));rB.forEach(y=>lines.push([[street,y],[cB[2],y]]));
+    cA.forEach(x=>lines.push([[x,rA[0]],[x,rA[3]]]));cB.forEach(x=>lines.push([[x,rB[0]],[x,rB[2]]]));
     const dy=80,dx=[11,30.5,50,69.5,89];
     ["train","bumper","duel","memory","shape"].forEach((k,i)=>pos[k]=[dx[i],dy]);
-    lines.push([[dx[0],dy],[dx[4],dy]]);lines.push([[50,104],[50,rA[0]]]);
-    return{pos,lines,zone:{left:"51.25%",width:"47.25%",top:"3%",height:"63.5%"},
-      plaza:{left:"1.5%",right:"1.5%",top:"67.5%",bottom:"1.5%"},gate:50,signs:[[25,1.2],[75,1.2],[50,67.9]],
-      decos:decos.concat([["🌳",25,35.45],["🎈",95,97],["🌳",5,97]])};
+    lines.push([[dx[0],dy],[dx[4],dy]]);lines.push([[street,104],[street,rA[0]]]);
+    return{pos,lines,zone:{left:"38.75%",width:"59.75%",top:"3%",height:"50%"},
+      plaza:{left:"1.5%",right:"1.5%",top:"67.5%",bottom:"1.5%"},gate:street,signs:[[cA[0]+(cA[1]-cA[0])/2,1.2],[cB[1],1.2],[50,67.9]],
+      decos:decos.concat([["🌼",67.5,58],["🌳",88,60],["🌻",48,60],["🎈",95,97],["🌳",5,97]])};
   }
   const spots={};document.querySelectorAll(".spot").forEach(a=>spots[a.dataset.k]=a);
   const set=(el,x,y)=>{el.style.left=x+"%";el.style.top=y+"%"};
