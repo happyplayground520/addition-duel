@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>神秘禮物盒</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
+<style>
+/* 單人小遊戲：找□裡的數。算式裡的 □ 是一個禮物盒，猜猜盒子裡是多少。初級 10 以內、進階 20 以內、高級 100 以內（一年級下～二年級） */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --ink:#1f2b33; --muted:#5d6b72; --good:#1f9d61; --bad:#d23c3c; --accent:#f0a020; --accent-dark:#b06a00;
+  --num:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
+  --text:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{margin:0;height:100%}
+body{background:radial-gradient(circle,rgba(255,255,255,.5) 2px,transparent 2.5px) 0 0/30px 30px,linear-gradient(#fff6d8,#ffe9b8);color:var(--ink);font-family:var(--text);overflow:hidden;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;display:flex;flex-direction:column}
+[hidden]{display:none!important}
+.top{display:flex;align-items:center;gap:12px;padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.ibtn{width:48px;height:48px;border-radius:14px;border:0;background:rgba(255,255,255,.9);font-size:24px;cursor:pointer;display:grid;place-items:center;text-decoration:none;color:inherit;box-shadow:0 3px 0 rgba(0,0,0,.1);flex:none}
+.ibtn:active{transform:translateY(2px)}
+.ttl{flex:1;text-align:center;font-weight:800;font-size:clamp(18px,3.2vmin,28px)}
+.score{font-family:var(--num);font-weight:800;font-size:clamp(18px,3.4vmin,30px);background:rgba(255,255,255,.9);border-radius:999px;padding:4px 14px;white-space:nowrap;flex:none}
+main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(10px,2.2vh,22px);
+  padding:0 max(12px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+.ask{background:#fff;border-radius:20px;padding:.3em 1em;font-weight:800;font-size:clamp(18px,3.2vmin,28px);box-shadow:0 5px 0 rgba(0,0,0,.08);text-align:center;max-width:96vw}
+/* 神秘禮物盒：算式裡的 □ 畫成禮物盒；下面的格子圖（十格框）幫忙數 */
+.stage{--b:clamp(52px,min(12vmin,calc((100vw - 60px) / 6.2),calc((100dvh - 420px) / 1.5)),104px);--f:clamp(26px,min(6.4vmin,calc((100vw - 90px) / 11.5),calc((100dvh - 470px) / 2.6)),54px);
+  display:flex;flex-direction:column;align-items:center;gap:clamp(10px,2vh,20px);width:min(100%,960px)}
+.eq{display:flex;align-items:center;justify-content:center;gap:clamp(6px,1.4vmin,14px);background:#fff;border-radius:24px;padding:clamp(8px,1.6vmin,14px) clamp(14px,3vmin,28px);box-shadow:0 5px 0 rgba(0,0,0,.07)}
+.eq .n,.eq .op{font-family:var(--num);font-weight:800;font-size:calc(var(--b) * .7);line-height:1}
+.eq .op{color:var(--muted)}
+.gbox{position:relative;min-width:calc(var(--b) * 1.1);height:var(--b);border-radius:14px;display:grid;place-items:center;padding:0 .15em;
+  background:linear-gradient(90deg,#ff7aa0 0 41%,#ffd23f 41% 59%,#ff7aa0 59%);box-shadow:inset 0 -6px 0 rgba(0,0,0,.1),0 4px 0 rgba(0,0,0,.12);
+  font-family:var(--num);font-weight:800;font-size:calc(var(--b) * .6);color:#fff;-webkit-text-stroke:calc(var(--b) * .06) #a61e4d;paint-order:stroke fill;margin-top:calc(var(--b) * .18)}
+.gbox::before{content:"🎀";position:absolute;left:50%;top:calc(var(--b) * -.42);transform:translateX(-50%);font-size:calc(var(--b) * .5);text-shadow:none;transition:transform .4s,opacity .4s}
+.gbox.typing{background:#fff6dc;outline:4px solid var(--accent);color:var(--accent-dark);-webkit-text-stroke:0}
+.gbox.no{animation:shake .4s}
+.gbox.open{background:#e4f7ea;outline:4px solid #3cb371;color:var(--good);-webkit-text-stroke:0;animation:pop .4s cubic-bezier(.3,1.6,.5,1)}
+.gbox.open::before{transform:translate(-50%,-40%) rotate(25deg);opacity:0}
+.mini{display:inline-block;width:1.1em;height:1em;vertical-align:-.12em;border-radius:4px;background:linear-gradient(90deg,#ff7aa0 0 41%,#ffd23f 41% 59%,#ff7aa0 59%)}
+/* 十格框 */
+.frames{display:flex;flex-direction:column;align-items:center;gap:6px;animation:fadeIn .3s}
+.fr2{display:flex;gap:clamp(8px,2vmin,18px);flex-wrap:wrap;justify-content:center}
+.tf{display:grid;grid-template-columns:repeat(5,var(--f));gap:3px;background:#8d6e4f;padding:4px;border-radius:12px}
+.cl{position:relative;width:var(--f);height:var(--f);background:#fffaf0;border-radius:7px;display:grid;place-items:center;font-size:calc(var(--f) * .7);line-height:1}
+.cl.u{background:#fff;outline:3px dashed #ff7aa0;outline-offset:-5px}
+.cl.u.got{outline-color:#3cb371;background:#e4f7ea}
+.cl.x span{opacity:.35}
+.cl.x::after{content:"✕";position:absolute;inset:0;display:grid;place-items:center;color:#e0455a;font-weight:900;font-size:calc(var(--f) * .7)}
+.cl.e{background:#f3e7d6}
+.cl b{position:absolute;right:2px;bottom:0;font-family:var(--num);font-size:calc(var(--f) * .36);color:#d6336c;line-height:1}
+.cl.u b{position:static;font-size:calc(var(--f) * .5)}
+.cap{font-weight:800;font-size:clamp(15px,2.6vmin,21px);color:var(--muted);text-align:center}
+.inv{display:flex;flex-direction:column;align-items:center;gap:4px;background:#fff;border-radius:18px;padding:8px 18px;box-shadow:0 4px 0 rgba(0,0,0,.07);animation:fadeIn .3s}
+.inv .t{font-weight:800;font-size:clamp(14px,2.4vmin,19px);color:var(--muted)}
+.inv .e{font-family:var(--num);font-weight:800;font-size:clamp(26px,5vmin,42px)}
+.inv .s{font-family:var(--num);font-weight:800;font-size:clamp(18px,3vmin,26px);color:var(--accent-dark)}
+@keyframes fadeIn{from{opacity:0}}
+/* 手機直放：格子放大，兩個十格框上下排 */
+@media (max-width:600px) and (orientation:portrait){
+  .frames.n1{--f:clamp(28px,min(calc((100vw - 60px) / 6.2),calc((100dvh - 440px) / 2.6)),56px)}
+  .frames.n2{--f:clamp(24px,min(calc((100vw - 60px) / 6.2),calc((100dvh - 480px) / 5)),50px)}
+}
+.keys{display:grid;grid-template-columns:repeat(5,clamp(48px,9vmin,68px));gap:clamp(6px,1.2vmin,10px)}
+.key{font:inherit;font-family:var(--num);font-weight:800;font-size:clamp(24px,4.4vmin,36px);border:0;border-radius:14px;background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 5px 0 #e7c98a;aspect-ratio:1.1}
+.key:active{transform:translateY(3px);box-shadow:0 2px 0 #e7c98a}
+@keyframes pop{from{transform:scale(.3)}}
+.choices{display:flex;gap:clamp(10px,2.4vmin,22px);flex-wrap:wrap;justify-content:center}
+.ch{min-width:clamp(86px,15vmin,140px);border:0;border-radius:20px;background:#fff;cursor:pointer;padding:.2em .6em;box-shadow:0 6px 0 #e7c98a;
+  font-family:var(--num);font-weight:800;font-size:clamp(28px,5.4vmin,46px);color:var(--ink);line-height:1.15}
+.ch:active{transform:translateY(4px);box-shadow:0 2px 0 #e7c98a}
+.ch.no{background:#ffd6d6;box-shadow:0 6px 0 #e8a0a0;animation:shake .4s}
+.ch.yes{background:#c9f5dc;box-shadow:0 6px 0 #7bd3a2}
+@keyframes shake{25%{translate:-8px 0}75%{translate:8px 0}}
+.msg{min-height:1.4em;font-weight:800;font-size:clamp(17px,2.8vmin,24px);text-align:center;max-width:94vw}
+.msg.good{color:var(--good)}.msg.bad{color:var(--bad)}
+/* 手機橫放：左邊算式和格子、右邊答案按鈕 */
+@media (max-height:500px) and (orientation:landscape){
+  main{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"st ask" "st ch" "st msg";align-content:center;justify-content:center;column-gap:18px;row-gap:8px}
+  #ask{grid-area:ask;align-self:end} #stage{grid-area:st;width:auto;max-width:58vw;align-self:center} #choices{grid-area:ch;align-self:center} #msg{grid-area:msg;align-self:start}
+  .stage{--b:clamp(40px,min(calc((100dvh - 120px) / 3.6),calc(52vw / 5.2)),70px);--f:clamp(20px,min(calc((100dvh - 150px) / 6.2),calc(52vw / 11.6)),34px);gap:8px}
+  .eq{padding:6px 14px}.cap{font-size:13px}.inv{padding:4px 12px}.inv .e{font-size:22px}.inv .s{font-size:16px}.inv .t{font-size:13px}
+  .ask{font-size:16px}.ch{font-size:24px;min-width:64px}.msg{font-size:15px}.keys{grid-template-columns:repeat(5,42px);gap:6px}.key{font-size:22px}
+}
+@media (prefers-reduced-motion:reduce){.ch.no,.gbox.no,.gbox.open{animation:none}}
+/* 開始／結束畫面 */
+.panel{position:fixed;inset:0;z-index:20;display:grid;place-items:start center;overflow-y:auto;-webkit-overflow-scrolling:touch;background:rgba(255,246,216,.8);
+  padding:max(12px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.panel>.card{margin:auto 0}
+.card{background:#fff;border-radius:24px;padding:clamp(18px,4vmin,34px);width:min(480px,100%);box-shadow:0 12px 40px rgba(0,0,0,.18);display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center}
+.card h2{margin:0;font-size:clamp(26px,5.5vmin,44px)}
+.card p{margin:0;color:var(--muted);font-size:clamp(15px,2.6vmin,20px);line-height:1.5}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.opt{font:inherit;font-size:18px;font-weight:700;border:2px solid #cfd8dc;background:#fff;border-radius:14px;padding:10px 16px;cursor:pointer;color:inherit}
+.opt small{display:block;font-size:13px;font-weight:600;opacity:.8;margin-top:2px}
+.opt[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:#fff}
+.lbl{font-size:14px;font-weight:700;color:var(--muted)}
+.big{font-family:var(--text);font-weight:800;font-size:clamp(20px,4vmin,30px);border:0;border-radius:999px;padding:.5em 1.6em;background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 5px 0 var(--accent-dark);text-decoration:none;display:inline-block}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 var(--accent-dark)}
+.big.alt{background:#fff;color:var(--ink);box-shadow:0 5px 0 #cfd8dc;border:2px solid #cfd8dc}
+.stars{font-size:clamp(40px,9vmin,72px);letter-spacing:.1em;line-height:1}
+#start .card>.big{position:sticky;bottom:0;z-index:1}
+@media (max-height:560px){.panel>.card{gap:8px;padding:14px 18px}.panel>.card h2{font-size:24px}#start .card>p{display:none}.panel .stars{font-size:36px}
+  main{gap:6px}.ask{font-size:16px}.ch{font-size:26px;min-width:84px}.msg{font-size:15px}}
+
+</style>
+<script src="zhuyin.js?v=20261125g"></script>
+<script src="rest.js?v=20261125g"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="park.css?v=20261125g">
+<script src="park.js?v=20261125g"></script>
+</head>
+<body data-park>
+<header class="top">
+  <a class="ibtn" href="park.html" aria-label="回遊樂園地圖">🏠</a>
+  <div class="ttl">🎁<span class="tx"> 神秘禮物盒</span></div>
+  <span class="score" id="score">⭐ 0</span>
+  <button type="button" class="ibtn" id="again" aria-label="再念一次題目">🔊</button>
+</header>
+<main>
+  <div class="ask" id="ask" data-zy>禮物盒裡是多少？</div>
+  <div class="stage" id="stage"></div>
+  <div class="choices" id="choices" hidden></div>
+  <div class="msg" id="msg" data-zy aria-live="polite"></div>
+
+  <section class="panel" id="start">
+    <div class="card">
+      <h2>🎁 神秘禮物盒</h2>
+      <p data-zy>算式裡藏了一個禮物盒，<br>盒子裡是多少？<br>猜對了就可以打開！</p>
+      <span class="lbl">算法</span>
+      <div class="row" id="ops">
+        <button type="button" class="opt" data-op="add" aria-label="加法"><span class="lvst">➕</span><small data-zy>加法</small></button>
+        <button type="button" class="opt" data-op="sub" aria-label="減法"><span class="lvst">➖</span><small data-zy>減法</small></button>
+        <button type="button" class="opt" data-op="mix" aria-label="加減混合"><span class="lvst">➕➖</span><small data-zy>加減都有</small></button>
+      </div>
+      <span class="lbl">難度</span>
+      <div class="row" id="levels">
+        <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small data-zy>10 以內</small></button>
+        <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small data-zy>20 以內</small></button>
+        <button type="button" class="opt" data-lv="3" aria-label="高級"><span class="lvst">⭐⭐⭐</span><small data-zy>100 以內</small></button>
+      </div>
+      <span class="lbl">題數</span>
+      <div class="row" id="counts">
+        <button type="button" class="opt" data-n="5" aria-label="5 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button>
+        <button type="button" class="opt" data-n="10" aria-label="10 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>10</small></button>
+        <button type="button" class="opt" data-n="15" aria-label="15 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>15</small></button>
+      </div>
+      <button type="button" class="big" id="go" aria-label="開始">READY</button>
+    </div>
+  </section>
+  <section class="panel" id="end" hidden>
+    <div class="card">
+      <div class="stars" id="stars"></div>
+      <h2 id="endTitle"></h2>
+      <p id="endText" data-zy></p>
+      <div class="row">
+        <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+        <a class="big alt ico-btn" href="park.html" aria-label="回遊樂園">🏠</a>
+      </div>
+    </div>
+  </section>
+</main>
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
+  const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+  const pick=a=>a[rnd(0,a.length-1)];
+  const S={op:["add","sub","mix"].includes(pref("gift-op"))?pref("gift-op"):"add",lv:[1,2,3].includes(+pref("gift-lv"))?+pref("gift-lv"):1,total:10,round:0,score:0,first:0,miss:0,phase:"start",q:null};
+  const levels=[...document.querySelectorAll("#levels button")],syncLv=()=>levels.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
+  levels.forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("gift-lv",S.lv);syncLv()}));syncLv();
+  {const os=[...document.querySelectorAll("#ops button")],sync=()=>os.forEach(b=>b.setAttribute("aria-pressed",b.dataset.op===S.op));
+   sync();os.forEach(b=>b.addEventListener("click",()=>{S.op=b.dataset.op;pref("gift-op",S.op);sync()}))}
+  {const n0=+pref("gift-total");if([5,10,15].includes(n0))S.total=n0;
+   const cs=[...document.querySelectorAll("#counts button")],sync=()=>cs.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===S.total));
+   sync();cs.forEach(b=>b.addEventListener("click",()=>{S.total=+b.dataset.n;pref("gift-total",S.total);sync()}))}
+  // ---- 語音與音效（和遊樂園一樣） ----
+  const synth=window.speechSynthesis;let voice=null;const rate=+(pref("duel-rate")||.9)||.9;
+  const quality=v=>{const u=v.voiceURI||"";return /eloquence|speech\.synthesis\.voice/i.test(u)?0:/\.premium\./i.test(u)?3:/enhanced|-premium/i.test(u)?2:1};
+  function pickVoice(){if(!synth)return;const vs=synth.getVoices().filter(v=>/^(zh|cmn)/i.test(v.lang));const want=pref("duel-voice");
+    const tw=vs.filter(v=>/TW|Hant/i.test(v.lang)&&quality(v)>0).sort((a,b)=>quality(b)-quality(a));
+    voice=(want&&vs.find(v=>(v.voiceURI||v.name)===want))||tw[0]||vs.find(v=>quality(v)>0)||vs[0]||null}
+  if(synth){pickVoice();try{synth.addEventListener("voiceschanged",pickVoice)}catch(e){}}
+  function say(t){if(!synth)return;try{const u=new SpeechSynthesisUtterance(t);u.lang=voice?voice.lang.replace("_","-"):"zh-TW";if(voice)u.voice=voice;u.rate=rate;u.pitch=1.1;
+    if(synth.speaking||synth.pending){synth.cancel();setTimeout(()=>{try{synth.speak(u)}catch(e){}},90)}else synth.speak(u)}catch(e){}}
+  let ac=null;
+  function tone(fs,dur=.12,type="triangle",vol=.15){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume();
+    fs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*dur;o.type=type;o.frequency.value=f;
+      g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)})}catch(e){}}
+  const sfx={good:()=>tone([784,1175],.14,"sine",.3),bad:()=>tone([150],.3,"square",.16),tick:()=>tone([900],.03,"sine",.06),snap:()=>tone([660],.05,"sine",.12),win:()=>tone([523,659,784,1047],.16)};
+  {const _g=sfx.good;sfx.good=(...a)=>{try{window.parkBurst&&parkBurst()}catch(err){}return _g(...a)}}
+  function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
+    try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}}
+
+
+
+  // ---- 出題 ----
+  // 四種樣子：a + □ = c、□ + b = c、c − □ = d、□ − b = d
+  // 初級 10 以內（一直有十格框可以數）；進階 20 以內、會跨過 10（答錯才出現十格框）；高級 100 以內二位數（答錯提示換成另一種算法）
+  const ITEMS=[{e:"🍬",u:"顆"},{e:"🍪",u:"片"},{e:"🍓",u:"顆"},{e:"🌟",u:"顆"},{e:"🧁",u:"個"}];
+  const FORMS={add:["a","b"],sub:["c","d"],mix:["a","b","c","d"]};
+  let lastF="";
+  function newQ(){
+    let f;do f=pick(FORMS[S.op]);while(f===lastF&&FORMS[S.op].length>1&&Math.random()<.7);lastF=f;
+    let p,x;// p 是已知的那一部分、x 是另一部分；全部 = p + x
+    if(S.lv===1){const w=rnd(3,10);x=rnd(1,w-1);p=w-x}
+    else if(S.lv===2){do{p=rnd(2,9);x=rnd(2,9)}while(p+x<11);if(Math.random()<.5)[p,x]=[x,p]}
+    else{p=rnd(12,79);x=rnd(11,Math.max(11,98-p));if(p+x>99)x=99-p;if(x<11){p=rnd(12,60);x=rnd(11,99-p)}}
+    const w=p+x,it=pick(ITEMS);let q;
+    // 加法：p + □ = w（□ 是 x）；□ + p = w
+    if(f==="a")q={f,L:[p,"+","□","=",w],ans:x,ask:`${p} 加多少會等於 ${w}？`};
+    else if(f==="b")q={f,L:["□","+",p,"=",w],ans:x,ask:`多少加 ${p} 會等於 ${w}？`};
+    // 減法：w − □ = p（拿走 x 剩 p）；□ − x = p（原來 w 個）
+    else if(f==="c")q={f,L:[w,"−","□","=",p],ans:x,ask:`${w} 減多少會等於 ${p}？`};
+    else q={f,L:["□","−",x,"=",p],ans:w,ask:`多少減 ${x} 會等於 ${p}？`};
+    Object.assign(q,{p,x,w,it,h:0});
+    q.say=q.ask.replace(/ /g,"");
+    return q;
+  }
+
+  // ---- 畫面 ----
+  const stage=$("stage"),msg=(t,c="")=>{$("msg").textContent=t;$("msg").className="msg"+(c?" "+c:"")};
+  const near=n=>{const s=new Set([n]);let g=0;while(s.size<3&&g++<60){const v=n+pick([-2,-1,1,2]);if(v>=1)s.add(v)}return shuffle([...s])};
+  function choices(list){const ch=$("choices");ch.hidden=false;
+    ch.innerHTML=`<div class="choices">${list.map(v=>`<button type="button" class="ch" data-v="${v}">${v}</button>`).join("")}</div>`;
+    ch.querySelectorAll(".ch").forEach(b=>b.addEventListener("click",()=>answer(+b.dataset.v,b)))}
+  function keypad(){const ch=$("choices");ch.hidden=false;
+    ch.innerHTML=`<div class="keys">${[1,2,3,4,5,6,7,8,9,0].map(d=>`<button type="button" class="key" data-d="${d}">${d}</button>`).join("")}</div>`;
+    ch.querySelectorAll(".key").forEach(b=>b.addEventListener("click",()=>keyIn(+b.dataset.d)))}
+  const eqHTML=q=>`<div class="eq">${q.L.map(v=>v==="□"?`<span class="gbox" id="gbox" aria-label="禮物盒">?</span>`:v==="+"||v==="−"||v==="="?`<span class="op">${v}</span>`:`<span class="n">${v}</span>`).join("")}</div>`;
+  // 十格框：k 已知的、u 空格（要數的）、x 拿走的
+  function framesHTML(q,num,open){
+    const e=q.it.e,cells=[];
+    if(q.f==="a"){for(let i=0;i<q.p;i++)cells.push("k");for(let i=0;i<q.x;i++)cells.push("u")}
+    else if(q.f==="b"){for(let i=0;i<q.x;i++)cells.push("u");for(let i=0;i<q.p;i++)cells.push("k")}
+    else if(q.f==="c"){for(let i=0;i<q.p;i++)cells.push("k");for(let i=0;i<q.x;i++)cells.push("u")}
+    else{for(let i=0;i<q.p;i++)cells.push("k");for(let i=0;i<q.x;i++)cells.push("x")}
+    const nf=cells.length>10?2:1;let un=0,all=0,h="";
+    for(let fi=0;fi<nf;fi++){h+=`<div class="tf">`;for(let i=fi*10;i<fi*10+10;i++){const c=cells[i];
+      if(!c){h+=`<span class="cl e"></span>`;continue}all++;
+      if(c==="u"){un++;h+=`<span class="cl u${open?" got":""}">${open?`<span>${e}</span>`:num?`<b>${un}</b>`:""}</span>`}
+      else h+=`<span class="cl ${c}"><span>${e}</span>${num&&q.f==="d"?`<b>${all}</b>`:""}</span>`}
+      h+=`</div>`}
+    const u=q.it.u,cap=q.f==="a"||q.f==="b"?`一共 ${q.w} ${u}，空格要放幾${u}？`:q.f==="c"?`原來 ${q.w} ${u}，剩下 ${q.p} ${u}，空格是拿走的`:`剩下 ${q.p} ${u}，拿走 ${q.x} ${u}，原來有幾${u}？`;
+    return `<div class="frames n${nf}"><div class="fr2">${h}</div><div class="cap" data-zy>${cap}</div></div>`;
+  }
+  // 高級的提示：換成另一種算法
+  function invHTML(q){
+    const [s,y,z]=q.f==="d"?["+",q.p,q.x]:["−",q.w,q.f==="c"?q.p:q.p];
+    let step="";
+    if(q.h>=2){const t=Math.floor(z/10)*10,o=z%10,m=s==="+"?y+t:y-t;step=`<div class="s">${y} ${s} ${t} = ${m}，${m} ${s} ${o} = ${s==="+"?m+o:m-o}</div>`}
+    return `<div class="inv"><div class="t" data-zy>${s==="+"?"換成加法想一想":"換成減法想一想"}</div><div class="e">${y} ${s} ${z} = <span class="mini"></span></div>${step}</div>`;
+  }
+  function drawStage(open){
+    const q=S.q;let h=eqHTML(q);
+    const showF=S.lv===1||(S.lv===2&&(q.h>=1||open));
+    if(S.lv<3&&showF)h+=framesHTML(q,S.lv===1?q.h>=1:q.h>=2,open);
+    if(S.lv===3&&q.h>=1)h+=invHTML(q);
+    stage.innerHTML=h;
+    if(open){const b=$("gbox");b.textContent=q.ans;b.classList.add("open")}
+  }
+  function show(){
+    const q=S.q;$("ask").textContent=q.ask;msg("");q.typed="";
+    drawStage(false);
+    if(S.lv===3)keypad();else choices(near(q.ans));
+    if(S.phase==="play")say(q.say);
+  }
+  const speakTip=t=>say(t.replace(/ /g,"").replace(/\+/g,"加").replace(/−/g,"減").replace(/=/g,"等於").replace(/□/g,"多少"));
+  function tipFor(q){
+    const u=q.it.u;
+    if(S.lv<3){
+      if(q.h>=2||(S.lv===1&&q.h>=1))return q.f==="d"?`全部的格子從 1 數到最後，就是原來有幾${u}。`:`跟著空格上的號碼數一數，數到最後就是答案。`;
+      return q.f==="a"?`${q.p} 再加幾${u}會變成 ${q.w}？數一數空格。`:q.f==="b"?`多少再加 ${q.p} 會變成 ${q.w}？數一數空格。`
+        :q.f==="c"?`${q.w} 拿走幾${u}會剩下 ${q.p}？數一數空格。`:`剩下 ${q.p} ${u}，再加回拿走的 ${q.x} ${u}。`;
+    }
+    if(q.f==="d")return q.h>=2?`${q.p} + ${q.x}：先加十位，再加個位。`:`原來的數 = 剩下的 ${q.p} + 拿走的 ${q.x}。`;
+    const z=q.p;return q.h>=2?`${q.w} − ${z}：先減十位，再減個位。`:q.f==="c"?`拿走的 = ${q.w} − 剩下的 ${q.p}。`:`□ = ${q.w} − ${q.p}。`;
+  }
+  function wrong(el){
+    const q=S.q;S.miss++;q.h++;sfx.bad();
+    const tip=tipFor(q);drawStage(false);
+    if(el){el.classList.remove("no");void el.offsetWidth;el.classList.add("no");el.disabled=true}
+    else{const b=$("gbox");b.classList.remove("no");void b.offsetWidth;b.classList.add("no")}
+    msg(tip,"bad");speakTip(tip);
+  }
+  function answer(v,el){
+    const q=S.q;if(S.phase!=="play")return;
+    if(v===q.ans){el.classList.add("yes");ok();return}
+    wrong(el);
+  }
+  function keyIn(d){
+    const q=S.q;if(S.phase!=="play")return;sfx.tick();
+    q.typed+=d;const b=$("gbox");b.textContent=q.typed;b.classList.add("typing");
+    if(q.typed.length<String(q.ans).length)return;
+    if(+q.typed===q.ans){ok();return}
+    q.typed="";wrong(null);const g=$("gbox");g.textContent="?";
+  }
+  function ok(){
+    const q=S.q;S.phase="ok";S.score++;if(!S.miss)S.first++;sfx.good();upd();
+    drawStage(true);
+    const eq=q.L.map(v=>v==="□"?q.ans:v).join(" ");
+    msg(`${eq}　${["答對了！","好棒！","打開禮物盒了！"][rnd(0,2)]}`,"good");
+    $("choices").querySelectorAll("button").forEach(b=>b.disabled=true);
+    setTimeout(next,1900);
+  }
+  function next(){if(S.round>=S.total)return finish();S.round++;S.miss=0;S.phase="play";S.q=newQ();upd();show()}
+  window.giftDebug=()=>({q:S.q,phase:S.phase});
+  const upd=()=>{$("score").textContent=`⭐ ${S.score} / ${S.total}`};
+  function start(){unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.score=0;S.first=0;next();
+    try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}}
+  function finish(){
+    S.phase="end";sfx.win();
+    const r=S.first/S.total,st=r>=.9?3:r>=.6?2:1;window.parkRec&&parkRec({ok:S.first,n:S.total});
+    $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);
+    $("endTitle").textContent=st===3?"太厲害了！":st===2?"做得很好！":"再練習一下！";
+    $("endText").textContent=`${S.total} 題裡面，有 ${S.first} 題第一次就答對。`;
+    $("end").hidden=false;say(`${$("endTitle").textContent}${S.total}題裡面，有${S.first}題第一次就答對`);
+  }
+  $("go").addEventListener("click",start);$("replay").addEventListener("click",start);
+  $("again").addEventListener("click",()=>{if(S.q)say(S.q.say)});
+  S.q=newQ();show();S.phase="start";try{synth&&synth.cancel()}catch(e){}upd();
+})();
+</script>
+</body>
+</html>

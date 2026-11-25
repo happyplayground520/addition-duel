@@ -157,9 +157,9 @@ h1 .star{font-size:.7em;text-shadow:none}
   .map{width:min(100%,calc((100dvh - 56px) * 1.6))}
 }
 </style>
-<script src="zhuyin.js?v=20261125f"></script>
-<script src="rest.js?v=20261125f"></script>
-<script src="warm.js?v=20261125f" defer></script>
+<script src="zhuyin.js?v=20261125g"></script>
+<script src="rest.js?v=20261125g"></script>
+<script src="warm.js?v=20261125g" defer></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
 <style>:root{--text:"Chiron GoRound TC","PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif}
 /* ---- 手機：地圖變成長長的步道，往下捲著逛（一排 2 個，手機橫放一排 4 個） ---- */
@@ -241,6 +241,9 @@ html.phone .bunting{height:36px}
   <a class="spot open" data-k="dango" href="dango.html" style="--c:#e85d9a">
     <span class="icon">🍡</span><span class="name" data-zy>丸子攤</span><span class="tag">👤 加加減減</span>
   </a>
+  <a class="spot open" data-k="gift" href="gift.html" style="--c:#e8590c">
+    <span class="icon">🎁</span><span class="name" data-zy>禮物盒</span><span class="tag">👤 找□裡的數</span>
+  </a>
   <a class="spot open" data-k="balloon" href="balloon.html" style="--c:#e0477b">
     <span class="icon">🎈</span><span class="name" data-zy>射氣球</span><span class="tag">👤 加減法</span>
   </a>
@@ -275,7 +278,7 @@ html.phone .bunting{height:36px}
   // 左邊「一個人玩」草地區 3×3；右邊「兩個人對戰」磚紅色廣場，馬戲團在正中間；中間一條大街，入口在下方
   const map=document.querySelector(".map");
   // 三區：「算一算」（加減乘、連加連減、錢）、「數一數・量一量」（位值、長度、容量、面積、時間、日曆、分數、統計）、「兩個人對戰」
-  const ZA=["balloon","coaster","fish","ferris","donut","ring","dango","booth"],ZB=["blocks","claw","carousel","ruler","juice","mat","share","calendar","vote"];
+  const ZA=["balloon","coaster","fish","ferris","donut","ring","dango","booth","gift"],ZB=["blocks","claw","carousel","ruler","juice","mat","share","calendar","vote"];
   const DUO=["train","bumper","memory","shape"];
   // 橫放：算一算 3 欄×3 排，數一數・量一量 3 欄×3 排，右邊對戰廣場；空出來的位置種花
   function landLayout(){
@@ -297,17 +300,17 @@ html.phone .bunting{height:36px}
   // 直放：上面左邊算一算（2 欄×4 排）、右邊數一數・量一量（3 欄×3 排），中間一條街；下面對戰廣場排成一排
   function portLayout(){
     const pos={},lines=[],rA=[12.5,27.8,43.1,58.4],rB=[12.5,27.8,43.1],cA=[9.5,28],cB=[47.5,67.5,87.5],street=37.75,decos=[];
-    ZA.forEach((k,i)=>pos[k]=[cA[i%2],rA[i>>1]]);
-    if(ZA.length%2)decos.push(["🌷",cA[1],rA[ZA.length>>1]+2]);
+    // 算一算有 9 關：前 8 關排 2 欄×4 排，第 9 關放在大街對面最下面那排
+    ZA.forEach((k,i)=>pos[k]=i<8?[cA[i%2],rA[i>>1]]:[cB[0],rA[3]]);
     ZB.forEach((k,i)=>pos[k]=[cB[i%3],rB[Math.floor(i/3)]]);
-    rA.forEach(y=>lines.push([[cA[0],y],[street,y]]));rB.forEach(y=>lines.push([[street,y],[cB[2],y]]));
+    rA.forEach(y=>lines.push([[cA[0],y],[street,y]]));lines.push([[street,rA[3]],[cB[0],rA[3]]]);rB.forEach(y=>lines.push([[street,y],[cB[2],y]]));
     cA.forEach(x=>lines.push([[x,rA[0]],[x,rA[3]]]));cB.forEach(x=>lines.push([[x,rB[0]],[x,rB[2]]]));
     const dy=80,dx=[11,30.5,50,69.5,89];
     ["train","bumper","duel","memory","shape"].forEach((k,i)=>pos[k]=[dx[i],dy]);
     lines.push([[dx[0],dy],[dx[4],dy]]);lines.push([[street,104],[street,rA[0]]]);
     return{pos,lines,zone:{left:"38.75%",width:"59.75%",top:"3%",height:"50%"},
       plaza:{left:"1.5%",right:"1.5%",top:"67.5%",bottom:"1.5%"},gate:street,signs:[[cA[0]+(cA[1]-cA[0])/2,1.2],[cB[1],1.2],[50,67.9]],
-      decos:decos.concat([["🌼",67.5,58],["🌳",88,60],["🌻",48,60],["🎈",95,97],["🌳",5,97]])};
+      decos:decos.concat([["🌼",67.5,58],["🌳",88,60],["🎈",95,97],["🌳",5,97]])};
   }
   const spots={};document.querySelectorAll(".spot").forEach(a=>spots[a.dataset.k]=a);
   const set=(el,x,y)=>{el.style.left=x+"%";el.style.top=y+"%"};
