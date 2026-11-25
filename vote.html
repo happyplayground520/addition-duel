@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>投票亭</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
+<style>
+/* 單人小遊戲：分類與統計。初級分類數一數（小一）；進階填統計表、看統計表回答；高級看圖形統計圖、照統計表畫圖（小二） */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --ink:#1f2b33; --muted:#5d6b72; --good:#1f9d61; --bad:#d23c3c; --accent:#f0a020; --accent-dark:#b06a00;
+  --num:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
+  --text:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{margin:0;height:100%}
+body{background:radial-gradient(circle,rgba(255,255,255,.5) 2px,transparent 2.5px) 0 0/30px 30px,linear-gradient(#fff6d8,#ffe9b8);color:var(--ink);font-family:var(--text);overflow:hidden;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;display:flex;flex-direction:column}
+[hidden]{display:none!important}
+.top{display:flex;align-items:center;gap:12px;padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.ibtn{width:48px;height:48px;border-radius:14px;border:0;background:rgba(255,255,255,.9);font-size:24px;cursor:pointer;display:grid;place-items:center;text-decoration:none;color:inherit;box-shadow:0 3px 0 rgba(0,0,0,.1);flex:none}
+.ibtn:active{transform:translateY(2px)}
+.ttl{flex:1;text-align:center;font-weight:800;font-size:clamp(18px,3.2vmin,28px)}
+.score{font-family:var(--num);font-weight:800;font-size:clamp(18px,3.4vmin,30px);background:rgba(255,255,255,.9);border-radius:999px;padding:4px 14px;white-space:nowrap;flex:none}
+main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(10px,2.2vh,22px);
+  padding:0 max(12px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+.ask{background:#fff;border-radius:20px;padding:.3em 1em;font-weight:800;font-size:clamp(18px,3.2vmin,28px);box-shadow:0 5px 0 rgba(0,0,0,.08);text-align:center;max-width:96vw}
+/* 投票亭：場景裡的東西、分類籃子、統計表、圖形統計圖 */
+.stage{--e:clamp(28px,min(7vmin,calc((100vw - 60px) / (var(--cols,6) + 1.5)),calc((100dvh - 400px) / (var(--rows,3) + 1.2))),54px);--g:clamp(20px,min(calc((100dvh - 460px) / (var(--gr,8) + 1.6)),calc((100vw - 80px) / (var(--k,4) * 1.3 + 1))),46px);
+  display:flex;align-items:center;justify-content:center;gap:clamp(10px,2.4vmin,26px);flex-wrap:wrap;width:min(100%,980px)}
+.scene,.tb,.gwrap,.bins{flex:none}
+.stage.mk{flex-direction:column;flex-wrap:nowrap}
+.tb.h th{padding:.15em .6em}.tb.h td{border-top:0;border-left:2px solid #eef0f6;padding:.15em .6em}
+.scene{display:grid;grid-template-columns:repeat(var(--cols),var(--e));gap:4px;background:#e9f7d8;border-radius:18px;padding:8px;box-shadow:0 4px 0 rgba(0,0,0,.07)}
+.it{position:relative;width:var(--e);height:var(--e);border:0;background:none;padding:0;font-size:calc(var(--e) * .78);line-height:1;cursor:pointer;transition:transform .15s,opacity .3s}
+.it:active{transform:scale(.9)}
+.it.ck::after{content:"✔";position:absolute;right:-2px;bottom:-2px;font-size:calc(var(--e) * .36);color:#fff;background:#3cb371;border-radius:50%;width:1.2em;height:1.2em;display:grid;place-items:center;font-family:var(--num)}
+.it.gone{opacity:0;pointer-events:none}
+.it.blank{visibility:hidden}
+.bins{display:flex;flex-direction:column;gap:6px}
+.bin{display:flex;align-items:center;gap:6px;background:#fff;border-radius:14px;padding:4px 10px;min-height:calc(var(--e) * .9);box-shadow:0 3px 0 rgba(0,0,0,.06)}
+.bin .lb{font-size:calc(var(--e) * .6);width:1.3em;text-align:center}
+.bin .sl{display:flex;flex-wrap:wrap;gap:2px;font-size:calc(var(--e) * .5);min-width:calc(var(--e) * 3)}
+.bin .sl span{animation:pop .3s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pop{from{transform:scale(.3)}}
+/* 統計表 */
+.tb{border-collapse:separate;border-spacing:0;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 0 rgba(0,0,0,.08);font-size:clamp(16px,3vmin,26px)}
+.tb caption{font-weight:900;font-size:clamp(14px,2.5vmin,21px);padding:0 0 6px;color:var(--ink)}
+.tb th{background:#5b7cfa;color:#fff;font-weight:900;padding:.25em .8em}
+.tb th .zy .b,.tb th .tz-b{color:#fff}
+.tb td{padding:.2em .8em;border-top:2px solid #eef0f6;text-align:center;font-weight:800}
+.tb td.num{font-family:var(--num);font-size:1.2em;min-width:2.4em;color:var(--accent-dark)}
+.tb tr.cur td{background:#fff6dc}
+.tb tr.cur td.num{outline:3px solid var(--accent);outline-offset:-4px;border-radius:8px}
+.tb tr.ok td.num{color:var(--good)}
+.tb tr.hl td{background:#c9f5dc}
+.tb tr.no td.num{animation:shake .4s;background:#ffd6d6}
+/* 圖形統計圖：一格一個 */
+.gwrap{display:flex;flex-direction:column;align-items:center;gap:4px;background:#fff;border-radius:16px;padding:8px 12px;box-shadow:0 4px 0 rgba(0,0,0,.08)}
+.gwrap .gt{font-weight:900;font-size:clamp(14px,2.5vmin,21px)}
+.gr{display:grid;grid-template-columns:auto repeat(var(--k),var(--g));gap:2px 6px;align-items:center}
+.gr .ax{font-family:var(--num);font-weight:800;font-size:calc(var(--g) * .42);color:var(--muted);text-align:right;padding-right:4px}
+.gr .gc{width:var(--g);height:var(--g);border-radius:6px;background:#f4f6fb;display:grid;place-items:center;font-size:calc(var(--g) * .72);line-height:1;border:0;padding:0}
+.gr .gc.on{background:#fff3cf}
+.gr .gc.tap{cursor:pointer}
+.gr .gc.tap:not(.on):hover{background:#e8ecf7}
+.gr .gc.on.pop{animation:pop .25s cubic-bezier(.3,1.6,.5,1)}
+.gr .bt{border-top:3px solid var(--ink);padding-top:3px;text-align:center;font-size:calc(var(--g) * .7);line-height:1}
+.gr .col-hl{background:#c9f5dc}
+.gr .col-no{background:#ffd6d6}
+.tools{display:flex;gap:12px;justify-content:center}
+.tool{font:inherit;font-weight:900;font-size:clamp(18px,3.2vmin,24px);border:0;border-radius:999px;padding:.35em 1.1em;background:#3cb371;color:#fff;cursor:pointer;box-shadow:0 5px 0 #23804c}
+.tool .zy .b,.tool .tz-b{color:#fff}
+.tool:active{transform:translateY(3px);box-shadow:0 2px 0 #23804c}
+.keys{display:grid;grid-template-columns:repeat(5,clamp(48px,9vmin,68px));gap:clamp(6px,1.2vmin,10px)}
+.key{font:inherit;font-family:var(--num);font-weight:800;font-size:clamp(24px,4.4vmin,36px);border:0;border-radius:14px;background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 5px 0 #e7c98a;aspect-ratio:1.1}
+.key:active{transform:translateY(3px);box-shadow:0 2px 0 #e7c98a}
+.choices{display:flex;gap:clamp(10px,2.4vmin,22px);flex-wrap:wrap;justify-content:center}
+.ch{min-width:clamp(86px,15vmin,140px);border:0;border-radius:20px;background:#fff;cursor:pointer;padding:.2em .6em;box-shadow:0 6px 0 #e7c98a;
+  font-family:var(--num);font-weight:800;font-size:clamp(28px,5.2vmin,44px);color:var(--ink);line-height:1.15}
+.ch small{font-family:var(--text);font-size:.45em;margin-left:.15em}
+.ch.word{font-family:var(--text);font-size:clamp(18px,3.4vmin,28px);padding:.4em .8em}
+.ch:active{transform:translateY(4px);box-shadow:0 2px 0 #e7c98a}
+.ch.no{background:#ffd6d6;box-shadow:0 6px 0 #e8a0a0;animation:shake .4s}
+.ch.yes{background:#c9f5dc;box-shadow:0 6px 0 #7bd3a2}
+@keyframes shake{25%{translate:-8px 0}75%{translate:8px 0}}
+.msg{min-height:1.4em;font-weight:800;font-size:clamp(17px,2.8vmin,24px);text-align:center;max-width:94vw}
+.msg.good{color:var(--good)}.msg.bad{color:var(--bad)}
+/* 手機橫放：左邊圖表、右邊題目和答案 */
+@media (max-height:500px) and (orientation:landscape){
+  main{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"st ask" "st ch" "st msg";align-content:center;justify-content:center;column-gap:16px;row-gap:8px}
+  #ask{grid-area:ask;align-self:end} #stage{grid-area:st;width:auto;max-width:60vw;align-self:center} #choices{grid-area:ch;align-self:center} #msg{grid-area:msg;align-self:start}
+  .stage{--e:clamp(20px,min(calc((100dvh - 120px) / (var(--rows,3) + 1.4)),calc((56vw - 20px) / var(--cols,6))),40px);--g:clamp(17px,calc((100dvh - 165px) / (var(--gr,8) + 1.4)),30px);gap:6px;flex-direction:column;flex-wrap:nowrap}
+  .stage.fill{--e:clamp(20px,min(calc((100dvh - 150px) / (var(--rows,3) + .5)),calc((56vw - 230px) / var(--cols,6))),36px);flex-direction:row}
+  .gwrap .gt{display:none}.stage.mk .tb{font-size:13px}
+  .tb td,.tb th{padding:.05em .6em}
+  .tb{font-size:14px}.tb caption{font-size:13px}.gwrap{padding:4px 8px}.gwrap .gt{font-size:13px}
+  .ask{font-size:16px}.ch{font-size:22px;min-width:60px}.ch.word{font-size:15px;padding:.3em .6em}.msg{font-size:15px}.keys{grid-template-columns:repeat(5,42px);gap:6px}.key{font-size:22px}.tool{font-size:15px}
+}
+@media (max-width:600px) and (orientation:portrait){.stage{--g:clamp(20px,min(calc((100dvh - 405px) / (var(--gr,8) + 1.6)),calc((100vw - 80px) / (var(--k,4) * 1.3 + 1))),40px)}}
+@media (prefers-reduced-motion:reduce){.ch.no,.tb tr.no td.num{animation:none}}
+/* 開始／結束畫面 */
+.panel{position:fixed;inset:0;z-index:20;display:grid;place-items:start center;overflow-y:auto;-webkit-overflow-scrolling:touch;background:rgba(255,246,216,.8);
+  padding:max(12px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.panel>.card{margin:auto 0}
+.card{background:#fff;border-radius:24px;padding:clamp(18px,4vmin,34px);width:min(480px,100%);box-shadow:0 12px 40px rgba(0,0,0,.18);display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center}
+.card h2{margin:0;font-size:clamp(26px,5.5vmin,44px)}
+.card p{margin:0;color:var(--muted);font-size:clamp(15px,2.6vmin,20px);line-height:1.5}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.opt{font:inherit;font-size:18px;font-weight:700;border:2px solid #cfd8dc;background:#fff;border-radius:14px;padding:10px 16px;cursor:pointer;color:inherit}
+.opt small{display:block;font-size:13px;font-weight:600;opacity:.8;margin-top:2px}
+.opt[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:#fff}
+.lbl{font-size:14px;font-weight:700;color:var(--muted)}
+.big{font-family:var(--text);font-weight:800;font-size:clamp(20px,4vmin,30px);border:0;border-radius:999px;padding:.5em 1.6em;background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 5px 0 var(--accent-dark);text-decoration:none;display:inline-block}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 var(--accent-dark)}
+.big.alt{background:#fff;color:var(--ink);box-shadow:0 5px 0 #cfd8dc;border:2px solid #cfd8dc}
+.stars{font-size:clamp(40px,9vmin,72px);letter-spacing:.1em;line-height:1}
+#start .card>.big{position:sticky;bottom:0;z-index:1}
+@media (max-height:560px){.panel>.card{gap:8px;padding:14px 18px}.panel>.card h2{font-size:24px}#start .card>p{display:none}.panel .stars{font-size:36px}
+  main{gap:6px}.ask{font-size:16px}.ch{font-size:26px;min-width:84px}.msg{font-size:15px}}
+@media (prefers-reduced-motion:reduce){.handle circle,.desk .it.no,.ch.no{animation:none}}
+</style>
+<script src="zhuyin.js?v=20261125e"></script>
+<script src="rest.js?v=20261125e"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="park.css?v=20261125e">
+<script src="park.js?v=20261125e"></script>
+</head>
+<body data-park>
+<header class="top">
+  <a class="ibtn" href="park.html" aria-label="回遊樂園地圖">🏠</a>
+  <div class="ttl">📊<span class="tx"> 投票亭</span></div>
+  <span class="score" id="score">⭐ 0</span>
+  <button type="button" class="ibtn" id="again" aria-label="再念一次題目">🔊</button>
+</header>
+<main>
+  <div class="ask" id="ask" data-zy>分一分、數一數</div>
+  <div class="stage" id="stage"></div>
+  <div class="choices" id="choices" hidden></div>
+  <div class="msg" id="msg" data-zy aria-live="polite"></div>
+
+  <section class="panel" id="start">
+    <div class="card">
+      <h2>📊 投票亭</h2>
+      <p data-zy>小朋友在投票！<br>分一分、數一數，<br>做成統計表和統計圖。</p>
+      <span class="lbl">難度</span>
+      <div class="row" id="levels">
+        <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small data-zy>分類數一數</small></button>
+        <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small data-zy>統計表</small></button>
+        <button type="button" class="opt" data-lv="3" aria-label="高級"><span class="lvst">⭐⭐⭐</span><small data-zy>統計圖</small></button>
+      </div>
+      <span class="lbl">題數</span>
+      <div class="row" id="counts">
+        <button type="button" class="opt" data-n="5" aria-label="5 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button>
+        <button type="button" class="opt" data-n="10" aria-label="10 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>10</small></button>
+        <button type="button" class="opt" data-n="15" aria-label="15 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>15</small></button>
+      </div>
+      <button type="button" class="big" id="go" aria-label="開始">READY</button>
+    </div>
+  </section>
+  <section class="panel" id="end" hidden>
+    <div class="card">
+      <div class="stars" id="stars"></div>
+      <h2 id="endTitle"></h2>
+      <p id="endText" data-zy></p>
+      <div class="row">
+        <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+        <a class="big alt ico-btn" href="park.html" aria-label="回遊樂園">🏠</a>
+      </div>
+    </div>
+  </section>
+</main>
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
+  const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+  const pick=a=>a[rnd(0,a.length-1)];
+  const S={lv:[1,2,3].includes(+pref("st-lv"))?+pref("st-lv"):1,total:10,round:0,score:0,first:0,miss:0,phase:"start",q:null};
+  const levels=[...document.querySelectorAll("#levels button")],syncLv=()=>levels.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
+  levels.forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("st-lv",S.lv);syncLv()}));syncLv();
+  {const n0=+pref("st-total");if([5,10,15].includes(n0))S.total=n0;
+   const cs=[...document.querySelectorAll("#counts button")],sync=()=>cs.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===S.total));
+   sync();cs.forEach(b=>b.addEventListener("click",()=>{S.total=+b.dataset.n;pref("st-total",S.total);sync()}))}
+  // ---- 語音與音效（和遊樂園一樣） ----
+  const synth=window.speechSynthesis;let voice=null;const rate=+(pref("duel-rate")||.9)||.9;
+  const quality=v=>{const u=v.voiceURI||"";return /eloquence|speech\.synthesis\.voice/i.test(u)?0:/\.premium\./i.test(u)?3:/enhanced|-premium/i.test(u)?2:1};
+  function pickVoice(){if(!synth)return;const vs=synth.getVoices().filter(v=>/^(zh|cmn)/i.test(v.lang));const want=pref("duel-voice");
+    const tw=vs.filter(v=>/TW|Hant/i.test(v.lang)&&quality(v)>0).sort((a,b)=>quality(b)-quality(a));
+    voice=(want&&vs.find(v=>(v.voiceURI||v.name)===want))||tw[0]||vs.find(v=>quality(v)>0)||vs[0]||null}
+  if(synth){pickVoice();try{synth.addEventListener("voiceschanged",pickVoice)}catch(e){}}
+  function say(t){if(!synth)return;try{const u=new SpeechSynthesisUtterance(t);u.lang=voice?voice.lang.replace("_","-"):"zh-TW";if(voice)u.voice=voice;u.rate=rate;u.pitch=1.1;
+    if(synth.speaking||synth.pending){synth.cancel();setTimeout(()=>{try{synth.speak(u)}catch(e){}},90)}else synth.speak(u)}catch(e){}}
+  let ac=null;
+  function tone(fs,dur=.12,type="triangle",vol=.15){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume();
+    fs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*dur;o.type=type;o.frequency.value=f;
+      g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)})}catch(e){}}
+  const sfx={good:()=>tone([784,1175],.14,"sine",.3),bad:()=>tone([150],.3,"square",.16),tick:()=>tone([900],.03,"sine",.06),snap:()=>tone([660],.05,"sine",.12),win:()=>tone([523,659,784,1047],.16)};
+  {const _g=sfx.good;sfx.good=(...a)=>{try{window.parkBurst&&parkBurst()}catch(err){}return _g(...a)}}
+  function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
+    try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}}
+
+
+
+  // ---- 出題 ----
+  // 初級（分類數一數）：sort 點一點分類再問哪種最多、count 某一種有幾個、most 一眼比最多最少
+  // 進階（統計表）：fill 數一數填統計表、read 看統計表回答（最多、最少、多幾、一共）
+  // 高級（圖形統計）：graph 看一格一個的統計圖回答、make 照統計表畫統計圖
+  const TH=[
+    {t:"水果",title:"小朋友最喜歡的水果",u:"個",vu:"人",ks:[{e:"🍎",n:"蘋果"},{e:"🍌",n:"香蕉"},{e:"🍇",n:"葡萄"},{e:"🍊",n:"橘子"}]},
+    {t:"動物",title:"農場裡的動物",u:"隻",vu:"隻",ks:[{e:"🐶",n:"小狗"},{e:"🐱",n:"小貓"},{e:"🐰",n:"兔子"},{e:"🐤",n:"小雞"}]},
+    {t:"車子",title:"停車場裡的車子",u:"輛",vu:"輛",ks:[{e:"🚗",n:"汽車"},{e:"🚌",n:"公車"},{e:"🚲",n:"腳踏車"},{e:"🚚",n:"卡車"}]},
+    {t:"天氣",title:"這個月的天氣",u:"天",vu:"天",ks:[{e:"☀️",n:"晴天"},{e:"☁️",n:"陰天"},{e:"🌧️",n:"雨天"}]}];
+  // 幾個不一樣的數（最多、最少都只有一個）
+  function counts(k,lo,hi,gap){for(let g=0;g<300;g++){const c=[...Array(k)].map(()=>rnd(lo,hi));const s=[...c].sort((a,b)=>a-b);let okk=true;for(let i=1;i<k;i++)if(s[i]-s[i-1]<gap)okk=false;if(okk)return c}
+    return [...Array(k)].map((_,i)=>lo+i*gap)}
+  function newQ(){
+    if(S.round<=1||!S.order){const L={1:["sort","count","most","sort","count","most"],2:["fill","read","fill","read","read"],3:["graph","make","graph","make","graph"]}[S.lv];
+      S.order=[L[0],...shuffle(L.slice(1))]}
+    const t=S.order[(Math.max(1,S.round)-1)%S.order.length],easy=S.round<=2;
+    const T=pick(TH),k=S.lv===1||easy||T.ks.length===3?3:pick([3,4]),ks=shuffle(T.ks.slice()).slice(0,k);
+    const q={t,T,ks,step:"q",u:T.u};let c;
+    if(S.lv===1){c=counts(k,2,t==="count"?6:5,t==="most"&&easy?2:1)}
+    else if(t==="fill"){c=counts(k,1,6,0)}
+    else if(t==="read"){c=counts(k,2,15,1);q.u=T.vu}
+    else{c=counts(k,1,8,1);q.u=T.vu}
+    q.c=c;q.sum=c.reduce((a,b)=>a+b,0);
+    if(["sort","count","most","fill"].includes(t)){
+      // 場景：東西散在格子裡
+      const n=q.sum,cols=n>18?8:n>12?6:5,slots=Math.ceil(n/cols)*cols,list=[];c.forEach((v,i)=>{for(let j=0;j<v;j++)list.push(i)});
+      while(list.length<slots)list.push(-1);q.scene=shuffle(list);q.cols=cols}
+    if(t==="sort"){q.step="sort";q.sorted=0;q.ask="點一點，把它們<b>分類</b>放好";q.say="點一點，把它們分類放好";readQ(q,["most","least"])}
+    else if(t==="count"){const i=rnd(0,k-1);q.kind="num";q.ans=c[i];q.hl=[i];
+      q.ask2=`${ks[i].e} ${ks[i].n}有<b>幾${q.u}</b>？`;q.say2=`${ks[i].n}有幾${q.u}？`;q.tip=`一個一個數 ${ks[i].e}，數過的可以點一下打勾。`}
+    else if(t==="most")readQ(q,["most","least"]);
+    else if(t==="fill"){q.step="fill";q.row=0;q.ask="數一數，把<b>統計表</b>填好";q.say="數一數，把統計表填好。點一點可以打勾";q.filled=[]}
+    else if(t==="make"){q.step="make";q.h=c.map(()=>0);q.ask="照著統計表，把<b>統計圖</b>畫好";q.say="照著統計表，把統計圖畫好。點一點格子"}
+    else readQ(q,easy?["most","least"]:["most","least","diff","diff","total"]);
+    if(!q.ask){q.ask=q.ask2;q.say=q.say2}
+    return q;
+  }
+  // 看資料回答：最多、最少、多幾、一共
+  function readQ(q,kinds){
+    const {ks,c}=q,u=q.t==="sort"||q.t==="most"?q.T.u:q.u,kind=pick(kinds),mx=Math.max(...c),mn=Math.min(...c);q.u=u;
+    if(kind==="most"||kind==="least"){const i=c.indexOf(kind==="most"?mx:mn);q.kind="kind";q.ans=i;q.hl=[i];
+      q.ask2=`哪一種<b>${kind==="most"?"最多":"最少"}</b>？`;q.say2=`哪一種${kind==="most"?"最多":"最少"}？`;q.tip=`比一比每一種有幾${u}，${kind==="most"?"數目最大的最多":"數目最小的最少"}。`}
+    else if(kind==="diff"){let a,b;do{a=rnd(0,c.length-1);b=rnd(0,c.length-1)}while(c[a]<=c[b]);q.kind="num";q.ans=c[a]-c[b];q.hl=[a,b];
+      q.ask2=`${ks[a].e} 比 ${ks[b].e} <b>多幾${u}</b>？`;q.say2=`${ks[a].n}比${ks[b].n}多幾${u}？`;q.tip=`${ks[a].e} 有 ${c[a]}${u}，${ks[b].e} 有 ${c[b]}${u}，${c[a]} − ${c[b]} = ?`}
+    else{q.kind="num";q.ans=q.sum;q.hl=c.map((_,i)=>i);q.ask2=`一共有<b>幾${u}</b>？`;q.say2=`一共有幾${u}？`;q.tip=`把每一種加起來：${c.join(" + ")}。`}
+  }
+
+  // ---- 畫面 ----
+  const stage=$("stage"),msg=(t,c="")=>{$("msg").textContent=t;$("msg").className="msg"+(c?" "+c:"")};
+  const near=n=>{const s=new Set([n]);let g=0;while(s.size<3&&g++<50){const v=n+pick([-2,-1,1,2]);if(v>=0)s.add(v)}return shuffle([...s])};
+  const sceneHTML=q=>`<div class="scene" style="--cols:${q.cols}">${q.scene.map((k,i)=>k<0?`<span class="it blank"></span>`:`<button type="button" class="it" data-i="${i}" data-k="${k}" aria-label="${q.ks[k].n}">${q.ks[k].e}</button>`).join("")}</div>`;
+  const binsHTML=q=>`<div class="bins">${q.ks.map((s,i)=>`<div class="bin" data-k="${i}"><span class="lb">${s.e}</span><span class="sl"></span></div>`).join("")}</div>`;
+  function tableHTML(q,blank){
+    const head=q.T.t==="天氣"?"天氣":q.T.t==="水果"&&q.u==="人"?"水果":q.T.t;
+    return `<table class="tb"><caption data-zy>${q.T.title}</caption><tr><th data-zy>${head}</th><th data-zy>${q.u==="人"?"人數":q.u+"數"}</th></tr>${q.ks.map((s,i)=>`<tr data-r="${i}"><td>${s.e} <span data-zy>${s.n}</span></td><td class="num">${blank?"":q.c[i]}</td></tr>`).join("")}</table>`;
+  }
+  // 橫的統計表（畫統計圖時放在上面看）
+  const hTableHTML=q=>`<table class="tb h"><tr><th data-zy>${q.T.t}</th>${q.ks.map(s=>`<td>${s.e}</td>`).join("")}</tr><tr><th data-zy>${q.u==="人"?"人數":q.u+"數"}</th>${q.ks.map((s,i)=>`<td class="num">${q.c[i]}</td>`).join("")}</tr></table>`;
+  function graphHTML(q,blank){
+    const top=Math.max(5,Math.max(...q.c)+(blank?1:0));q.top=top;let g="";
+    for(let r=top;r>=1;r--){g+=`<span class="ax">${r}</span>`;q.ks.forEach((s,i)=>{const on=blank?q.h[i]>=r:q.c[i]>=r;g+=`<button type="button" class="gc${on?" on":""}${blank?" tap":""}" data-i="${i}" data-r="${r}"${blank?"":" tabindex=-1"} aria-label="${s.n}${r}">${on?s.e:""}</button>`})}
+    g+=`<span></span>`+q.ks.map(s=>`<span class="bt">${s.e}</span>`).join("");
+    return `<div class="gwrap"><div class="gt" data-zy>${q.T.title}</div><div class="gr" style="--k:${q.ks.length}">${g}</div></div>`;
+  }
+  function choicesFor(q){
+    const ch=$("choices");ch.hidden=false;
+    const opts=q.kind==="kind"?q.ks.map((s,i)=>({v:i,l:`${s.e} ${s.n}`,w:1})):near(q.ans).map(v=>({v,l:`${v}<small>${q.u}</small>`}));
+    ch.innerHTML=`<div class="choices">${opts.map(o=>`<button type="button" class="ch${o.w?" word":""}" data-v="${o.v}"${o.w?" data-zy":""}>${o.l}</button>`).join("")}</div>`;
+    ch.querySelectorAll(".ch").forEach(b=>b.addEventListener("click",()=>answer(+b.dataset.v,b)));
+  }
+  function keypad(){const ch=$("choices");ch.hidden=false;
+    ch.innerHTML=`<div class="keys">${[1,2,3,4,5,6,7,8,9,0].map(d=>`<button type="button" class="key" data-d="${d}">${d}</button>`).join("")}</div>`;
+    ch.querySelectorAll(".key").forEach(b=>b.addEventListener("click",()=>fillKey(+b.dataset.d)))}
+  function show(){
+    const q=S.q;$("ask").innerHTML=q.ask;msg("");const ch=$("choices");ch.innerHTML="";ch.hidden=true;
+    if(q.t==="sort")stage.innerHTML=sceneHTML(q)+binsHTML(q);
+    else if(["count","most"].includes(q.t))stage.innerHTML=sceneHTML(q);
+    else if(q.t==="fill")stage.innerHTML=sceneHTML(q)+tableHTML(q,true);
+    else if(q.t==="read")stage.innerHTML=tableHTML(q,false);
+    else if(q.t==="graph")stage.innerHTML=graphHTML(q,false);
+    else{stage.innerHTML=hTableHTML(q)+graphHTML(q,true);ch.hidden=false;ch.innerHTML=`<div class="tools"><button type="button" class="tool" id="doneBtn" data-zy>✔ 畫好了</button></div>`}
+    stage.className="stage"+(q.t==="make"?" mk":"")+(q.t==="fill"?" fill":"");
+    if(q.scene){stage.style.setProperty("--cols",q.cols);stage.style.setProperty("--rows",Math.ceil(q.scene.length/q.cols))}
+    if(q.t==="graph"||q.t==="make"){stage.style.setProperty("--gr",q.top);stage.style.setProperty("--k",q.ks.length)}
+    stage.querySelectorAll(".it:not(.blank)").forEach(b=>b.addEventListener("click",()=>tapItem(b)));
+    stage.querySelectorAll(".gc.tap").forEach(b=>b.addEventListener("click",()=>makeTap(+b.dataset.i,+b.dataset.r)));
+    if($("doneBtn"))$("doneBtn").addEventListener("click",makeDone);
+    if(q.step==="q")choicesFor(q);
+    if(q.step==="fill"){keypad();markRow()}
+    S.phase="play";say(q.say);
+  }
+  function tapItem(b){
+    const q=S.q;if(S.phase!=="play")return;
+    if(q.step==="sort"){if(b.classList.contains("gone"))return;b.classList.add("gone");sfx.tick();
+      stage.querySelector(`.bin[data-k="${b.dataset.k}"] .sl`).insertAdjacentHTML("beforeend",`<span>${b.textContent}</span>`);
+      if(++q.sorted===q.sum){q.step="q";sfx.snap();setTimeout(()=>{if(S.q!==q)return;stage.querySelector(".scene").remove();$("ask").innerHTML=q.ask2;say("分好了！"+q.say2);choicesFor(q)},400)}
+      return}
+    b.classList.toggle("ck");sfx.tick();
+  }
+  function markRow(){const q=S.q;stage.querySelectorAll(".tb tr[data-r]").forEach(tr=>tr.classList.toggle("cur",+tr.dataset.r===q.row))}
+  function fillKey(d){
+    const q=S.q;if(S.phase!=="play"||q.step!=="fill")return;const tr=stage.querySelector(`.tb tr[data-r="${q.row}"]`),s=q.ks[q.row];
+    if(d===q.c[q.row]){tr.querySelector(".num").textContent=d;tr.classList.remove("cur","no");tr.classList.add("ok");sfx.snap();msg("");
+      // 數好的那一種，場景裡的都打勾
+      stage.querySelectorAll(`.it[data-k="${q.row}"]`).forEach(e=>e.classList.add("ck"));
+      q.row++;if(q.row>=q.ks.length){ok();return}markRow();return}
+    S.miss++;sfx.bad();tr.classList.remove("no");void tr.offsetWidth;tr.classList.add("no");
+    const tip=`再數一次 ${s.e} ${s.n}，數過的點一下打勾。`;msg(tip,"bad");say(tip.replace(/ /g,""));
+  }
+  function makeTap(i,r){
+    const q=S.q;if(S.phase!=="play"||q.step!=="make")return;
+    q.h[i]=q.h[i]===r?r-1:r;sfx.tick();msg("");
+    stage.querySelectorAll(`.gc[data-i="${i}"]`).forEach(b=>{const rr=+b.dataset.r,on=q.h[i]>=rr,was=b.classList.contains("on");b.classList.toggle("on",on);b.textContent=on?q.ks[i].e:"";if(on&&!was)b.classList.add("pop");b.classList.remove("col-no")});
+  }
+  function makeDone(){
+    const q=S.q;if(S.phase!=="play"||q.step!=="make")return;
+    const bad=q.c.findIndex((v,i)=>q.h[i]!==v);
+    if(bad<0){stage.querySelectorAll(".gc.on").forEach(b=>b.classList.add("col-hl"));ok();return}
+    S.miss++;sfx.bad();stage.querySelectorAll(`.gc[data-i="${bad}"]`).forEach(b=>{if(b.classList.contains("on")||+b.dataset.r<=q.c[bad])b.classList.add("col-no")});
+    const s=q.ks[bad],tip=`${s.e} ${s.n}要畫 ${q.c[bad]} 格，現在畫了 ${q.h[bad]} 格。`;msg(tip,"bad");say(tip.replace(/ /g,""));
+  }
+  function answer(v,el){
+    const q=S.q;if(S.phase!=="play"||q.step!=="q")return;
+    if(v===q.ans){el.classList.add("yes");
+      (q.hl||[]).forEach(i=>{stage.querySelector(`.tb tr[data-r="${i}"]`)?.classList.add("hl");stage.querySelectorAll(`.gc.on[data-i="${i}"]`).forEach(b=>b.classList.add("col-hl"));
+        stage.querySelectorAll(`.it[data-k="${i}"]`).forEach(b=>b.classList.add("ck"))});
+      ok();return}
+    S.miss++;sfx.bad();el.classList.remove("no");void el.offsetWidth;el.classList.add("no");
+    msg(q.tip,"bad");say(q.tip.replace(/ /g,"").replace(/−/g,"減").replace(/\+/g,"加").replace(/=\s*\?/,"等於多少"));
+  }
+  function ok(){
+    S.phase="ok";S.score++;if(!S.miss)S.first++;sfx.good();upd();
+    msg(["答對了！","好棒！","真會整理！"][rnd(0,2)],"good");
+    $("choices").querySelectorAll("button").forEach(b=>b.disabled=true);
+    setTimeout(next,1800);
+  }
+  function next(){if(S.round>=S.total)return finish();S.round++;S.miss=0;S.phase="play";S.q=newQ();upd();show()}
+  window.statDebug=()=>({q:S.q,phase:S.phase});
+  const upd=()=>{$("score").textContent=`⭐ ${S.score} / ${S.total}`};
+  function start(){unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.score=0;S.first=0;S.order=null;next();
+    try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}}
+  function finish(){
+    S.phase="end";sfx.win();
+    const r=S.first/S.total,st=r>=.9?3:r>=.6?2:1;
+    $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);
+    $("endTitle").textContent=st===3?"太厲害了！":st===2?"做得很好！":"再練習一下！";
+    $("endText").textContent=`${S.total} 題裡面，有 ${S.first} 題第一次就答對。`;
+    $("end").hidden=false;say(`${$("endTitle").textContent}${S.total}題裡面，有${S.first}題第一次就答對`);
+  }
+  $("go").addEventListener("click",start);$("replay").addEventListener("click",start);
+  $("again").addEventListener("click",()=>{if(S.q)say(S.q.step==="q"&&S.q.say2?S.q.say2:S.q.say)});
+  S.q=newQ();show();S.phase="start";try{synth&&synth.cancel()}catch(e){}upd();
+})();
+</script>
+</body>
+</html>

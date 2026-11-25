@@ -157,9 +157,9 @@ h1 .star{font-size:.7em;text-shadow:none}
   .map{width:min(100%,calc((100dvh - 56px) * 1.6))}
 }
 </style>
-<script src="zhuyin.js?v=20261125d"></script>
-<script src="rest.js?v=20261125d"></script>
-<script src="warm.js?v=20261125d" defer></script>
+<script src="zhuyin.js?v=20261125e"></script>
+<script src="rest.js?v=20261125e"></script>
+<script src="warm.js?v=20261125e" defer></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
 <style>:root{--text:"Chiron GoRound TC","PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif}
 /* ---- 手機：地圖變成長長的步道，往下捲著逛（一排 2 個，手機橫放一排 4 個） ---- */
@@ -213,6 +213,9 @@ html.phone .bunting{height:36px}
   </a>
   <a class="spot open" data-k="calendar" href="calendar.html" style="--c:#5b7cfa">
     <span class="icon">📅</span><span class="name" data-zy>看月曆</span><span class="tag">👤 日期、星期</span>
+  </a>
+  <a class="spot open" data-k="vote" href="vote.html" style="--c:#8a5cf6">
+    <span class="icon">📊</span><span class="name" data-zy>投票亭</span><span class="tag">👤 分類、統計</span>
   </a>
   <a class="spot open" data-k="share" href="share.html" style="--c:#c86a2b">
     <span class="icon">🍪</span><span class="name" data-zy>分點心</span><span class="tag">👤 平分、分數</span>
@@ -271,9 +274,8 @@ html.phone .bunting{height:36px}
   // ---- 位置（百分比：x 是寬度 %、y 是高度 %）----
   // 左邊「一個人玩」草地區 3×3；右邊「兩個人對戰」磚紅色廣場，馬戲團在正中間；中間一條大街，入口在下方
   const map=document.querySelector(".map");
-  // 三區：左「算一算」（加減乘）、中「數一數・量一量」（位值、比大小、長度、時間、錢、分數）、右「兩個人對戰」
-  // 三區：「算一算」（加減乘）、「數一數・量一量」（位值、比大小、長度、容量、時間、錢、分數）、「兩個人對戰」
-  const ZA=["balloon","coaster","fish","ferris","donut","ring","dango"],ZB=["blocks","claw","carousel","ruler","juice","mat","booth","share","calendar"];
+  // 三區：「算一算」（加減乘、連加連減、錢）、「數一數・量一量」（位值、長度、容量、面積、時間、日曆、分數、統計）、「兩個人對戰」
+  const ZA=["balloon","coaster","fish","ferris","donut","ring","dango","booth"],ZB=["blocks","claw","carousel","ruler","juice","mat","share","calendar","vote"];
   const DUO=["train","bumper","memory","shape"];
   // 橫放：算一算 3 欄×3 排，數一數・量一量 3 欄×3 排，右邊對戰廣場；空出來的位置種花
   function landLayout(){
@@ -281,7 +283,7 @@ html.phone .bunting{height:36px}
     const fill=(keys,cols,flowers)=>{for(let i=0;i<9;i++){const x=cols[i%3],y=rows[Math.floor(i/3)];if(keys[i])pos[keys[i]]=[x,y];else decos.push([flowers[i%flowers.length],x,y+2])}};
     fill(ZA,cA,["🌷","🌻"]);
     // 夾娃娃機的說明比較長，旁邊留空位種花
-    fill(["blocks","ruler","carousel","juice","mat","booth","share","calendar","claw"],cB,["🌻","🌳"]);
+    fill(["blocks","ruler","carousel","juice","mat","calendar","share","vote","claw"],cB,["🌻","🌳"]);
     Object.assign(pos,{train:[dc[0],rows[0]],bumper:[dc[1],rows[0]],duel:[dmid,rows[1]],memory:[dc[0],rows[2]],shape:[dc[1],rows[2]]});
     const lines=[];
     rows.forEach(y=>lines.push([[cA[0],y],[dc[1],y]]));
