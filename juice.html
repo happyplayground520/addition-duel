@@ -50,6 +50,7 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
 .arrow.on{opacity:1;animation:nudge .5s ease-in-out infinite alternate}
 @keyframes nudge{to{translate:8px 0}}
 .cups{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;align-items:flex-end;max-width:calc(var(--jw) * 1.35);min-height:calc(var(--jw) * .3)}
+.refcup{display:flex;flex-direction:column;align-items:center;gap:4px;align-self:flex-end;font-weight:800;font-size:clamp(13px,2.2vmin,18px);color:var(--muted);background:#fff;border-radius:14px;padding:6px 8px;box-shadow:0 3px 0 rgba(0,0,0,.06)}
 .cups .cup{display:block;animation:pop .35s cubic-bezier(.3,1.6,.5,1)}
 .cups.long{max-width:min(92vw,calc(var(--jw) * 2.6));min-height:calc(var(--jw) * .34)}
 .cnt{font-size:clamp(22px,4vmin,34px);font-weight:900;font-family:var(--num);background:#fff;border-radius:16px;padding:.1em .6em;box-shadow:0 3px 0 rgba(0,0,0,.08)}
@@ -162,11 +163,11 @@ body.duo .dmid a,body.duo .dmid button{display:grid;place-items:center;width:44p
   main{gap:6px}.ask{font-size:16px}.ch{font-size:26px;min-width:84px}.msg{font-size:15px}}
 @media (prefers-reduced-motion:reduce){.handle circle,.desk .it.no,.ch.no{animation:none}}
 </style>
-<script src="zhuyin.js?v=20261125j"></script>
-<script src="rest.js?v=20261125j"></script>
+<script src="zhuyin.js?v=20261125k"></script>
+<script src="rest.js?v=20261125k"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261125j">
-<script src="park.js?v=20261125j"></script>
+<link rel="stylesheet" href="park.css?v=20261125k">
+<script src="park.js?v=20261125k"></script>
 </head>
 <body data-park>
 <header class="top">
@@ -243,7 +244,8 @@ body.duo .dmid a,body.duo .dmid button{display:grid;place-items:center;width:44p
     const tw=vs.filter(v=>/TW|Hant/i.test(v.lang)&&quality(v)>0).sort((a,b)=>quality(b)-quality(a));
     voice=(want&&vs.find(v=>(v.voiceURI||v.name)===want))||tw[0]||vs.find(v=>quality(v)>0)||vs[0]||null}
   if(synth){pickVoice();try{synth.addEventListener("voiceschanged",pickVoice)}catch(e){}}
-  function say(t){if(!synth)return;try{const u=new SpeechSynthesisUtterance(t);u.lang=voice?voice.lang.replace("_","-"):"zh-TW";if(voice)u.voice=voice;u.rate=rate;u.pitch=1.1;
+  // 語音會把「倒」念成ㄉㄠˇ（倒下），這裡的倒都是倒果汁（ㄉㄠˋ），念之前換成同音的「到」
+  function say(t){if(!synth)return;t=String(t).replace(/倒/g,"到");try{const u=new SpeechSynthesisUtterance(t);u.lang=voice?voice.lang.replace("_","-"):"zh-TW";if(voice)u.voice=voice;u.rate=rate;u.pitch=1.1;
     if(synth.speaking||synth.pending){synth.cancel();setTimeout(()=>{try{synth.speak(u)}catch(e){}},90)}else synth.speak(u)}catch(e){}}
   let ac=null;
   function tone(fs,dur=.12,type="triangle",vol=.15){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume();
@@ -283,6 +285,8 @@ body.duo .dmid a,body.duo .dmid button{display:grid;place-items:center;width:44p
   }
   // 小杯子：1 份（綠色小杯）、2 份（藍色大杯）；跟容器用同一個比例畫
   const CUPDIM={1:[20,28],2:[28,40]};
+  // 「可以倒滿幾杯」：瓶子旁邊放一個空杯子，讓孩子知道一杯有多大，才估得出來
+  const refCup=()=>`<div class="refcup">${cupSVG(1,"#ffffff")}<span data-zy>1 杯這麼大</span></div>`;
   function cupSVG(u,col){const [w,h]=CUPDIM[u],vw=w+8,vh=h+6;
     return `<svg class="cup" viewBox="0 0 ${vw} ${vh}" style="width:calc(var(--jw) * ${(vw/132).toFixed(3)})" aria-hidden="true">
       <rect x="2" y="2" width="${w+4}" height="${h+2}" rx="4" fill="#f3faff" stroke="${u===2?"#3d7fe0":"#3cb371"}" stroke-width="2.5"/>
@@ -383,7 +387,7 @@ body.duo .dmid a,body.duo .dmid button{display:grid;place-items:center;width:44p
       stage.className="stage three";stage.innerHTML=`<div class="jars">${q.jars.map((j,i)=>jarBtn(j,i)).join("")}</div>`;bindJars((i,b)=>answer(i,b));
     }else if(q.t==="count"||q.t==="fill"){
       const j=q.jars[0];
-      stage.innerHTML=`<div class="jars">${jarBtn(j,0)}</div><div class="cups long" id="cupRow"></div>
+      stage.innerHTML=`<div class="jars">${jarBtn(j,0)}${q.t==="count"?refCup():""}</div><div class="cups long" id="cupRow"></div>
         <div class="tools"><button type="button" class="tool green" id="cupBtn" data-zy>${q.t==="count"?"倒一杯":"倒一杯進去"}</button><button type="button" class="tool" id="resetBtn" data-zy>↩ 重來</button></div>`;
       stage.querySelector(".jar").disabled=true;
       if(q.t==="fill")$("cupRow").innerHTML=Array(q.c+2).fill(cupSVG(1,j.col)).join("");
@@ -493,7 +497,7 @@ body.duo .dmid a,body.duo .dmid button{display:grid;place-items:center;width:44p
     stage.className="stage"+(q.t==="level"?" three":"");
     if(q.t==="pour")stage.innerHTML=`<div class="jars">${jarBtn(q.jars[0],0)}<span class="arrow" id="arrow">➡️</span>${jarBtn(q.jars[1],1)}</div>`;
     else if(q.t==="level")stage.innerHTML=`<div class="jars">${q.jars.map((j,i)=>jarBtn(j,i)).join("")}</div>`;
-    else if(q.t==="count"||q.t==="fill")stage.innerHTML=`<div class="jars">${jarBtn(q.jars[0],0)}</div><div class="cups long" id="cupRow"></div>`;
+    else if(q.t==="count"||q.t==="fill")stage.innerHTML=`<div class="jars">${jarBtn(q.jars[0],0)}${q.t==="count"?refCup():""}</div><div class="cups long" id="cupRow"></div>`;
     else if(q.t==="cmp"){q.jars.forEach(j=>j.fill=1);stage.innerHTML=`<div class="jars">${q.jars.map((j,i)=>`<div class="jarcol">${jarBtn(j,i)}<div class="cups" data-c="${i}"></div></div>`).join("")}</div>`}
     else if(q.t==="diff")stage.innerHTML=`<div class="jars">${q.jars.map((j,i)=>`<div class="jarcol">${jarBtn(j,i)}${cupsRow(q.cnt[i],1,j.col)}</div>`).join("")}</div>`;
     else if(q.sub==="cup")stage.innerHTML=`<div class="jars">${jarBtn(q.jars[0],0)}</div><div class="jars"><span class="cnt">🔵 × ${q.b}</span><span class="cnt">🟢 × ${q.g}</span></div>`;
