@@ -113,8 +113,27 @@
   function recHook(){
     ["go","replay"].forEach(id=>{const b=document.getElementById(id);b&&b.addEventListener("click",()=>{t0=Date.now()},true)});
   }
+  // ---- 「再念一次題目」的喇叭：從右上角搬到題目旁邊，孩子聽不清楚時一眼就找得到 ----
+  // 題目在標題列裡（雲霄飛車、撈金魚、水果切切、套圈圈）：喇叭放進題目框裡
+  // 題目在標題列下面（大部分關卡）：題目和喇叭包成一排；手機橫放時這一排佔原本題目的位置
+  function speakerNearQuestion(){
+    const btn=document.getElementById("again");if(!btn||!isPark()||btn.dataset.moved)return;
+    btn.dataset.moved="1";btn.classList.add("ask-spk");
+    // 題目框裡面的內容只換數字（不會整個重寫）：喇叭直接放進框裡
+    const inHead=document.querySelector(".top .target");
+    if(inHead){inHead.appendChild(btn);return}
+    const q=document.getElementById("ask")||document.getElementById("q")||document.getElementById("eq")||document.getElementById("ticket");
+    if(!q){delete btn.dataset.moved;btn.classList.remove("ask-spk");return}
+    const w=document.createElement("div");w.className="askrow";
+    q.parentNode.insertBefore(w,q);w.appendChild(q);w.appendChild(btn);
+    // 題目原本在 grid 裡的位置（例如手機橫放時的 ask 區）交給外面這一排；轉方向時重新對一次
+    const sync=()=>{const cs=getComputedStyle(q),ga=cs.gridArea||"";
+      w.style.gridArea=/^auto( \/ auto)*$/.test(ga)?"":ga;
+      w.style.alignSelf=cs.alignSelf==="auto"?"":cs.alignSelf;w.style.justifySelf=cs.justifySelf==="auto"?"":cs.justifySelf};
+    sync();addEventListener("resize",sync);try{matchMedia("(orientation:portrait)").addEventListener("change",sync)}catch(err){}
+  }
   function init(){
-    finaleHook();recHook();
+    finaleHook();recHook();speakerNearQuestion();
     const st=document.getElementById("stars");
     if(st){popStars(st);new MutationObserver(()=>popStars(st)).observe(st,{childList:true,characterData:true,subtree:true})}
     const r=document.getElementById("result");

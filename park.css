@@ -147,3 +147,17 @@ label.chk.sym:has(input:focus-visible){outline:3px solid var(--theme);outline-of
   .side>.overlay .homeb{min-width:52px;font-size:24px;padding:4px 10px}
 }
 @media (orientation:portrait) and (max-height:700px){.side>.overlay>p{display:none}}
+
+/* 「再念一次題目」的喇叭放在題目旁邊（park.js 搬過來的） */
+.askrow{display:flex;align-items:center;justify-content:center;gap:10px;max-width:calc(100vw - 16px);min-width:0}
+/* 題目在標題列裡（套圈圈）：這一排放在標題列中間；手機上是第二排 */
+.top>.askrow{justify-self:center}
+@media (max-width:600px){.top>.askrow{grid-area:mid}}
+.askrow>:first-child{min-width:0;flex:0 1 auto}
+.mid .askrow>.ask{white-space:normal}
+.ask-spk{flex:none}
+.askrow>.ask-spk{width:46px;height:46px;font-size:22px}
+.top .target>.ask-spk,.top #q>.ask-spk{width:40px;height:40px;font-size:20px;margin-left:6px;vertical-align:middle;box-shadow:0 2px 0 rgba(0,0,0,.12)}
+.askrow:has(>[hidden])>.ask-spk{display:none}
+body.duo .askrow,body.two .askrow{display:none!important}
+@media (max-height:500px) and (orientation:landscape){.askrow>.ask-spk{width:40px;height:40px;font-size:19px}}
