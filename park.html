@@ -179,9 +179,9 @@ html.phone .areas{gap:6px;flex-wrap:wrap;max-width:calc(100vw - 24px)}html.phone
   }
 }
 </style>
-<script src="zhuyin.js?v=20261125m"></script>
-<script src="rest.js?v=20261125m"></script>
-<script src="warm.js?v=20261125m" defer></script>
+<script src="zhuyin.js?v=20261125n"></script>
+<script src="rest.js?v=20261125n"></script>
+<script src="warm.js?v=20261125n" defer></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
 <style>:root{--text:"Chiron GoRound TC","PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif}
 /* ---- 手機：地圖變成長長的步道，往下捲著逛（一排 2 個，手機橫放一排 4 個） ---- */
@@ -264,6 +264,9 @@ html.phone .bunting{height:36px}
   <a class="spot open" data-k="dango" href="dango.html" style="--c:#e85d9a">
     <span class="icon">🍡</span><span class="name" data-zy>丸子攤</span><span class="tag">👤 加加減減</span>
   </a>
+  <a class="spot open" data-k="fruit" href="fruit.html" style="--c:#e8364f">
+    <span class="icon">🍉</span><span class="name" data-zy>水果切切</span><span class="tag">👤 大小、單雙數</span>
+  </a>
   <a class="spot open" data-k="roo" href="roo.html" style="--c:#c2410c">
     <span class="icon">🦘</span><span class="name" data-zy>袋鼠跳跳</span><span class="tag">👤 數線、跳著數</span>
   </a>
@@ -307,7 +310,7 @@ html.phone .bunting{height:36px}
   // 左邊「一個人玩」草地區 3×3；右邊「兩個人對戰」磚紅色廣場，馬戲團在正中間；中間一條大街，入口在下方
   const map=document.querySelector(".map");
   // 三區：「算一算」（加減乘、連加連減、錢）、「數一數・量一量」（位值、長度、容量、面積、時間、日曆、分數、統計、第幾個、數線）、「兩個人對戰」
-  const ZA=["balloon","coaster","fish","ferris","donut","ring","dango","booth","gift"],ZB=["blocks","ruler","carousel","juice","mat","calendar","share","vote","claw","icecream","roo"];
+  const ZA=["balloon","coaster","fish","ferris","donut","ring","dango","booth","gift"],ZB=["blocks","ruler","carousel","juice","mat","calendar","share","vote","claw","icecream","roo","fruit"];
   const DUO=["train","bumper","memory","shape"];
   // ---- 兩張地圖：1＝算一算（加減乘、錢）＋兩個人對戰廣場；2＝數一數・量一量（測量、時間、統計、數線…） ----
   const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
@@ -394,7 +397,7 @@ html.phone .bunting{height:36px}
       xs.forEach(x=>{const ys=rows.filter(r=>r.xs.includes(x)).map(r=>r.y);if(ys.length>1)lines.push([[x,P(Math.min(...ys))],[x,P(Math.max(...ys))]])});
     });
     lines.push([[50,104],[50,P((AREA===1?soloRows:lifeRows)[0].y)]]);
-    const decos=[];soloRows.concat(lifeRows,duoRows).forEach((r,i)=>{if(i%2===0)decos.push([i%4?(cols>2?97.5:96):(cols>2?2.5:4),P(r.y+rowH*.62),["🌳","🌷","🌲","🌼"][i%4]])});
+    const decos=[];soloRows.concat(lifeRows,duoRows).forEach((r,i)=>{if(i%2===0)decos.push([i%4?(cols>2?97.5:96):(cols>2?2.5:4),P(r.y+rowH*(cols>2?.72:.62)),["🌳","🌷","🌲","🌼"][i%4]])});
     return{pos,lines,zone:AREA===2?{left:"2%",width:"96%",top:P(zoneTop)+"%",height:P(zoneBot-zoneTop)+"%"}:null,
       plaza:plazaTop!=null?{left:"2%",right:"2%",top:P(plazaTop)+"%",bottom:"1.2%"}:null,gate:50,
       signs:Object.fromEntries(Object.entries(signs).map(([k,[x,yy]])=>[k,[x,P(yy+6)]])),decos:decos.map(([x,yy,e])=>[e,x,yy])};

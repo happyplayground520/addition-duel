@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>水果切切</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
+<style>
+/* 單人計時遊戲：水果切切。上面是任務（比大小、單數雙數、數的規律），水果從天上掉下來，劃過或點一下把符合任務的水果切開 */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --ink:#1f2b33; --muted:#5d6b72; --good:#1f9d61; --bad:#d23c3c; --accent:#e8364f; --accent-dark:#a81f33;
+  --num:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
+  --text:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{margin:0;height:100%}
+body{background:linear-gradient(#bfe8ff,#e6f6ff 45%,#fff3dc);color:var(--ink);font-family:var(--text);overflow:hidden;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  display:flex;flex-direction:column}
+[hidden]{display:none!important}
+.top{display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:12px;
+  padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.ibtn{width:48px;height:48px;border-radius:14px;border:0;background:rgba(255,255,255,.9);font-size:24px;cursor:pointer;
+  display:grid;place-items:center;text-decoration:none;color:inherit;box-shadow:0 3px 0 rgba(0,0,0,.1)}
+.target{justify-self:center;display:flex;align-items:center;gap:.4em;background:#fff;border-radius:22px;padding:4px 24px;
+  box-shadow:0 4px 0 rgba(0,0,0,.08)}
+.target .lbl{font-size:clamp(18px,3vmin,26px);font-weight:800;color:var(--ink)}
+.target b{font-family:var(--num);font-weight:800;font-size:clamp(40px,9vmin,86px);line-height:1.05;color:var(--accent);
+  font-variant-numeric:tabular-nums;min-width:1.2em;text-align:center}
+.target b.bump{animation:bump .35s}
+@keyframes bump{40%{transform:scale(1.25)}}
+.stats{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-family:var(--num);font-weight:800}
+.stats .sc{font-size:clamp(20px,3.6vmin,32px)}
+.stats .best{font-family:var(--text);font-size:13px;color:var(--muted);font-weight:700}
+.timebar{height:14px;margin:0 max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px));
+  background:rgba(255,255,255,.8);border-radius:999px;overflow:hidden;position:relative}
+.timebar i{position:absolute;inset:0;transform-origin:left;background:linear-gradient(90deg,#1f9d61,#f2c12e);border-radius:999px}
+.timebar.low i{background:var(--bad)}
+.timeTxt{text-align:center;font-family:var(--num);font-weight:800;font-size:clamp(16px,2.6vmin,22px);color:var(--muted);margin-top:2px}
+.field{position:relative;flex:1;min-height:0;overflow:hidden}
+/* 開始／結束畫面 */
+.panel{position:absolute;inset:0;display:grid;place-items:center;background:rgba(255,238,221,.8);padding:16px;z-index:5;overflow:auto}
+.box{background:#fff;border-radius:24px;padding:clamp(18px,4vmin,32px);width:min(500px,100%);box-shadow:0 12px 40px rgba(0,0,0,.18);
+  display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center}
+.box h2{margin:0;font-size:clamp(24px,4.6vmin,38px);text-wrap:balance}
+.box p{margin:0;color:var(--muted);font-size:clamp(15px,2.5vmin,19px);line-height:1.5}
+.row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.lbl2{font-size:14px;font-weight:700;color:var(--muted);margin-top:4px}
+.chk{display:flex;align-items:center;gap:8px;font-size:18px;font-weight:700;border:2px solid #cfd8dc;border-radius:14px;padding:9px 16px;cursor:pointer}
+.chk input{width:22px;height:22px;margin:0;accent-color:var(--ink)}
+.chk:has(input:checked){border-color:var(--ink);background:#eef3f1}
+.opt{font:inherit;font-size:17px;font-weight:700;border:2px solid #cfd8dc;background:#fff;border-radius:14px;padding:9px 16px;cursor:pointer;color:inherit}
+.opt small{display:block;font-size:12px;font-weight:600;opacity:.75}
+.opt[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:#fff}
+.big{font-family:var(--text);font-weight:800;font-size:clamp(20px,4vmin,30px);border:0;border-radius:999px;padding:.5em 1.6em;
+  background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 5px 0 var(--accent-dark);text-decoration:none;display:inline-block}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 var(--accent-dark)}
+.big.alt{background:#fff;color:var(--ink);box-shadow:0 5px 0 #cfd8dc;border:2px solid #cfd8dc}
+.result{font-family:var(--num);font-weight:800;font-size:clamp(56px,13vmin,110px);line-height:1;color:var(--accent)}
+.result small{font-family:var(--text);font-size:.3em;color:var(--muted)}
+.newrec{font-weight:800;color:#fff;background:var(--good);border-radius:999px;padding:4px 16px;font-size:18px}
+.note{font-size:13px;color:var(--muted)}
+.count{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--num);font-weight:800;font-size:clamp(90px,24vmin,200px);
+  color:var(--accent);pointer-events:none;z-index:4}
+/* 開始／結束畫面：蓋住整個螢幕；螢幕太矮（手機橫放）時可以上下捲動，「開始」按鈕固定在下面看得到 */
+.panel{position:fixed;inset:0;z-index:20;display:grid;place-items:start center;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:max(12px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.panel>.box{margin:auto 0}
+#start .box>.big{position:sticky;bottom:0;z-index:1}
+@media (max-height:560px){
+  .panel>.box{gap:8px;padding:14px 18px}
+  .panel>.box h2{font-size:24px}
+  #start .box>p{display:none}
+  .panel .stars{font-size:36px}
+}
+
+/* 很窄的手機：標題列間距小一點，右邊的按鈕才不會被擠出去 */
+/* 手機直放：上方分兩排，第一排 🏠、分數、🔊，第二排整排給題目 */
+@media (max-width:600px){
+  .top{grid-template-columns:auto 1fr auto auto;grid-template-areas:"home . stats again" "mid mid mid mid";row-gap:6px}
+  .top>a.ibtn{grid-area:home} .top>.stats{grid-area:stats} .top>#again{grid-area:again} .top>.target{grid-area:mid;justify-self:center}
+}
+@media (max-width:420px){.target{padding:2px 14px}.target .lbl{font-size:16px}}
+/* 水果切切：上面是任務，水果從天上掉下來，手指劃過（或點一下）把對的水果切開 */
+.target .lbl{white-space:nowrap}
+.target .rule{font-weight:900;font-size:clamp(20px,3.6vmin,32px);color:#fff;background:var(--accent);border-radius:14px;padding:.05em .45em;white-space:nowrap}
+.target .rule .zy-b{color:#fff}
+.target.bump .rule{animation:bump .4s}
+.field{touch-action:none;cursor:crosshair}
+.trail{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3}
+.fr{position:absolute;left:0;top:0;width:calc(var(--r) * 2);height:calc(var(--r) * 2);margin:calc(var(--r) * -1) 0 0 calc(var(--r) * -1);pointer-events:none;will-change:transform}
+.fr .e{position:absolute;inset:-30%;display:grid;place-items:center;font-size:calc(var(--r) * 2.05);line-height:1}
+.fr .n{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);min-width:calc(var(--r) * .86);height:calc(var(--r) * .86);padding:0 .2em;top:58%;border-radius:999px;
+  display:grid;place-items:center;background:rgba(255,255,255,.95);box-shadow:0 2px 0 rgba(0,0,0,.18);font-family:var(--num);font-weight:800;font-size:calc(var(--r) * .6);color:var(--ink);line-height:1}
+.fr.bad .e{filter:grayscale(1) opacity(.55)}
+.fr.bad .n{background:#ffd6d6;color:var(--bad)}
+.fr.bad::after{content:"✖";position:absolute;right:-6px;top:-6px;font-size:calc(var(--r) * .7);color:var(--bad);font-weight:900}
+/* 切開：左右兩半飛開，噴果汁 */
+.half{position:absolute;left:0;top:0;width:calc(var(--r) * 2.6);height:calc(var(--r) * 2.6);margin:calc(var(--r) * -1.3) 0 0 calc(var(--r) * -1.3);display:grid;place-items:center;
+  font-size:calc(var(--r) * 2.05);line-height:1;pointer-events:none;z-index:2;animation:halfL .75s ease-in forwards}
+.half.l{clip-path:inset(0 50% 0 0)}
+.half.r{clip-path:inset(0 0 0 50%);animation-name:halfR}
+@keyframes halfL{to{translate:calc(var(--r) * -1.2) calc(var(--r) * 2.4);rotate:-40deg;opacity:0}}
+@keyframes halfR{to{translate:calc(var(--r) * 1.2) calc(var(--r) * 2.4);rotate:40deg;opacity:0}}
+.juice{position:absolute;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;pointer-events:none;z-index:2;animation:juice .6s ease-out forwards}
+@keyframes juice{to{translate:var(--dx) var(--dy);scale:.3;opacity:0}}
+.float{position:absolute;font-family:var(--num);font-weight:800;font-size:26px;pointer-events:none;z-index:4;animation:floatUp .8s ease-out forwards}
+.float.plus{color:var(--good)}.float.minus{color:var(--bad)}
+@keyframes floatUp{to{translate:0 -40px;opacity:0}}
+.tip{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:4;background:rgba(255,255,255,.95);color:var(--bad);font-weight:800;font-size:clamp(16px,2.8vmin,22px);
+  border-radius:16px;padding:.3em .9em;box-shadow:0 4px 12px rgba(0,0,0,.12);max-width:92%;text-align:center;pointer-events:none}
+.banner{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);z-index:4;background:#fff;border-radius:22px;padding:.4em 1em;font-weight:900;font-size:clamp(22px,4.4vmin,36px);
+  box-shadow:0 8px 24px rgba(0,0,0,.15);pointer-events:none;animation:ban 1.6s ease forwards;max-width:92%;text-align:center}
+@keyframes ban{0%{opacity:0;scale:.6}15%{opacity:1;scale:1.05}25%{scale:1}80%{opacity:1}100%{opacity:0}}
+@keyframes shake{25%{translate:-6px 0}75%{translate:6px 0}}
+@media (prefers-reduced-motion:reduce){.half,.juice,.banner,.float{animation-duration:.01s}}
+@media (max-width:600px){.target{flex-wrap:wrap;justify-content:center;row-gap:2px}}
+</style>
+<script src="zhuyin.js?v=20261125n"></script>
+<script src="rest.js?v=20261125n"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="park.css?v=20261125n">
+<script src="park.js?v=20261125n"></script>
+</head>
+<body data-park>
+<header class="top">
+  <a class="ibtn" href="park.html" aria-label="回遊樂園地圖">🏠</a>
+  <div class="target" id="tgt" data-zy><span class="lbl">🔪 切開</span><span class="rule" id="rule">…</span><span class="lbl">的水果</span></div>
+  <div class="stats"><span class="sc" id="score">🍉 0</span><span class="best" id="bestTop"></span></div>
+  <button type="button" class="ibtn" id="again" aria-label="再念一次任務">🔊</button>
+</header>
+<div class="timebar" id="timebar"><i id="timefill"></i></div>
+<div class="timeTxt" id="timeTxt"></div>
+<main class="field" id="field">
+  <canvas class="trail" id="trail" aria-hidden="true"></canvas>
+  <div class="count" id="count" hidden></div>
+
+  <section class="panel" id="start">
+    <div class="box">
+      <h2>🍉 水果切切</h2>
+      <p data-zy>水果從天上掉下來了！<br>看上面的任務，手指劃過去（或點一下）<br>把對的水果切開。切錯會少 2 秒喔！</p>
+      <span class="lbl2" data-zy>難度</span>
+      <div class="row" id="levels">
+        <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small data-zy>比大小</small></button>
+        <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small data-zy>單數雙數</small></button>
+        <button type="button" class="opt" data-lv="3" aria-label="高級"><span class="lvst">⭐⭐⭐</span><small data-zy>數的規律</small></button>
+      </div>
+      <span class="lbl2" data-zy>時間</span>
+      <div class="row" id="times">
+        <button type="button" class="opt" data-t="30">30 秒</button>
+        <button type="button" class="opt" data-t="60">60 秒</button>
+        <button type="button" class="opt" data-t="90">90 秒</button>
+      </div>
+      <span class="note" id="bestStart" data-zy></span>
+      <button type="button" class="big" id="go" aria-label="開始">READY</button>
+    </div>
+  </section>
+
+  <section class="panel" id="end" hidden>
+    <div class="box">
+      <h2 data-zy>⏰ 時間到！</h2>
+      <div class="result" id="result">0<small> 顆</small></div>
+      <span class="newrec" id="newrec" hidden data-zy>🏆 新紀錄！</span>
+      <p id="endText" data-zy></p>
+      <div class="row">
+        <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+        <button type="button" class="big alt" id="change">換設定</button>
+        <a class="big alt ico-btn" href="park.html" aria-label="回遊樂園">🏠</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
+  const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  const pick=a=>a[rnd(0,a.length-1)];
+  const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+  const LV={1:{name:"比大小"},2:{name:"單數雙數"},3:{name:"數的規律"}};
+  const S={lv:+pref("fruit-lv")||1,time:+pref("fruit-time")||60,phase:"start",rule:null,score:0,miss:0,left:0,endAt:0,inRule:0};
+  if(!LV[S.lv])S.lv=1;if(![30,60,90].includes(S.time))S.time=60;
+  const bestKey=()=>`fruit-best-${S.lv}-${S.time}`,getBest=()=>+pref(bestKey())||0;
+  function syncSetup(){
+    document.querySelectorAll("#levels button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
+    document.querySelectorAll("#times button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.t===S.time));
+    const best=getBest(),label=`${LV[S.lv].name}・${S.time} 秒`;
+    $("bestStart").textContent=best?`🏆 最佳成績（${label}）：${best} 顆`:`（${label}）還沒有紀錄，來挑戰吧！`;
+    $("bestTop").textContent=`最佳 ${best}`;
+  }
+  document.querySelectorAll("#levels button").forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("fruit-lv",S.lv);syncSetup()}));
+  document.querySelectorAll("#times button").forEach(b=>b.addEventListener("click",()=>{S.time=+b.dataset.t;pref("fruit-time",S.time);syncSetup()}));
+  syncSetup();
+
+  // ---- 語音：沿用搶答對決選好的聲音與語速 ----
+  const synth=window.speechSynthesis;let voice=null;
+  const rate=+(pref("duel-rate")||.9)||.9;
+  const quality=v=>{const u=v.voiceURI||"";return /eloquence|speech\.synthesis\.voice/i.test(u)?0:/\.premium\./i.test(u)?3:/enhanced|-premium/i.test(u)?2:1};
+  function pickVoice(){
+    if(!synth)return;
+    const vs=synth.getVoices().filter(v=>/^(zh|cmn)/i.test(v.lang));
+    const want=pref("duel-voice");
+    const tw=vs.filter(v=>/TW|Hant/i.test(v.lang)&&quality(v)>0).sort((a,b)=>quality(b)-quality(a));
+    voice=(want&&vs.find(v=>(v.voiceURI||v.name)===want))||tw[0]||vs.find(v=>quality(v)>0)||vs[0]||null;
+  }
+  if(synth){pickVoice();try{synth.addEventListener("voiceschanged",pickVoice)}catch(e){}}
+  function say(text){
+    if(!synth)return;
+    try{
+      const u=new SpeechSynthesisUtterance(text);
+      u.lang=voice?voice.lang.replace("_","-"):"zh-TW";if(voice)u.voice=voice;u.rate=Math.max(rate,1);u.pitch=1.1;
+      if(synth.speaking||synth.pending){synth.cancel();setTimeout(()=>{try{synth.speak(u)}catch(e){}},90)}else synth.speak(u);
+    }catch(e){}
+  }
+  // ---- 音效 ----
+  let ac=null;
+  function tone(fs,dur=.12,type="triangle",vol=.15){
+    try{
+      ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume();
+      fs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*dur;
+        o.type=type;o.frequency.value=f;g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);
+        o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)});
+    }catch(e){}
+  }
+  const sfx={good:()=>tone([784,1175],.14,"sine",.3),bad:()=>tone([150],.3,"square",.16),tick:()=>tone([600],.08),go:()=>tone([900],.25),
+    end:()=>tone([784,659,523,784,1047],.14)};
+  {const ag=document.getElementById("again");ag&&ag.addEventListener("click",()=>{if(S.rule)say(S.rule.say)})}
+  {const _g=sfx.good;sfx.good=(...a)=>{try{window.parkBurst&&parkBurst()}catch(err){}return _g(...a)}}
+  function unlock(){
+    try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
+    try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}
+  }
+
+
+  // ---- 任務（規則）：ok(v) 判斷要不要切；gen(good) 產生一個要切／不要切的數；why(v) 切錯時的說明 ----
+  const R={
+    gt:(lo,hi)=>{const n=rnd(lo+3,hi-3);return{text:`比 ${n} 大`,say:`切開比${n}大的水果`,ok:v=>v>n,gen:g=>g?rnd(n+1,hi):rnd(lo,n),why:v=>v===n?`${v} 和 ${n} 一樣大，沒有比 ${n} 大喔！`:`${v} 比 ${n} 小喔！`}},
+    lt:(lo,hi)=>{const n=rnd(lo+3,hi-3);return{text:`比 ${n} 小`,say:`切開比${n}小的水果`,ok:v=>v<n,gen:g=>g?rnd(lo,n-1):rnd(n,hi),why:v=>v===n?`${v} 和 ${n} 一樣大，沒有比 ${n} 小喔！`:`${v} 比 ${n} 大喔！`}},
+    gt10:()=>{const n=rnd(3,7)*10;return{text:`比 ${n} 大`,say:`切開比${n}大的水果`,ok:v=>v>n,gen:g=>g?rnd(n+1,99):rnd(Math.max(1,n-30),n),why:v=>v===n?`${v} 和 ${n} 一樣大喔！`:`${v} 比 ${n} 小喔！看十位。`}},
+    even:()=>({text:"雙數",say:"切開雙數的水果",ok:v=>v%2===0,gen:g=>{const v=rnd(1,99);return v%2===(g?0:1)?v:v+1},why:v=>`${v} 是單數。雙數的個位是 0、2、4、6、8。`}),
+    odd:()=>({text:"單數",say:"切開單數的水果",ok:v=>v%2===1,gen:g=>{const v=rnd(1,99);return v%2===(g?1:0)?v:v+1},why:v=>`${v} 是雙數。單數的個位是 1、3、5、7、9。`}),
+    mult:()=>{const k=pick([2,5,5,10]),mx=k===2?30:k===5?60:100;return{text:`${k}、${2*k}、${3*k}…`,say:`切開${k}個${k}個數，會數到的水果`,ok:v=>v%k===0,
+      gen:g=>{if(g)return k*rnd(1,mx/k);let v;do v=rnd(1,mx);while(v%k===0);return v},why:v=>`${k} 個 ${k} 個數：${k}、${2*k}、${3*k}…數不到 ${v}。`}},
+    tens:()=>{const d=rnd(1,9);return{text:`十位是 ${d}`,say:`切開十位是${d}的水果`,ok:v=>Math.floor(v/10)===d,gen:g=>{if(g)return d*10+rnd(0,9);let v;do v=rnd(10,99);while(Math.floor(v/10)===d);return v},why:v=>`${v} 的十位是 ${Math.floor(v/10)}。`}},
+    ones:()=>{const d=rnd(0,9);return{text:`個位是 ${d}`,say:`切開個位是${d}的水果`,ok:v=>v%10===d,gen:g=>{if(g)return rnd(1,9)*10+d;let v;do v=rnd(10,99);while(v%10===d);return v},why:v=>`${v} 的個位是 ${v%10}。`}},
+  };
+  const POOL={1:[()=>R.gt(0,20),()=>R.lt(0,20)],2:[R.even,R.odd,R.gt10],3:[R.mult,R.tens,R.ones]};
+  let order=[];
+  function nextRule(){if(!order.length)order=shuffle(POOL[S.lv].slice());const r=order.pop()();if(S.rule&&r.text===S.rule.text)return nextRule();return r}
+  function setRule(r){
+    S.rule=r;S.inRule=0;$("rule").textContent=r.text;const t=$("tgt");t.classList.remove("bump");void t.offsetWidth;t.classList.add("bump");say(r.say);
+    if(S.phase==="play"){const b=document.createElement("div");b.className="banner";b.setAttribute("data-zy","");b.textContent=`🔪 新任務：${r.text}`;field.appendChild(b);setTimeout(()=>b.remove(),1700)}
+    // 舊任務的水果還在掉：判斷會跟著新任務走，所以全部換成新的
+    fruits.forEach(f=>{if(!f.done){f.done=true;f.el.style.transition="opacity .25s";f.el.style.opacity="0";setTimeout(()=>f.el.remove(),260)}});
+  }
+  const PER_RULE=6;
+
+  // ---- 掉下來的水果 ----
+  const field=$("field"),cv=$("trail"),cx=cv.getContext("2d");
+  const FR=[["🍎","#e8364f"],["🍊","#ff9f1c"],["🍋","#f5d300"],["🍉","#ff4d6d"],["🍇","#8a4fd6"],["🍑","#ff8a80"],["🍐","#a3c94a"],["🥝","#7cb342"],["🍓","#e53950"],["🍍","#f2b705"]];
+  let fruits=[],raf=0,lastT=0,spawnIn=0;
+  const radius=()=>Math.max(30,Math.min(54,Math.min(field.clientWidth,field.clientHeight)*.075));
+  const fallTime=()=>Math.max(4.2,6.6-S.score*.05);   // 越切越快一點
+  function spawn(forceGood){
+    const live=fruits.filter(f=>!f.done);if(live.length>=6)return;
+    const goodOnScreen=live.some(f=>f.good);
+    const good=forceGood||!goodOnScreen||Math.random()<.5;
+    let v=S.rule.gen(good),g=0;while(live.some(f=>f.v===v)&&g++<10)v=S.rule.gen(good);
+    if(S.rule.ok(v)!==good)return;
+    const r=radius(),W=field.clientWidth;
+    // 不要跟最近掉下來的水果疊在一起
+    let x,t=0;do x=rnd(r+6,W-r-6);while(t++<12&&live.some(f=>f.y<r*3&&Math.abs(f.x-x)<r*2.4));
+    const [e,c]=pick(FR),el=document.createElement("div");el.className="fr";el.style.setProperty("--r",r+"px");
+    el.innerHTML=`<span class="e">${e}</span><span class="n">${v}</span>`;field.insertBefore(el,cv);
+    const f={el,v,good,x,y:-r,r,e,c,vx:(Math.random()-.5)*r*.6,rot:rnd(-20,20),vr:rnd(-40,40),done:false,bad:false};
+    place(f);fruits.push(f);
+  }
+  const place=f=>{f.el.style.transform=`translate(${f.x}px,${f.y}px)`;f.el.firstChild.style.transform=`rotate(${f.rot}deg)`};
+  function tick(now){
+    const dt=Math.min(.05,(now-lastT)/1000);lastT=now;
+    if(S.phase!=="play")return;
+    const H=field.clientHeight,W=field.clientWidth,v=(H+120)/fallTime();
+    fruits.forEach(f=>{if(f.done)return;
+      f.y+=v*(f.bad?1.8:1)*dt;f.x+=f.vx*dt;if(f.x<f.r||f.x>W-f.r)f.vx*=-1;f.rot+=f.vr*dt;place(f);
+      if(f.y>H+f.r){f.done=true;f.el.remove()}});
+    fruits=fruits.filter(f=>!f.done||f.el.isConnected);
+    spawnIn-=dt;if(spawnIn<=0){spawn(false);spawnIn=Math.max(.6,1.05-S.score*.01)}
+    drawTrail(now);
+    S.left=Math.max(0,(S.endAt-now)/1000);
+    $("timefill").style.transform=`scaleX(${S.left/S.time})`;$("timebar").classList.toggle("low",S.left<=10);
+    const sec=Math.ceil(S.left);if(sec!==S.lastSec){S.lastSec=sec;$("timeTxt").textContent=`剩下 ${sec} 秒`;if(sec<=5&&sec>0)sfx.tick()}
+    if(S.left<=0)return finish();
+    raf=requestAnimationFrame(tick);
+  }
+
+  // ---- 切：手指劃過的線段碰到水果就切開；只點一下也算 ----
+  let pts=[],down=false;
+  function sizeCanvas(){const d=devicePixelRatio||1;cv.width=field.clientWidth*d;cv.height=field.clientHeight*d;cx.setTransform(d,0,0,d,0,0)}
+  addEventListener("resize",sizeCanvas);
+  const local=e=>{const r=field.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
+  // 點到線段的最短距離
+  function segDist(px,py,ax,ay,bx,by){const dx=bx-ax,dy=by-ay,L=dx*dx+dy*dy;let t=L?((px-ax)*dx+(py-ay)*dy)/L:0;t=Math.max(0,Math.min(1,t));const qx=ax+t*dx-px,qy=ay+t*dy-py;return Math.sqrt(qx*qx+qy*qy)}
+  function cutAlong(ax,ay,bx,by){
+    if(S.phase!=="play")return;
+    fruits.forEach(f=>{if(!f.done&&!f.bad&&segDist(f.x,f.y,ax,ay,bx,by)<f.r*.9)cut(f,Math.atan2(by-ay,bx-ax))});
+  }
+  field.addEventListener("pointerdown",e=>{if(S.phase!=="play")return;e.preventDefault();down=true;try{field.setPointerCapture(e.pointerId)}catch(err){}
+    const [x,y]=local(e);pts=[{x,y,t:performance.now()}];cutAlong(x,y,x,y)});
+  field.addEventListener("pointermove",e=>{if(!down)return;const [x,y]=local(e),p=pts[pts.length-1];pts.push({x,y,t:performance.now()});if(pts.length>40)pts.shift();if(p)cutAlong(p.x,p.y,x,y)});
+  const up=()=>{down=false};field.addEventListener("pointerup",up);field.addEventListener("pointercancel",up);
+  function drawTrail(now){
+    cx.clearRect(0,0,cv.width,cv.height);pts=pts.filter(p=>now-p.t<160);if(pts.length<2)return;
+    cx.lineCap="round";cx.lineJoin="round";
+    for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i],k=1-(now-b.t)/160;
+      cx.strokeStyle=`rgba(255,255,255,${.9*k})`;cx.lineWidth=10*k+2;cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);cx.stroke();
+      cx.strokeStyle=`rgba(120,200,255,${.7*k})`;cx.lineWidth=4*k+1;cx.stroke()}
+  }
+  function floatTxt(x,y,txt,cls){const f=document.createElement("span");f.className="float "+cls;f.textContent=txt;f.style.left=x-16+"px";f.style.top=y-20+"px";field.appendChild(f);setTimeout(()=>f.remove(),800)}
+  let tipT=0;
+  function tip(t){let el=field.querySelector(".tip");if(!el){el=document.createElement("div");el.className="tip";el.setAttribute("data-zy","");field.appendChild(el)}
+    el.textContent=t;clearTimeout(tipT);tipT=setTimeout(()=>el.remove(),2600)}
+  function cut(f,ang){
+    if(S.rule.ok(f.v)){
+      f.done=true;f.el.remove();S.score++;S.inRule++;sfx.good();$("score").textContent=`🍉 ${S.score}`;
+      // 兩半飛開＋果汁
+      ["l","r"].forEach(s=>{const h=document.createElement("span");h.className="half "+s;h.style.setProperty("--r",f.r+"px");h.textContent=f.e;
+        h.style.left=f.x+"px";h.style.top=f.y+"px";h.style.rotate=(ang*180/Math.PI+90)+"deg";field.insertBefore(h,cv);setTimeout(()=>h.remove(),780)});
+      for(let i=0;i<8;i++){const j=document.createElement("span");j.className="juice";const a=Math.PI*2*i/8+Math.random()*.4,d=f.r*(1+Math.random());
+        j.style.cssText=`left:${f.x}px;top:${f.y}px;background:${f.c};--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d}px`;field.insertBefore(j,cv);setTimeout(()=>j.remove(),620)}
+      floatTxt(f.x,f.y-f.r,"+1","plus");
+      if(S.inRule>=PER_RULE){setRule(nextRule());spawn(true);spawnIn=.6}
+    }else{
+      f.bad=true;f.el.classList.add("bad");S.miss++;sfx.bad();S.endAt-=2000;floatTxt(f.x,f.y-f.r,"−2 秒","minus");
+      const t=S.rule.why(f.v);tip(t);say(t.replace(/ /g,"").replace(/、/g,"，"));
+    }
+  }
+  function clearAll(){fruits.forEach(f=>f.el.remove());fruits=[];field.querySelectorAll(".half,.juice,.float,.tip,.banner").forEach(e=>e.remove());cx.clearRect(0,0,cv.width,cv.height);pts=[]}
+
+  // ---- 流程 ----
+  function start(){
+    unlock();$("start").hidden=true;$("end").hidden=true;clearAll();sizeCanvas();
+    S.score=0;S.miss=0;S.rule=null;S.lastSec=-1;order=[];$("score").textContent="🍉 0";$("rule").textContent="…";
+    $("timefill").style.transform="scaleX(1)";$("timebar").classList.remove("low");$("timeTxt").textContent=`${S.time} 秒`;
+    S.phase="count";const cnt=$("count");let n=3;cnt.hidden=false;cnt.textContent=n;sfx.tick();
+    setRule(nextRule());
+    const iv=setInterval(()=>{n--;if(n>0){cnt.textContent=n;sfx.tick();return}
+      clearInterval(iv);cnt.hidden=true;sfx.go();
+      S.phase="play";S.endAt=performance.now()+S.time*1000;lastT=performance.now();spawnIn=.3;spawn(true);
+      cancelAnimationFrame(raf);raf=requestAnimationFrame(tick)},900);
+    try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}
+  }
+  function finish(){
+    S.phase="end";cancelAnimationFrame(raf);clearAll();sfx.end();
+    $("timefill").style.transform="scaleX(0)";$("timeTxt").textContent="時間到";
+    const best=getBest(),rec=S.score>best;window.parkRec&&parkRec({sc:S.score,miss:S.miss,u:"顆"});
+    if(rec)pref(bestKey(),S.score);
+    $("result").innerHTML=`${S.score}<small> 顆</small>`;$("newrec").hidden=!rec||S.score===0;
+    $("endText").textContent=`${LV[S.lv].name}・${S.time} 秒　最佳成績：${Math.max(best,S.score)} 顆`+(S.miss?`（切錯 ${S.miss} 次）`:"");
+    $("end").hidden=false;syncSetup();
+    say(rec&&S.score?`新紀錄！切開${S.score}顆`:`時間到！切開${S.score}顆`);
+  }
+  window.fruitDebug=()=>({phase:S.phase,rule:S.rule,score:S.score,miss:S.miss,fruits:fruits.filter(f=>!f.done).map(f=>({v:f.v,x:f.x,y:f.y,r:f.r,good:f.good,bad:f.bad}))});
+  $("go").addEventListener("click",start);$("replay").addEventListener("click",start);
+  $("change").addEventListener("click",()=>{$("end").hidden=true;$("start").hidden=false;S.phase="start"});
+})();
+</script>
+</body>
+</html>
