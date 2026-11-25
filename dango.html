@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>丸子攤</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
+<style>
+/* 單人小遊戲：三個數連加。初級湊十（先找出湊成 10 的兩個數）；進階連加到 20（從左邊一步一步加）；高級二位數連加，用兩個直式（小二） */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --ink:#1f2b33; --muted:#5d6b72; --good:#1f9d61; --bad:#d23c3c; --accent:#f0a020; --accent-dark:#b06a00;
+  --num:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
+  --text:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{margin:0;height:100%}
+body{background:radial-gradient(circle,rgba(255,255,255,.5) 2px,transparent 2.5px) 0 0/30px 30px,linear-gradient(#fff6d8,#ffe9b8);color:var(--ink);font-family:var(--text);overflow:hidden;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;display:flex;flex-direction:column}
+[hidden]{display:none!important}
+.top{display:flex;align-items:center;gap:12px;padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.ibtn{width:48px;height:48px;border-radius:14px;border:0;background:rgba(255,255,255,.9);font-size:24px;cursor:pointer;display:grid;place-items:center;text-decoration:none;color:inherit;box-shadow:0 3px 0 rgba(0,0,0,.1);flex:none}
+.ibtn:active{transform:translateY(2px)}
+.ttl{flex:1;text-align:center;font-weight:800;font-size:clamp(18px,3.2vmin,28px)}
+.score{font-family:var(--num);font-weight:800;font-size:clamp(18px,3.4vmin,30px);background:rgba(255,255,255,.9);border-radius:999px;padding:4px 14px;white-space:nowrap;flex:none}
+main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(10px,2.2vh,22px);
+  padding:0 max(12px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+.ask{background:#fff;border-radius:20px;padding:.3em 1em;font-weight:800;font-size:clamp(18px,3.2vmin,28px);box-shadow:0 5px 0 rgba(0,0,0,.08);text-align:center;max-width:96vw}
+/* 丸子攤：三顆丸子＝三個數 */
+.stage{--b:clamp(46px,min(11vmin,calc((100vw - 60px) / 7.2),calc((100dvh - 430px) / 1.6)),92px);--d:clamp(30px,min(7vmin,calc((100vw - 80px) / 8.4),calc((100dvh - 420px) / 5.2)),56px);
+  display:flex;flex-direction:column;align-items:center;gap:clamp(8px,1.8vh,16px);width:min(100%,960px)}
+.eq{display:flex;align-items:center;justify-content:center;gap:clamp(4px,1vmin,10px);position:relative}
+.eq .op{font-family:var(--num);font-weight:800;font-size:calc(var(--b) * .55);color:var(--muted);line-height:1}
+.ball{position:relative;width:var(--b);height:var(--b);border-radius:50%;border:0;padding:0;display:grid;place-items:center;cursor:default;
+  font-family:var(--num);font-weight:800;font-size:calc(var(--b) * .48);color:var(--ink);background:var(--bc);
+  box-shadow:inset 0 calc(var(--b) * -.08) 0 rgba(0,0,0,.08),inset calc(var(--b) * .1) calc(var(--b) * .1) 0 rgba(255,255,255,.55),0 4px 0 rgba(0,0,0,.1);transition:transform .2s}
+.ball.c0{--bc:#ffb3c7}.ball.c1{--bc:#fff1cf}.ball.c2{--bc:#b9e8a2}
+.ball.two{font-size:calc(var(--b) * .4)}
+.ball.tap{cursor:pointer}
+.ball.tap:active{transform:scale(.94)}
+.ball.on{outline:5px solid #3cb371;outline-offset:3px;transform:translateY(-6px)}
+.ball.no{animation:shake .4s;outline:5px solid #e8a0a0;outline-offset:3px}
+.ball.q{--bc:#fff;color:var(--accent-dark);outline:3px dashed var(--accent);outline-offset:-6px}
+.ball.yes{animation:pop .35s cubic-bezier(.3,1.6,.5,1)}
+.ansbox{min-width:calc(var(--b) * 1.05);height:var(--b);border-radius:18px;background:#fff;display:grid;place-items:center;padding:0 .2em;
+  font-family:var(--num);font-weight:800;font-size:calc(var(--b) * .5);color:var(--accent-dark);border:3px dashed var(--accent)}
+.ansbox.done{border:3px solid #3cb371;color:var(--good);animation:pop .35s cubic-bezier(.3,1.6,.5,1)}
+/* 湊十的括號 */
+.ten{position:absolute;top:100%;margin-top:6px;height:30px;border:4px solid #3cb371;border-top:0;border-radius:0 0 14px 14px;pointer-events:none;animation:fadeIn .3s}
+.ten b{position:absolute;left:50%;top:100%;transform:translate(-50%,-30%);background:#3cb371;color:#fff;font-family:var(--num);font-size:clamp(16px,2.8vmin,24px);border-radius:999px;padding:0 .5em;line-height:1.3}
+.eq.haveTen{margin-bottom:34px}
+.eq.lab{margin-top:calc(var(--b) * .5)}
+@keyframes fadeIn{from{opacity:0}}
+.steps{display:flex;flex-direction:column;align-items:center;gap:8px}
+.srow{display:flex;align-items:center;gap:.35em;font-family:var(--num);font-weight:800;font-size:clamp(24px,4.4vmin,40px);background:#fff;border-radius:16px;padding:.05em .7em;box-shadow:0 3px 0 rgba(0,0,0,.07);animation:fadeIn .3s}
+.srow .sa{min-width:1.6em;text-align:center;color:var(--accent-dark);border-bottom:3px dashed var(--accent)}
+.srow.ok{background:#e4f7ea}.srow.ok .sa{color:var(--good);border-bottom-color:transparent}
+/* 小動物的丸子 */
+.groups{display:flex;gap:clamp(10px,2.6vmin,28px);flex-wrap:wrap;justify-content:center}
+.grp{display:flex;flex-direction:column;align-items:center;gap:4px;background:#fff;border-radius:18px;padding:8px 10px;box-shadow:0 4px 0 rgba(0,0,0,.07)}
+.grp .who{font-size:clamp(26px,5vmin,44px);line-height:1}
+.grp .sticks{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;font-size:clamp(18px,3.4vmin,30px);line-height:1.1;min-height:3.3em;align-content:start}
+.grp .nb{font-family:var(--num);font-weight:800;font-size:clamp(20px,3.6vmin,32px);background:var(--bc);border-radius:999px;padding:0 .6em}
+/* 直式 */
+.cols{display:flex;gap:clamp(16px,4vmin,44px);align-items:flex-start;justify-content:center}
+.vf{background:#fff;border-radius:18px;padding:8px 12px 10px;box-shadow:0 4px 0 rgba(0,0,0,.07);transition:opacity .3s}
+.vf.off{opacity:.35}
+.vf .tt{font-size:clamp(13px,2.2vmin,18px);font-weight:800;color:var(--muted);text-align:center;margin-bottom:2px}
+.vf .r{display:grid;grid-template-columns:repeat(3,var(--d));justify-items:center;align-items:center;font-family:var(--num);font-weight:800;font-size:calc(var(--d) * .78);line-height:1.15}
+.vf .r.cy{font-size:calc(var(--d) * .42);color:#e0457b;height:calc(var(--d) * .5)}
+.vf .r.cy i{animation:pop .3s cubic-bezier(.3,1.6,.5,1)}
+.vf .r i{font-style:normal}
+.vf .ln{height:4px;background:var(--ink);border-radius:2px;margin:3px 0 5px}
+.vf .in{width:calc(var(--d) * .92);height:calc(var(--d) * 1.1);border-radius:10px;border:3px dashed #d7c79a;display:grid;place-items:center;color:var(--accent-dark)}
+.vf .in.cur{border:3px solid var(--accent);background:#fff6dc;animation:blink 1s infinite alternate}
+.vf .in.ok{border-color:transparent;color:var(--good);animation:none;background:none}
+.vf .in.no{animation:shake .4s;border-color:var(--bad);background:#ffd6d6}
+.vf .hl{background:#fff1cf;border-radius:8px}
+@keyframes blink{to{background:#fff}}
+.keys{display:grid;grid-template-columns:repeat(5,clamp(48px,9vmin,68px));gap:clamp(6px,1.2vmin,10px)}
+.key{font:inherit;font-family:var(--num);font-weight:800;font-size:clamp(24px,4.4vmin,36px);border:0;border-radius:14px;background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 5px 0 #e7c98a;aspect-ratio:1.1}
+.key:active{transform:translateY(3px);box-shadow:0 2px 0 #e7c98a}
+@keyframes pop{from{transform:scale(.3)}}
+.choices{display:flex;gap:clamp(10px,2.4vmin,22px);flex-wrap:wrap;justify-content:center}
+.ch{min-width:clamp(86px,15vmin,140px);border:0;border-radius:20px;background:#fff;cursor:pointer;padding:.2em .6em;box-shadow:0 6px 0 #e7c98a;
+  font-family:var(--num);font-weight:800;font-size:clamp(28px,5.4vmin,46px);color:var(--ink);line-height:1.15}
+.ch:active{transform:translateY(4px);box-shadow:0 2px 0 #e7c98a}
+.ch.no{background:#ffd6d6;box-shadow:0 6px 0 #e8a0a0;animation:shake .4s}
+.ch.yes{background:#c9f5dc;box-shadow:0 6px 0 #7bd3a2}
+@keyframes shake{25%{translate:-8px 0}75%{translate:8px 0}}
+.msg{min-height:1.4em;font-weight:800;font-size:clamp(17px,2.8vmin,24px);text-align:center;max-width:94vw}
+.msg.good{color:var(--good)}.msg.bad{color:var(--bad)}
+/* 手機橫放：左邊題目畫面、右邊答案按鈕 */
+@media (max-height:500px) and (orientation:landscape){
+  main{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"st ask" "st ch" "st msg";align-content:center;justify-content:center;column-gap:18px;row-gap:8px}
+  #ask{grid-area:ask;align-self:end} #stage{grid-area:st;width:auto;max-width:60vw;align-self:center} #choices{grid-area:ch;align-self:center} #msg{grid-area:msg;align-self:start}
+  .stage{--b:clamp(38px,min(calc((100dvh - 230px) / 1.2),calc(56vw / 7.4)),60px);--d:clamp(22px,calc((100dvh - 190px) / 5.6),34px);gap:6px}
+  .ask{font-size:16px}.ch{font-size:24px;min-width:64px}.msg{font-size:15px}.srow{font-size:20px}.keys{grid-template-columns:repeat(5,42px);gap:6px}.key{font-size:22px}
+  .grp .sticks{font-size:15px}.grp .who{font-size:22px}.grp{padding:4px 6px}.vf{padding:4px 8px 6px}.vf .tt{display:none}
+}
+@media (prefers-reduced-motion:reduce){.ball,.ch.no,.vf .in.cur,.vf .in.no,.ansbox.done{animation:none;transition:none}}
+/* 開始／結束畫面 */
+.panel{position:fixed;inset:0;z-index:20;display:grid;place-items:start center;overflow-y:auto;-webkit-overflow-scrolling:touch;background:rgba(255,246,216,.8);
+  padding:max(12px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.panel>.card{margin:auto 0}
+.card{background:#fff;border-radius:24px;padding:clamp(18px,4vmin,34px);width:min(480px,100%);box-shadow:0 12px 40px rgba(0,0,0,.18);display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center}
+.card h2{margin:0;font-size:clamp(26px,5.5vmin,44px)}
+.card p{margin:0;color:var(--muted);font-size:clamp(15px,2.6vmin,20px);line-height:1.5}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.opt{font:inherit;font-size:18px;font-weight:700;border:2px solid #cfd8dc;background:#fff;border-radius:14px;padding:10px 16px;cursor:pointer;color:inherit}
+.opt small{display:block;font-size:13px;font-weight:600;opacity:.8;margin-top:2px}
+.opt[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:#fff}
+.lbl{font-size:14px;font-weight:700;color:var(--muted)}
+.big{font-family:var(--text);font-weight:800;font-size:clamp(20px,4vmin,30px);border:0;border-radius:999px;padding:.5em 1.6em;background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 5px 0 var(--accent-dark);text-decoration:none;display:inline-block}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 var(--accent-dark)}
+.big.alt{background:#fff;color:var(--ink);box-shadow:0 5px 0 #cfd8dc;border:2px solid #cfd8dc}
+.stars{font-size:clamp(40px,9vmin,72px);letter-spacing:.1em;line-height:1}
+#start .card>.big{position:sticky;bottom:0;z-index:1}
+@media (max-height:560px){.panel>.card{gap:8px;padding:14px 18px}.panel>.card h2{font-size:24px}#start .card>p{display:none}.panel .stars{font-size:36px}
+  main{gap:6px}.ask{font-size:16px}.ch{font-size:26px;min-width:84px}.msg{font-size:15px}}
+@media (prefers-reduced-motion:reduce){.handle circle,.desk .it.no,.ch.no{animation:none}}
+</style>
+<script src="zhuyin.js?v=20261125b"></script>
+<script src="rest.js?v=20261125b"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="park.css?v=20261125b">
+<script src="park.js?v=20261125b"></script>
+</head>
+<body data-park>
+<header class="top">
+  <a class="ibtn" href="park.html" aria-label="回遊樂園地圖">🏠</a>
+  <div class="ttl">🍡<span class="tx"> 丸子攤</span></div>
+  <span class="score" id="score">⭐ 0</span>
+  <button type="button" class="ibtn" id="again" aria-label="再念一次題目">🔊</button>
+</header>
+<main>
+  <div class="ask" id="ask" data-zy>三個數加起來是多少？</div>
+  <div class="stage" id="stage"></div>
+  <div class="choices" id="choices" hidden></div>
+  <div class="msg" id="msg" data-zy aria-live="polite"></div>
+
+  <section class="panel" id="start">
+    <div class="card">
+      <h2>🍡 丸子攤</h2>
+      <p data-zy>丸子攤開張了！<br>一串有三顆丸子，<br>三個數加起來是多少？</p>
+      <span class="lbl">難度</span>
+      <div class="row" id="levels">
+        <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small data-zy>湊十</small></button>
+        <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small data-zy>連加到 20</small></button>
+        <button type="button" class="opt" data-lv="3" aria-label="高級"><span class="lvst">⭐⭐⭐</span><small data-zy>二位數直式</small></button>
+      </div>
+      <span class="lbl">題數</span>
+      <div class="row" id="counts">
+        <button type="button" class="opt" data-n="5" aria-label="5 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button>
+        <button type="button" class="opt" data-n="10" aria-label="10 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>10</small></button>
+        <button type="button" class="opt" data-n="15" aria-label="15 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>15</small></button>
+      </div>
+      <button type="button" class="big" id="go" aria-label="開始">READY</button>
+    </div>
+  </section>
+  <section class="panel" id="end" hidden>
+    <div class="card">
+      <div class="stars" id="stars"></div>
+      <h2 id="endTitle"></h2>
+      <p id="endText" data-zy></p>
+      <div class="row">
+        <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+        <a class="big alt ico-btn" href="park.html" aria-label="回遊樂園">🏠</a>
+      </div>
+    </div>
+  </section>
+</main>
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
+  const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+  const pick=a=>a[rnd(0,a.length-1)];
+  const S={lv:[1,2,3].includes(+pref("dango-lv"))?+pref("dango-lv"):1,total:10,round:0,score:0,first:0,miss:0,phase:"start",q:null};
+  const levels=[...document.querySelectorAll("#levels button")],syncLv=()=>levels.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
+  levels.forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("dango-lv",S.lv);syncLv()}));syncLv();
+  {const n0=+pref("dango-total");if([5,10,15].includes(n0))S.total=n0;
+   const cs=[...document.querySelectorAll("#counts button")],sync=()=>cs.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===S.total));
+   sync();cs.forEach(b=>b.addEventListener("click",()=>{S.total=+b.dataset.n;pref("dango-total",S.total);sync()}))}
+  // ---- 語音與音效（和遊樂園一樣） ----
+  const synth=window.speechSynthesis;let voice=null;const rate=+(pref("duel-rate")||.9)||.9;
+  const quality=v=>{const u=v.voiceURI||"";return /eloquence|speech\.synthesis\.voice/i.test(u)?0:/\.premium\./i.test(u)?3:/enhanced|-premium/i.test(u)?2:1};
+  function pickVoice(){if(!synth)return;const vs=synth.getVoices().filter(v=>/^(zh|cmn)/i.test(v.lang));const want=pref("duel-voice");
+    const tw=vs.filter(v=>/TW|Hant/i.test(v.lang)&&quality(v)>0).sort((a,b)=>quality(b)-quality(a));
+    voice=(want&&vs.find(v=>(v.voiceURI||v.name)===want))||tw[0]||vs.find(v=>quality(v)>0)||vs[0]||null}
+  if(synth){pickVoice();try{synth.addEventListener("voiceschanged",pickVoice)}catch(e){}}
+  function say(t){if(!synth)return;try{const u=new SpeechSynthesisUtterance(t);u.lang=voice?voice.lang.replace("_","-"):"zh-TW";if(voice)u.voice=voice;u.rate=rate;u.pitch=1.1;
+    if(synth.speaking||synth.pending){synth.cancel();setTimeout(()=>{try{synth.speak(u)}catch(e){}},90)}else synth.speak(u)}catch(e){}}
+  let ac=null;
+  function tone(fs,dur=.12,type="triangle",vol=.15){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume();
+    fs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*dur;o.type=type;o.frequency.value=f;
+      g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)})}catch(e){}}
+  const sfx={good:()=>tone([784,1175],.14,"sine",.3),bad:()=>tone([150],.3,"square",.16),tick:()=>tone([900],.03,"sine",.06),snap:()=>tone([660],.05,"sine",.12),win:()=>tone([523,659,784,1047],.16)};
+  {const _g=sfx.good;sfx.good=(...a)=>{try{window.parkBurst&&parkBurst()}catch(err){}return _g(...a)}}
+  function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
+    try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}}
+
+
+
+  // ---- 出題 ----
+  // 初級：湊十（三個數裡一定有兩個湊成 10）— pair 先點出湊十的兩顆、story 數小動物的丸子、blank 填空
+  // 進階：連加到 20 — step 從左邊一步一步加、story、blank（最後一個數不見了）
+  // 高級：二位數連加，用兩個直式：先算前兩個，答案搬到第二個直式再加第三個
+  const OWN=[{e:"🐰",n:"小兔子"},{e:"🐻",n:"小熊"},{e:"🐼",n:"貓熊"},{e:"🐱",n:"小貓"},{e:"🐶",n:"小狗"},{e:"🦊",n:"狐狸"}];
+  const BC=["#ffb3c7","#fff1cf","#b9e8a2"];
+  function newQ(){
+    if(S.round<=1||!S.order){const L={1:["pair","pair","story","blank","pair","story","blank"],2:["step","step","story","blank","step","story","blank"],3:["col","col","story","col","story"]}[S.lv];
+      S.order=[L[0],...shuffle(L.slice(1))]}
+    const t=S.order[(Math.max(1,S.round)-1)%S.order.length],easy=S.round<=2;
+    const q={t,own:shuffle(OWN.slice()).slice(0,3),si:0,sel:[]};let n,g=0;
+    if(S.lv===1){
+      let p,r;do{p=rnd(1,9);r=rnd(1,9)}while((r===p||r===10-p||(p===5&&Math.random()<.7))&&g++<80);
+      n=shuffle([p,10-p,r]);
+      for(let i=0;i<3;i++)for(let j=i+1;j<3;j++)if(!q.pair&&n[i]+n[j]===10)q.pair=[i,j];
+      q.rest=3-q.pair[0]-q.pair[1];
+    }else if(S.lv===2){
+      do{n=[rnd(1,9),rnd(1,9),rnd(1,9)]}while((n[0]+n[1]+n[2]>20||n[0]+n[1]+n[2]<11||(easy&&n[0]+n[1]>10))&&g++<300);
+    }else{
+      do{n=[rnd(11,45),rnd(11,45),rnd(10,40)]}while((n[0]+n[1]+n[2]>99||(easy&&n[0]%10+n[1]%10>=10))&&g++<300);
+    }
+    q.n=n;q.sum=n[0]+n[1]+n[2];const [a,b,c]=n;
+    if(t==="pair"){q.steps=[{k:"pair"},{k:"sum",x:10,y:n[q.rest],last:true}];
+      q.ask="先找一找：哪兩顆丸子<b>湊成 10</b>？";q.say="先找一找，哪兩顆丸子加起來是10？"}
+    else if(t==="step"){q.steps=[{k:"sum",x:a,y:b},{k:"sum",x:a+b,y:c,last:true}];
+      q.ask="從左邊開始，<b>一步一步</b>加";q.say=`從左邊開始，先算${a}加${b}`}
+    else if(t==="col"||(t==="story"&&S.lv===3)){q.steps=[{k:"col",x:a,y:b,v:0},{k:"col",x:a+b,y:c,v:1,last:true}];
+      if(t==="story"){q.ask=q.own.map((o,i)=>`${o.e} ${n[i]} 串`).join("、")+"，<b>一共</b>幾串？";q.say=q.own.map((o,i)=>`${o.n}${n[i]}串`).join("，")+"，一共幾串？用直式算算看"}
+      else{q.ask="用直式算：先算前兩個，<b>再加</b>第三個";q.say=`${a}加${b}加${c}，用直式，先算${a}加${b}`}}
+    else if(t==="story"){q.steps=[{k:"final"}];
+      q.ask=`${q.own.map(o=>o.e).join("、")} <b>一共</b>有幾串丸子？`;q.say=`${q.own.map(o=>o.n).join("、")}，一共有幾串丸子？`}
+    else{q.hide=S.lv===1?pick(q.pair):2;q.steps=[{k:"blank"}];
+      const parts=n.map((v,i)=>i===q.hide?"多少":v);
+      q.ask=`<b>?</b> 是多少？`;q.say=`${parts[0]}加${parts[1]}加${parts[2]}等於${q.sum}，問號是多少？`}
+    return q;
+  }
+
+  // ---- 畫面 ----
+  const stage=$("stage"),msg=(t,c="")=>{$("msg").textContent=t;$("msg").className="msg"+(c?" "+c:"")};
+  const near=n=>{const s=new Set([n]);let g=0;while(s.size<3&&g++<50){const v=n+pick([-2,-1,1,2]);if(v>=1)s.add(v)}return shuffle([...s])};
+  function choices(list){const ch=$("choices");ch.hidden=false;
+    ch.innerHTML=`<div class="choices">${list.map(v=>`<button type="button" class="ch" data-v="${v}">${v}</button>`).join("")}</div>`;
+    ch.querySelectorAll(".ch").forEach(b=>b.addEventListener("click",()=>answer(+b.dataset.v,b)))}
+  function keypad(){const ch=$("choices");ch.hidden=false;
+    ch.innerHTML=`<div class="keys">${[1,2,3,4,5,6,7,8,9,0].map(d=>`<button type="button" class="key" data-d="${d}">${d}</button>`).join("")}</div>`;
+    ch.querySelectorAll(".key").forEach(b=>b.addEventListener("click",()=>keyIn(+b.dataset.d)))}
+  const ballHTML=(q,i)=>{const v=q.n[i],hid=q.t==="blank"&&i===q.hide;
+    return `<button type="button" class="ball c${i}${v>=10?" two":""}${hid?" q":""}" data-i="${i}" aria-label="${hid?"問號":v}">${hid?"?":v}</button>`};
+  function vfHTML(i,x,y){
+    const d=v=>[Math.floor(v/10),v%10];
+    const top=x===null?["",""]:d(x),[yt,yo]=d(y);
+    return `<div class="vf${i?" off":""}" id="vf${i}"><div class="tt" data-zy>${i?"② 再加":"① 先算"}</div>
+      <div class="r cy"><i></i><i class="cyt"></i><i></i></div>
+      <div class="r"><i></i><i class="dt">${top[0]}</i><i class="do">${top[1]}</i></div>
+      <div class="r"><i>+</i><i class="dt">${yt}</i><i class="do">${yo}</i></div>
+      <div class="ln"></div>
+      <div class="r"><i></i><i class="in" data-c="t"></i><i class="in" data-c="o"></i></div></div>`;
+  }
+  function show(){
+    const q=S.q;$("ask").innerHTML=q.ask;msg("");$("choices").hidden=true;$("choices").innerHTML="";
+    if(q.t==="story"&&S.lv<3){
+      stage.innerHTML=`<div class="groups">${q.n.map((v,i)=>`<div class="grp" style="--bc:${BC[i]}"><span class="who">${q.own[i].e}</span><div class="sticks">${"<span>🍡</span>".repeat(v)}</div></div>`).join("")}</div>`;
+    }else{
+      const lab=q.t==="story";
+      stage.innerHTML=`<div class="eq" id="eq">${[0,1,2].map(i=>(i?`<span class="op">+</span>`:"")+ballHTML(q,i)).join("")}<span class="op">=</span><span class="ansbox" id="ansBox">${q.t==="blank"?q.sum:"?"}</span></div>`+
+        (q.steps[0].k==="col"?`<div class="cols">${vfHTML(0,q.n[0],q.n[1])}${vfHTML(1,null,q.n[2])}</div>`:`<div class="steps" id="steps"></div>`);
+      if(lab)$("eq").classList.add("lab");if(lab)stage.querySelectorAll(".ball").forEach((b,i)=>b.insertAdjacentHTML("afterbegin",`<span style="position:absolute;top:-.95em;font-size:.6em">${q.own[i].e}</span>`));
+      stage.querySelectorAll(".ball").forEach(b=>b.addEventListener("click",()=>tapBall(+b.dataset.i,b)));
+    }
+    say(q.say);runStep(true);
+  }
+  function runStep(first){
+    const q=S.q,st=q.steps[q.si];S.phase="play";
+    if(st.k==="pair"){stage.querySelectorAll(".ball").forEach(b=>b.classList.add("tap"));$("choices").hidden=true;return}
+    if(st.k==="sum"){
+      $("steps").insertAdjacentHTML("beforeend",`<div class="srow" id="row${q.si}">${st.x} + ${st.y} = <span class="sa">?</span></div>`);
+      choices(near(st.x+st.y));
+      if(!first){const t=`${st.x} 再加 ${st.y} 是多少？`;$("ask").innerHTML=t;say(t.replace(/ /g,""))}
+      return}
+    if(st.k==="col"){
+      q.cell="o";const v=$("vf"+st.v);v.classList.remove("off");markCol();keypad();
+      if(!first){$("ask").innerHTML=`<b>再加</b> ${st.y}：從個位開始`;say(`再加${st.y}，從個位開始`)}
+      return}
+    if(st.k==="final")return choices(near(q.sum));
+    choices(near(q.n[q.hide]));
+  }
+  // 現在要寫哪一格：那一欄的數字也亮起來
+  function markCol(){
+    const q=S.q,st=q.steps[q.si],v=$("vf"+st.v);
+    v.querySelectorAll(".hl").forEach(e=>e.classList.remove("hl"));v.querySelectorAll(".in.cur").forEach(e=>e.classList.remove("cur"));
+    if(!q.cell)return;
+    v.querySelector(`.in[data-c="${q.cell}"]`).classList.add("cur");
+    v.querySelectorAll(q.cell==="o"?".do":".dt").forEach(e=>e.classList.add("hl"));
+    if(q.cell==="t")v.querySelector(".cyt").classList.toggle("hl",!!v.querySelector(".cyt").textContent);
+  }
+  // 湊十：從兩顆丸子拉線到下面的「10」
+  function drawTen(i,j){
+    const eq=$("eq"),r=eq.getBoundingClientRect(),bs=eq.querySelectorAll(".ball"),A=bs[i].getBoundingClientRect(),B=bs[j].getBoundingClientRect();
+    const ax=A.left+A.width/2-r.left,bx=B.left+B.width/2-r.left,h=A.height,mx=(ax+bx)/2,ty=h+26;
+    eq.classList.add("haveTen");
+    eq.insertAdjacentHTML("beforeend",`<svg class="tenv" style="position:absolute;left:0;top:0;width:${r.width}px;height:${h+48}px;overflow:visible;pointer-events:none" viewBox="0 0 ${r.width} ${h+48}">
+      <path d="M${ax} ${h+2}L${mx} ${ty}L${bx} ${h+2}" fill="none" stroke="#3cb371" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="${mx}" cy="${ty+4}" r="17" fill="#3cb371"/><text x="${mx}" y="${ty+11}" text-anchor="middle" font-size="19" font-weight="800" fill="#fff" font-family="Baloo 2,Arial Rounded MT Bold,sans-serif">10</text></svg>`);
+  }
+  function tapBall(i,el){
+    const q=S.q,st=q.steps[q.si];if(S.phase!=="play"||!st||st.k!=="pair")return;
+    if(q.sel.includes(i)){q.sel=q.sel.filter(k=>k!==i);el.classList.remove("on");sfx.tick();return}
+    q.sel.push(i);el.classList.add("on");sfx.tick();if(q.sel.length<2)return;
+    const [x,y]=q.sel.map(k=>q.n[k]);
+    if(x+y===10){
+      sfx.snap();msg("");stage.querySelectorAll(".ball").forEach(b=>b.classList.remove("tap"));drawTen(q.sel[0],q.sel[1]);
+      S.phase="wait";setTimeout(()=>{if(S.q!==q)return;q.si++;runStep()},700);return}
+    S.miss++;sfx.bad();const bs=stage.querySelectorAll(".ball"),pair=q.sel.slice();q.sel=[];
+    pair.forEach(k=>{bs[k].classList.remove("on","no");void bs[k].offsetWidth;bs[k].classList.add("no")});
+    const tip=`${x} + ${y} = ${x+y}，不是 10。再找找看！`;msg(tip,"bad");say(tip.replace(/ /g,""));
+    setTimeout(()=>pair.forEach(k=>bs[k].classList.remove("no")),600);
+  }
+  function keyIn(d){
+    const q=S.q,st=q.steps[q.si];if(S.phase!=="play"||!st||st.k!=="col"||!q.cell)return;
+    const v=$("vf"+st.v),xo=st.x%10,yo=st.y%10,carry=xo+yo>=10?1:0,ones=(xo+yo)%10,xt=Math.floor(st.x/10),yt=Math.floor(st.y/10),tens=xt+yt+carry;
+    const cell=v.querySelector(`.in[data-c="${q.cell}"]`);
+    const right=q.cell==="o"?ones:tens;
+    if(d===right){
+      cell.textContent=d;cell.classList.remove("cur","no");cell.classList.add("ok");sfx.snap();msg("");
+      if(q.cell==="o"){if(carry)v.querySelector(".cyt").textContent="1";q.cell="t";markCol();return}
+      q.cell=null;markCol();
+      if(st.last){finalOk(null);return}
+      // 第一個直式的答案搬到第二個直式的上面
+      S.phase="wait";const s=st.x+st.y,v1=$("vf1");
+      setTimeout(()=>{if(S.q!==q)return;v1.querySelector(".r:nth-child(3) .dt").textContent=Math.floor(s/10);v1.querySelector(".r:nth-child(3) .do").textContent=s%10;
+        v1.querySelectorAll(".r:nth-child(3) i").forEach(e=>{e.style.animation="none";void e.offsetWidth;e.style.animation="pop .35s cubic-bezier(.3,1.6,.5,1)"});
+        q.si++;runStep()},600);
+      return}
+    S.miss++;sfx.bad();cell.classList.remove("no");void cell.offsetWidth;cell.classList.add("no");
+    const tip=q.cell==="o"?`個位：${xo} + ${yo} = ${xo+yo}${carry?`，寫 ${ones}，進 1 到十位`:""}。`:`十位：${xt} + ${yt}${carry?" + 進位的 1":""} = ${tens}。`;
+    msg(tip,"bad");say(tip.replace(/ /g,"").replace("+","加").replace("+","加").replace("=","等於"));
+  }
+  function answer(v,el){
+    const q=S.q,st=q.steps[q.si];if(S.phase!=="play"||!st)return;
+    if(st.k==="sum"){
+      if(v===st.x+st.y){const row=$("row"+q.si);row.classList.add("ok");row.querySelector(".sa").textContent=v;
+        if(st.last){finalOk(el);return}
+        sfx.snap();el.classList.add("yes");S.phase="wait";setTimeout(()=>{if(S.q!==q)return;q.si++;runStep()},600);return}
+      wrong(el,st.x+st.y>10&&st.x<10?`${st.x} 先加 ${10-st.x} 變成 10，再加 ${st.y-(10-st.x)}。`:`從 ${st.x} 往上數 ${st.y} 個。`);return}
+    const want=st.k==="blank"?q.n[q.hide]:q.sum;
+    if(v===want){finalOk(el);return}
+    const [a,b,c]=q.n;let tip;
+    if(st.k==="final")tip=S.lv===1?`先把 ${q.n[q.pair[0]]} 和 ${q.n[q.pair[1]]} 湊成 10，再加 ${q.n[q.rest]}。`:`先算 ${a} + ${b} = ${a+b}，再加 ${c}。`;
+    else if(S.lv===1){const k=q.pair.find(i=>i!==q.hide);tip=`${q.n[k]} 和幾湊成 10？10 再加 ${q.n[q.rest]} 就是 ${q.sum}。`}
+    else tip=`${a} + ${b} = ${a+b}，${a+b} 再加多少是 ${q.sum}？`;
+    wrong(el,tip);
+  }
+  function wrong(el,tip){S.miss++;sfx.bad();el.classList.remove("no");void el.offsetWidth;el.classList.add("no");msg(tip,"bad");
+    say(tip.replace(/ /g,"").replace(/\+/g,"加").replace(/=/g,"等於"))}
+  function finalOk(el){
+    const q=S.q,box=$("ansBox");
+    if(q.t==="blank"){const b=stage.querySelectorAll(".ball")[q.hide];b.textContent=q.n[q.hide];b.classList.remove("q");b.classList.add("yes")}
+    else if(box){box.textContent=q.sum;box.classList.add("done")}
+    if(q.t==="story"&&S.lv<3)stage.querySelectorAll(".grp").forEach((g,i)=>g.insertAdjacentHTML("beforeend",`<span class="nb">${q.n[i]}</span>`));
+    ok(el);
+  }
+  function ok(el){
+    const q=S.q;S.phase="ok";S.score++;if(!S.miss)S.first++;sfx.good();upd();el&&el.classList.add("yes");
+    msg(q.t==="story"&&S.lv<3?`${q.n.join(" + ")} = ${q.sum}`:["答對了！","好棒！","算得真快！"][rnd(0,2)],"good");
+    $("choices").querySelectorAll("button").forEach(b=>b.disabled=true);
+    setTimeout(next,1700);
+  }
+  function next(){if(S.round>=S.total)return finish();S.round++;S.miss=0;S.phase="play";S.q=newQ();upd();show()}
+  window.dangoDebug=()=>({q:S.q,phase:S.phase});
+  const upd=()=>{$("score").textContent=`⭐ ${S.score} / ${S.total}`};
+  function start(){unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.score=0;S.first=0;S.order=null;next();
+    try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}}
+  function finish(){
+    S.phase="end";sfx.win();
+    const r=S.first/S.total,st=r>=.9?3:r>=.6?2:1;
+    $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);
+    $("endTitle").textContent=st===3?"太厲害了！":st===2?"做得很好！":"再練習一下！";
+    $("endText").textContent=`${S.total} 題裡面，有 ${S.first} 題第一次就答對。`;
+    $("end").hidden=false;say(`${$("endTitle").textContent}${S.total}題裡面，有${S.first}題第一次就答對`);
+  }
+  $("go").addEventListener("click",start);$("replay").addEventListener("click",start);
+  $("again").addEventListener("click",()=>{if(S.q)say(S.q.say)});
+  S.q=newQ();show();S.phase="start";try{synth&&synth.cancel()}catch(e){}upd();
+})();
+</script>
+</body>
+</html>
