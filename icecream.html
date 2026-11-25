@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>冰淇淋車</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
+<style>
+/* 單人小遊戲：第幾個、前後左右、排隊問題（一年級～二年級）。小動物排隊買冰淇淋；左右用玩具架 */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --ink:#1f2b33; --muted:#5d6b72; --good:#1f9d61; --bad:#d23c3c; --accent:#f0a020; --accent-dark:#b06a00;
+  --num:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
+  --text:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{margin:0;height:100%}
+body{background:radial-gradient(circle,rgba(255,255,255,.5) 2px,transparent 2.5px) 0 0/30px 30px,linear-gradient(#fff6d8,#ffe9b8);color:var(--ink);font-family:var(--text);overflow:hidden;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;display:flex;flex-direction:column}
+[hidden]{display:none!important}
+.top{display:flex;align-items:center;gap:12px;padding:max(10px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.ibtn{width:48px;height:48px;border-radius:14px;border:0;background:rgba(255,255,255,.9);font-size:24px;cursor:pointer;display:grid;place-items:center;text-decoration:none;color:inherit;box-shadow:0 3px 0 rgba(0,0,0,.1);flex:none}
+.ibtn:active{transform:translateY(2px)}
+.ttl{flex:1;text-align:center;font-weight:800;font-size:clamp(18px,3.2vmin,28px)}
+.score{font-family:var(--num);font-weight:800;font-size:clamp(18px,3.4vmin,30px);background:rgba(255,255,255,.9);border-radius:999px;padding:4px 14px;white-space:nowrap;flex:none}
+main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(10px,2.2vh,22px);
+  padding:0 max(12px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+.ask{background:#fff;border-radius:20px;padding:.3em 1em;font-weight:800;font-size:clamp(18px,3.2vmin,28px);box-shadow:0 5px 0 rgba(0,0,0,.08);text-align:center;max-width:96vw}
+/* 冰淇淋車：排隊的小動物（前後）、玩具架（左右） */
+.stage{--a:clamp(18px,min(9.5vmin,calc((100vw - 64px) / (var(--n,7) + 1.7)),calc((100dvh - 430px) / 1.6)),80px);
+  display:flex;flex-direction:column;align-items:center;gap:clamp(8px,1.6vh,16px);width:min(100%,980px)}
+.scene{display:flex;flex-direction:column;align-items:center;gap:4px;max-width:100%}
+.queue{display:flex;align-items:flex-end;gap:calc(var(--a) * .1);padding:calc(var(--a) * .5) 10px 6px;border-radius:18px;
+  background:linear-gradient(transparent 72%,#e2cfae 72%);max-width:100%}
+.queue.R{flex-direction:row-reverse}
+.shelf{display:flex;align-items:flex-end;gap:calc(var(--a) * .18);padding:calc(var(--a) * .5) 14px 4px;border-bottom:10px solid #b07d4f;border-radius:6px 6px 4px 4px;background:#fff7e8;box-shadow:0 4px 0 rgba(0,0,0,.08)}
+.booth{position:relative;flex:none;width:calc(var(--a) * 1.3);height:calc(var(--a) * 1.45);border-radius:14px 14px 6px 6px;display:grid;place-items:end center;padding-bottom:4px;
+  background:repeating-linear-gradient(90deg,#ff8fb1 0 9px,#fff 9px 18px) top/100% 28% no-repeat,#ffe3ec;box-shadow:0 3px 0 rgba(0,0,0,.1);font-size:calc(var(--a) * .78);line-height:1}
+.an{position:relative;flex:none;width:var(--a);height:calc(var(--a) * 1.12);border:0;background:none;padding:0 0 2px;font-size:calc(var(--a) * .8);line-height:1;border-radius:12px;
+  display:flex;align-items:flex-end;justify-content:center;transition:background .2s}
+.an.tap{cursor:pointer}.an.tap:active{transform:scale(.92)}
+.an.sel{background:#c9f5dc;box-shadow:inset 0 0 0 3px #3cb371}
+.an.hl{background:#fff1b8;box-shadow:inset 0 0 0 3px var(--accent)}
+.an.tf{background:#dbe8ff}.an.tb{background:#ffe0ea}
+.an.yes{background:#c9f5dc;box-shadow:inset 0 0 0 3px #3cb371;animation:pop .35s cubic-bezier(.3,1.6,.5,1)}
+.an.no{animation:shake .4s;background:#ffd6d6}
+.an b{position:absolute;top:-3px;left:50%;transform:translate(-50%,-100%);font-family:var(--num);font-weight:800;font-size:calc(var(--a) * .38);color:#d6336c;background:#fff;border-radius:999px;padding:0 .32em;line-height:1.15;box-shadow:0 1px 0 rgba(0,0,0,.12)}
+.an i{position:absolute;top:-4px;left:50%;transform:translate(-50%,-100%);font-style:normal;font-family:var(--num);font-weight:800;font-size:calc(var(--a) * .42);color:var(--accent-dark)}
+.dirs{display:flex;justify-content:space-between;width:100%;gap:16px;font-weight:800;font-size:clamp(14px,2.4vmin,19px);color:var(--muted);padding:0 6px}
+.cap{font-weight:800;font-size:clamp(15px,2.6vmin,21px);color:var(--ink);text-align:center;background:#fff;border-radius:14px;padding:.2em .8em;box-shadow:0 3px 0 rgba(0,0,0,.06);animation:fadeIn .3s}
+.mys{display:flex;align-items:flex-end;gap:12px;font-size:calc(var(--a) * .9);line-height:1}
+.mys .dots{font-family:var(--num);font-weight:800;color:var(--muted);font-size:.6em}
+.tools{display:flex;gap:12px;justify-content:center}
+.tool{font:inherit;font-weight:900;font-size:clamp(18px,3.2vmin,24px);border:0;border-radius:999px;padding:.35em 1.1em;background:#3cb371;color:#fff;cursor:pointer;box-shadow:0 5px 0 #23804c}
+.tool .zy-b{color:#fff}
+.tool:active{transform:translateY(3px);box-shadow:0 2px 0 #23804c}
+.ch.word{font-family:var(--text);font-size:clamp(20px,3.6vmin,30px);padding:.35em .9em}
+@keyframes fadeIn{from{opacity:0}}
+.keys{display:grid;grid-template-columns:repeat(5,clamp(48px,9vmin,68px));gap:clamp(6px,1.2vmin,10px)}
+.key{font:inherit;font-family:var(--num);font-weight:800;font-size:clamp(24px,4.4vmin,36px);border:0;border-radius:14px;background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 5px 0 #e7c98a;aspect-ratio:1.1}
+.key:active{transform:translateY(3px);box-shadow:0 2px 0 #e7c98a}
+@keyframes pop{from{transform:scale(.3)}}
+.choices{display:flex;gap:clamp(10px,2.4vmin,22px);flex-wrap:wrap;justify-content:center}
+.ch{min-width:clamp(86px,15vmin,140px);border:0;border-radius:20px;background:#fff;cursor:pointer;padding:.2em .6em;box-shadow:0 6px 0 #e7c98a;
+  font-family:var(--num);font-weight:800;font-size:clamp(28px,5.4vmin,46px);color:var(--ink);line-height:1.15}
+.ch:active{transform:translateY(4px);box-shadow:0 2px 0 #e7c98a}
+.ch.no{background:#ffd6d6;box-shadow:0 6px 0 #e8a0a0;animation:shake .4s}
+.ch.yes{background:#c9f5dc;box-shadow:0 6px 0 #7bd3a2}
+@keyframes shake{25%{translate:-8px 0}75%{translate:8px 0}}
+.msg{min-height:1.4em;font-weight:800;font-size:clamp(17px,2.8vmin,24px);text-align:center;max-width:94vw}
+.msg.good{color:var(--good)}.msg.bad{color:var(--bad)}
+/* 手機橫放：左邊隊伍、右邊題目和答案 */
+@media (max-height:500px) and (orientation:landscape){
+  main{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"st ask" "st ch" "st msg";align-content:center;justify-content:center;column-gap:16px;row-gap:8px}
+  #ask{grid-area:ask;align-self:end} #stage{grid-area:st;width:auto;max-width:60vw;align-self:center} #choices{grid-area:ch;align-self:center} #msg{grid-area:msg;align-self:start}
+  .stage{--a:clamp(26px,min(calc((60vw - 40px) / (var(--n,7) + 1.7)),calc((100dvh - 150px) / 2)),56px);gap:6px}
+  .dirs{font-size:13px}.cap{font-size:13px}
+  .ask{font-size:16px}.ch{font-size:24px;min-width:64px}.ch.word{font-size:17px}.msg{font-size:15px}.tool{font-size:16px}
+}
+@media (prefers-reduced-motion:reduce){.ch.no,.an.no,.an.yes{animation:none}}
+/* 開始／結束畫面 */
+.panel{position:fixed;inset:0;z-index:20;display:grid;place-items:start center;overflow-y:auto;-webkit-overflow-scrolling:touch;background:rgba(255,246,216,.8);
+  padding:max(12px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.panel>.card{margin:auto 0}
+.card{background:#fff;border-radius:24px;padding:clamp(18px,4vmin,34px);width:min(480px,100%);box-shadow:0 12px 40px rgba(0,0,0,.18);display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center}
+.card h2{margin:0;font-size:clamp(26px,5.5vmin,44px)}
+.card p{margin:0;color:var(--muted);font-size:clamp(15px,2.6vmin,20px);line-height:1.5}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.opt{font:inherit;font-size:18px;font-weight:700;border:2px solid #cfd8dc;background:#fff;border-radius:14px;padding:10px 16px;cursor:pointer;color:inherit}
+.opt small{display:block;font-size:13px;font-weight:600;opacity:.8;margin-top:2px}
+.opt[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:#fff}
+.lbl{font-size:14px;font-weight:700;color:var(--muted)}
+.big{font-family:var(--text);font-weight:800;font-size:clamp(20px,4vmin,30px);border:0;border-radius:999px;padding:.5em 1.6em;background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 5px 0 var(--accent-dark);text-decoration:none;display:inline-block}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 var(--accent-dark)}
+.big.alt{background:#fff;color:var(--ink);box-shadow:0 5px 0 #cfd8dc;border:2px solid #cfd8dc}
+.stars{font-size:clamp(40px,9vmin,72px);letter-spacing:.1em;line-height:1}
+#start .card>.big{position:sticky;bottom:0;z-index:1}
+@media (max-height:560px){.panel>.card{gap:8px;padding:14px 18px}.panel>.card h2{font-size:24px}#start .card>p{display:none}.panel .stars{font-size:36px}
+  main{gap:6px}.ask{font-size:16px}.ch{font-size:26px;min-width:84px}.msg{font-size:15px}}
+
+</style>
+<script src="zhuyin.js?v=20261125i"></script>
+<script src="rest.js?v=20261125i"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
+<link rel="stylesheet" href="park.css?v=20261125i">
+<script src="park.js?v=20261125i"></script>
+</head>
+<body data-park>
+<header class="top">
+  <a class="ibtn" href="park.html" aria-label="回遊樂園地圖">🏠</a>
+  <div class="ttl">🍦<span class="tx"> 冰淇淋車</span></div>
+  <span class="score" id="score">⭐ 0</span>
+  <button type="button" class="ibtn" id="again" aria-label="再念一次題目">🔊</button>
+</header>
+<main>
+  <div class="ask" id="ask" data-zy>排隊買冰淇淋！</div>
+  <div class="stage" id="stage"></div>
+  <div class="choices" id="choices" hidden></div>
+  <div class="msg" id="msg" data-zy aria-live="polite"></div>
+
+  <section class="panel" id="start">
+    <div class="card">
+      <h2>🍦 冰淇淋車</h2>
+      <p data-zy>小動物排隊買冰淇淋！<br>誰排第幾個？誰在前面、誰在後面？</p>
+      <span class="lbl">難度</span>
+      <div class="row" id="levels">
+        <button type="button" class="opt" data-lv="1" aria-label="初級"><span class="lvst">⭐</span><small data-zy>第幾個</small></button>
+        <button type="button" class="opt" data-lv="2" aria-label="進階"><span class="lvst">⭐⭐</span><small data-zy>前後左右</small></button>
+        <button type="button" class="opt" data-lv="3" aria-label="高級"><span class="lvst">⭐⭐⭐</span><small data-zy>排隊問題</small></button>
+      </div>
+      <span class="lbl">題數</span>
+      <div class="row" id="counts">
+        <button type="button" class="opt" data-n="5" aria-label="5 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i></span><small>5</small></button>
+        <button type="button" class="opt" data-n="10" aria-label="10 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>10</small></button>
+        <button type="button" class="opt" data-n="15" aria-label="15 題"><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><small>15</small></button>
+      </div>
+      <button type="button" class="big" id="go" aria-label="開始">READY</button>
+    </div>
+  </section>
+  <section class="panel" id="end" hidden>
+    <div class="card">
+      <div class="stars" id="stars"></div>
+      <h2 id="endTitle"></h2>
+      <p id="endText" data-zy></p>
+      <div class="row">
+        <button type="button" class="big ico-btn" id="replay" aria-label="再玩一次">🔁</button>
+        <a class="big alt ico-btn" href="park.html" aria-label="回遊樂園">🏠</a>
+      </div>
+    </div>
+  </section>
+</main>
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
+  const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+  const pick=a=>a[rnd(0,a.length-1)];
+  const S={op:["add","sub","mix"].includes(pref("ice-op"))?pref("ice-op"):"add",lv:[1,2,3].includes(+pref("ice-lv"))?+pref("ice-lv"):1,total:10,round:0,score:0,first:0,miss:0,phase:"start",q:null};
+  const levels=[...document.querySelectorAll("#levels button")],syncLv=()=>levels.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.lv===S.lv));
+  levels.forEach(b=>b.addEventListener("click",()=>{S.lv=+b.dataset.lv;pref("ice-lv",S.lv);syncLv()}));syncLv();
+  {const n0=+pref("ice-total");if([5,10,15].includes(n0))S.total=n0;
+   const cs=[...document.querySelectorAll("#counts button")],sync=()=>cs.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===S.total));
+   sync();cs.forEach(b=>b.addEventListener("click",()=>{S.total=+b.dataset.n;pref("ice-total",S.total);sync()}))}
+  // ---- 語音與音效（和遊樂園一樣） ----
+  const synth=window.speechSynthesis;let voice=null;const rate=+(pref("duel-rate")||.9)||.9;
+  const quality=v=>{const u=v.voiceURI||"";return /eloquence|speech\.synthesis\.voice/i.test(u)?0:/\.premium\./i.test(u)?3:/enhanced|-premium/i.test(u)?2:1};
+  function pickVoice(){if(!synth)return;const vs=synth.getVoices().filter(v=>/^(zh|cmn)/i.test(v.lang));const want=pref("duel-voice");
+    const tw=vs.filter(v=>/TW|Hant/i.test(v.lang)&&quality(v)>0).sort((a,b)=>quality(b)-quality(a));
+    voice=(want&&vs.find(v=>(v.voiceURI||v.name)===want))||tw[0]||vs.find(v=>quality(v)>0)||vs[0]||null}
+  if(synth){pickVoice();try{synth.addEventListener("voiceschanged",pickVoice)}catch(e){}}
+  function say(t){if(!synth)return;try{const u=new SpeechSynthesisUtterance(t);u.lang=voice?voice.lang.replace("_","-"):"zh-TW";if(voice)u.voice=voice;u.rate=rate;u.pitch=1.1;
+    if(synth.speaking||synth.pending){synth.cancel();setTimeout(()=>{try{synth.speak(u)}catch(e){}},90)}else synth.speak(u)}catch(e){}}
+  let ac=null;
+  function tone(fs,dur=.12,type="triangle",vol=.15){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume();
+    fs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*dur;o.type=type;o.frequency.value=f;
+      g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur*1.7)})}catch(e){}}
+  const sfx={good:()=>tone([784,1175],.14,"sine",.3),bad:()=>tone([150],.3,"square",.16),tick:()=>tone([900],.03,"sine",.06),snap:()=>tone([660],.05,"sine",.12),win:()=>tone([523,659,784,1047],.16)};
+  {const _g=sfx.good;sfx.good=(...a)=>{try{window.parkBurst&&parkBurst()}catch(err){}return _g(...a)}}
+  function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!=="running")ac.resume()}catch(e){}
+    try{if(synth&&!synth.speaking){const u=new SpeechSynthesisUtterance(" ");u.volume=0;synth.speak(u)}}catch(e){}}
+
+
+
+  // ---- 出題 ----
+  // 初級（第幾個）：who 從前面／後面數第幾個是誰、pos 某隻排第幾個、first 從前面數幾隻（分清「第幾個」和「幾個」）
+  // 進階（前後左右）：next 某隻的前面／後面是誰、cnt 前面／後面有幾隻、lr 從左邊／右邊數第幾個、lrnext 某個的左邊／右邊是什麼、side 在左邊還是右邊
+  // 高級（排隊問題）：total 前面幾隻後面幾隻一共幾隻、behind 一共幾隻排第幾個後面有幾隻、both 從前面數和從後面數、between 中間有幾隻
+  const AN=[["🐶","小狗"],["🐱","小貓"],["🐰","小兔"],["🐻","小熊"],["🐼","貓熊"],["🐨","無尾熊"],["🐯","老虎"],["🦊","狐狸"],["🐸","青蛙"],["🐵","猴子"],["🐷","小豬"],["🐮","乳牛"],["🐔","公雞"],["🐧","企鵝"]].map(([e,n])=>({e,n}));
+  const TOY=[["🧸","玩具熊"],["🚗","小汽車"],["⚽","足球"],["🎈","氣球"],["🎲","骰子"],["🧩","拼圖"],["🥁","小鼓"],["🎺","喇叭"]].map(([e,n])=>({e,n}));
+  const TYPES={1:["who","pos","first","who","pos","first"],2:["next","cnt","lr","lrnext","side","cnt"],3:["total","behind","both","between"]};
+  const mk=f=>({ask:f(o=>o.e),say:f(o=>o.n).replace(/ /g,"")});
+  const opt3=(ans,trap)=>{const s=new Set([ans]);if(trap!=null&&trap>=0&&trap!==ans)s.add(trap);let g=0;while(s.size<3&&g++<40){const v=ans+pick([-2,-1,1,2]);if(v>=0)s.add(v)}return shuffle([...s])};
+  function nextType(){if(!S.order||!S.order.length)S.order=shuffle(TYPES[S.lv].slice());return S.order.pop()}
+  function newQ(){
+    const t=nextType(),q={t,h:0,sel:[]};
+    if(S.lv<3&&!["lr","lrnext","side"].includes(t)){
+      const n=rnd(5,7);q.line=shuffle(AN.slice()).slice(0,n);q.side=Math.random()<.5?"L":"R";q.n=n;
+      const L=q.line;
+      if(t==="who"){const back=S.lv===1&&Math.random()<.3,k=rnd(2,n-1);q.from=back?"back":"front";q.ans=back?n-k:k-1;q.k=k;
+        Object.assign(q,mk(x=>`從${back?"後":"前"}面數，第 ${k} 個是誰？`));q.mode="tap"}
+      else if(t==="pos"){const i=rnd(1,n-1);q.tg=i;q.ans=i+1;q.from="front";Object.assign(q,mk(x=>`${x(L[i])} 從前面數，排第幾個？`));q.mode="num";q.opts=opt3(i+1,i)}
+      else if(t==="first"){const k=rnd(2,n-2);q.k=k;q.from="front";Object.assign(q,mk(x=>`從前面數 ${k} 隻，把牠們都點起來。`));q.mode="multi"}
+      else if(t==="next"){const back=Math.random()<.5,i=rnd(1,n-2);q.tg=i;q.ans=back?i+1:i-1;q.dir=back?"後":"前";Object.assign(q,mk(x=>`${x(L[i])} 的${q.dir}面是誰？`));q.mode="tap"}
+      else{const back=Math.random()<.5,i=rnd(1,n-2);q.tg=i;q.dir=back?"後":"前";q.ans=back?n-1-i:i;Object.assign(q,mk(x=>`${x(L[i])} 的${q.dir}面有幾隻？`));q.mode="num";q.opts=opt3(q.ans,q.ans+1)}
+      return q}
+    if(S.lv===2){
+      const n=rnd(5,7);q.shelf=shuffle(TOY.slice()).slice(0,n);q.n=n;const T=q.shelf;
+      if(t==="lr"){const r=Math.random()<.5,k=rnd(2,n-1);q.from=r?"right":"left";q.k=k;q.ans=r?n-k:k-1;Object.assign(q,mk(x=>`從${r?"右":"左"}邊數，第 ${k} 個是什麼？`));q.mode="tap"}
+      else if(t==="lrnext"){const r=Math.random()<.5,i=rnd(1,n-2);q.tg=i;q.dir=r?"右":"左";q.ans=r?i+1:i-1;Object.assign(q,mk(x=>`${x(T[i])} 的${q.dir}邊是什麼？`));q.mode="tap"}
+      else{let i,j;do{i=rnd(0,n-1);j=rnd(0,n-1)}while(i===j);q.tg=i;q.tg2=j;q.ans=i<j?"左邊":"右邊";Object.assign(q,mk(x=>`${x(T[i])} 在 ${x(T[j])} 的哪一邊？`));q.mode="word";q.opts=["左邊","右邊"]}
+      return q}
+    // 高級：排隊問題
+    const pickA=k=>shuffle(AN.slice()).slice(0,k);
+    if(t==="total"){const a=rnd(2,6),b=rnd(2,6),[A]=pickA(1);Object.assign(q,{a,b,N:a+b+1,tg:a,who:[A],ans:a+b+1});
+      Object.assign(q,mk(x=>`排隊買冰淇淋：${x(A)} 的前面有 ${a} 隻，後面有 ${b} 隻。一共有幾隻在排隊？`));q.opts=opt3(a+b+1,a+b)}
+    else if(t==="behind"){const N=rnd(7,12),p=rnd(2,N-2),[A]=pickA(1);Object.assign(q,{N,p,tg:p-1,who:[A],ans:N-p});
+      Object.assign(q,mk(x=>`一共有 ${N} 隻在排隊，${x(A)} 從前面數排第 ${p} 個。${x(A)} 的後面有幾隻？`));q.opts=opt3(N-p,N-p+1)}
+    else if(t==="both"){const p=rnd(2,7),r=rnd(2,7),[A]=pickA(1),N=p+r-1;Object.assign(q,{p,r,N,tg:p-1,who:[A],ans:N});
+      Object.assign(q,mk(x=>`${x(A)} 從前面數是第 ${p} 個，從後面數是第 ${r} 個。一共有幾隻在排隊？`));q.opts=opt3(N,N+1)}
+    else{const p=rnd(2,5),r=p+rnd(3,6),[A,B]=pickA(2);Object.assign(q,{p,r,N:r+rnd(0,2),tg:p-1,tg2:r-1,who:[A,B],ans:r-p-1});
+      Object.assign(q,mk(x=>`${x(A)} 排第 ${p} 個，${x(B)} 排第 ${r} 個。牠們中間有幾隻？`));q.opts=opt3(r-p-1,r-p)}
+    q.mode="num";
+    // 高級的隊伍（答錯或答對後才畫出來）：主角放在對的位置，其他是隨機的小動物
+    const others=shuffle(AN.filter(o=>!q.who.includes(o)));q.line=Array.from({length:q.N},(_,i)=>others[i%others.length]);
+    q.line[q.tg]=q.who[0];if(q.tg2!=null)q.line[q.tg2]=q.who[1];q.side="L";q.n=q.N;
+    return q;
+  }
+
+  // ---- 畫面 ----
+  const stage=$("stage"),msg=(t,c="")=>{$("msg").textContent=t;$("msg").className="msg"+(c?" "+c:"")};
+  // 一排東西：o.num(i) 回傳要標的號碼、o.hl 亮起來、o.cls(i) 額外的顏色、o.tap 可以點
+  function cellsHTML(list,q,o){
+    return list.map((a,i)=>{
+      let c="an";if(o.tap)c+=" tap";if(q.sel&&q.sel.includes(i))c+=" sel";if(o.hl&&o.hl.includes(i))c+=" hl";if(o.yes===i)c+=" yes";if(o.cls)c+=o.cls(i);
+      const num=o.num?o.num(i):null;
+      return `<button type="button" class="${c}" data-i="${i}" aria-label="${a.n}">${a.e}${num!=null?`<b>${num}</b>`:""}</button>`}).join("");
+  }
+  function queueHTML(q,o={}){
+    const L=q.side==="L",front=L?"⬅ 前面":"前面 ➡",back=L?"後面 ➡":"⬅ 後面";
+    return `<div class="scene"><div class="queue ${q.side}"><span class="booth" aria-label="冰淇淋車">🍦</span>${cellsHTML(q.line,q,o)}</div>
+      <div class="dirs" data-zy>${L?`<span>${front}</span><span>${back}</span>`:`<span>${back}</span><span>${front}</span>`}</div></div>`;
+  }
+  const shelfHTML=(q,o={})=>`<div class="scene"><div class="shelf">${cellsHTML(q.shelf,q,o)}</div><div class="dirs" data-zy><span>⬅ 左邊</span><span>右邊 ➡</span></div></div>`;
+  // 依題目和答錯次數畫出畫面；done＝答對了
+  function draw(done){
+    const q=S.q,h=q.h,show=h>0||done,tap=!done&&(q.mode==="tap"||q.mode==="multi"),n=q.n;let html="",cap="";
+    stage.style.setProperty("--n",q.shelf?n:n+1);
+    const o={tap};if(done&&q.mode==="tap")o.yes=q.ans;
+    if(q.shelf){
+      if(q.t==="lr"&&show)o.num=i=>q.from==="left"?i+1:n-i;
+      if(q.t==="lrnext"&&show)o.hl=[q.tg];
+      if(q.t==="side"&&show)o.hl=[q.tg,q.tg2];
+      html=shelfHTML(q,o);
+    }else if(S.lv<3){
+      if(q.t==="who"&&show)o.num=i=>q.from==="front"?i+1:n-i;
+      if(q.t==="first"&&show)o.num=i=>i+1;
+      if(q.t==="pos"&&show){o.hl=[q.tg];o.num=i=>i<=q.tg?i+1:null}
+      if(q.t==="next"&&show)o.hl=[q.tg];
+      if(q.t==="cnt"){o.hl=[q.tg];if(show)o.num=q.dir==="前"?(i=>i<q.tg?i+1:null):(i=>i>q.tg?i-q.tg:null)}
+      html=queueHTML(q,o);
+    }else if(show){
+      const two=q.tg2!=null;o.hl=two?[q.tg,q.tg2]:[q.tg];
+      o.cls=two?(i=>i>q.tg&&i<q.tg2?" tf":""):(i=>i<q.tg?" tf":i>q.tg?" tb":"");
+      if(h>=2||done)o.num=i=>i+1;
+      html=queueHTML(q,o);
+      const W=q.who[0].e;
+      cap=q.t==="total"?`前面 ${q.a} 隻 + ${W} 1 隻 + 後面 ${q.b} 隻`:q.t==="behind"?`一共 ${q.N} 隻 − 排到 ${W} 的 ${q.p} 隻`
+        :q.t==="both"?`${q.p} + ${q.r} − 1（${W} 被算了兩次）`:`第 ${q.p} 個和第 ${q.r} 個中間，不算 ${W} 和 ${q.who[1].e}`;
+      if(done)cap+=` → ${q.ans} 隻`;
+    }else html=`<div class="mys"><span class="booth">🍦</span>${q.who.map(a=>`<span>${a.e}</span>`).join(`<span class="dots">…</span>`)}<span class="dots">…</span></div>`;
+    stage.innerHTML=html+(cap?`<div class="cap" data-zy>${cap}</div>`:"");
+    if(tap)stage.querySelectorAll(".an.tap").forEach(b=>b.addEventListener("click",()=>tapIt(+b.dataset.i,b)));
+  }
+  function show(){
+    const q=S.q;$("ask").textContent=q.ask;msg("");draw(false);
+    const ch=$("choices");ch.hidden=false;
+    if(q.mode==="num"||q.mode==="word"){const w=q.mode==="word";
+      ch.innerHTML=`<div class="choices">${q.opts.map(v=>`<button type="button" class="ch${w?" word":""}" data-v="${v}"${w?" data-zy":""}>${w?(v==="左邊"?"⬅ 左邊":"右邊 ➡"):v}</button>`).join("")}</div>`;
+      ch.querySelectorAll(".ch").forEach(b=>b.addEventListener("click",()=>answer(w?b.dataset.v:+b.dataset.v,b)))}
+    else if(q.mode==="multi"){ch.innerHTML=`<div class="tools"><button type="button" class="tool" id="doneBtn" data-zy>✔ 點好了</button></div>`;$("doneBtn").addEventListener("click",multiDone)}
+    else{ch.innerHTML="";ch.hidden=true}
+    if(S.phase==="play")say(q.say);
+  }
+  const speakTip=t=>{let s=t;AN.concat(TOY).forEach(o=>{s=s.split(o.e).join(o.n)});say(s.replace(/[⬅➡]/g,"").replace(/ /g,"").replace(/\+/g,"加").replace(/−/g,"減").replace(/=/g,"等於"))};
+  function tipFor(q){
+    const A=q.line&&q.tg!=null?q.line[q.tg].e:"",T=q.shelf;
+    switch(q.t){
+      case "who":return `從${q.from==="back"?"最後面":"冰淇淋車那邊"}開始數：1、2、3…數到 ${q.k}。`;
+      case "pos":return `從前面數到 ${A}，數到幾，就是第幾個。`;
+      case "first":return `${q.k} 隻就是要點 ${q.k} 隻喔！從前面數 1、2…數到 ${q.k}，每一隻都要點。`;
+      case "next":return `${q.dir==="前"?"前面是靠近冰淇淋車的那一邊":"後面是離冰淇淋車比較遠的那一邊"}，找緊緊挨著 ${A} 的那一隻。`;
+      case "cnt":return `只數 ${A} ${q.dir}面的，${A} 自己不算。`;
+      case "lr":return `從${q.from==="right"?"右":"左"}邊開始數：1、2、3…數到 ${q.k}。`;
+      case "lrnext":return `找緊緊挨著 ${T[q.tg].e}、在它${q.dir}邊的那一個。`;
+      case "side":return `看下面的箭頭：${T[q.tg].e} 在比較${q.ans==="左邊"?"左":"右"}邊的地方。`;
+      case "total":return q.h>=2?`每一隻都數一數，${A} 自己也要算！`:`別忘了 ${A} 自己也要算！`;
+      case "behind":return q.h>=2?`從前面數到 ${A} 有 ${q.p} 隻，剩下的就是後面的。`:`${A} 排第 ${q.p} 個，前面連 ${A} 一共 ${q.p} 隻。`;
+      case "both":return q.h>=2?`${q.p} + ${q.r} 的時候，${A} 被算了兩次，要減掉 1。`:`從前面數和從後面數，${A} 都被算到了喔！`;
+      default:return q.h>=2?`第 ${q.p} 個和第 ${q.r} 個中間，不算他們自己。`:`只數中間的，兩頭的 ${q.who[0].e} 和 ${q.who[1].e} 不算。`;
+    }
+  }
+  function wrong(el,ti){
+    const q=S.q;S.miss++;q.h++;sfx.bad();
+    if(q.mode==="multi")q.sel=[];
+    draw(false);
+    const t=tipFor(q);msg(t,"bad");speakTip(t);
+    if(el&&el.classList.contains("ch")){el.classList.remove("no");void el.offsetWidth;el.classList.add("no");el.disabled=true}
+    if(ti!=null){const b=stage.querySelector(`.an[data-i="${ti}"]`);b&&b.classList.add("no")}
+  }
+  function tapIt(i,el){
+    const q=S.q;if(S.phase!=="play")return;
+    if(q.mode==="multi"){if(q.sel.includes(i))q.sel=q.sel.filter(x=>x!==i);else q.sel.push(i);sfx.tick();el.classList.toggle("sel");return}
+    if(i===q.ans){ok();return}
+    wrong(null,i);
+  }
+  function multiDone(){
+    const q=S.q;if(S.phase!=="play")return;
+    if(q.sel.length===q.k&&q.sel.every(i=>i<q.k)){ok();return}
+    wrong(null);
+  }
+  function answer(v,el){
+    const q=S.q;if(S.phase!=="play")return;
+    if(v===q.ans){el.classList.add("yes");ok();return}
+    wrong(el);
+  }
+  function ok(){
+    const q=S.q;S.phase="ok";S.score++;if(!S.miss)S.first++;sfx.good();upd();
+    if(q.mode==="multi")q.sel=Array.from({length:q.k},(_,i)=>i);
+    draw(true);
+    msg(["答對了！","好棒！","排得真好！"][rnd(0,2)],"good");
+    $("choices").querySelectorAll("button").forEach(b=>b.disabled=true);
+    setTimeout(next,S.lv===3?2600:1800);
+  }
+  function next(){if(S.round>=S.total)return finish();S.round++;S.miss=0;S.phase="play";S.q=newQ();upd();show()}
+  window.iceDebug=()=>({q:S.q,phase:S.phase});
+  const upd=()=>{$("score").textContent=`⭐ ${S.score} / ${S.total}`};
+  function start(){unlock();$("start").hidden=true;$("end").hidden=true;S.round=0;S.score=0;S.first=0;S.order=null;next();
+    try{navigator.wakeLock?.request("screen").catch(()=>{})}catch(e){}}
+  function finish(){
+    S.phase="end";sfx.win();
+    const r=S.first/S.total,st=r>=.9?3:r>=.6?2:1;window.parkRec&&parkRec({ok:S.first,n:S.total});
+    $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);
+    $("endTitle").textContent=st===3?"太厲害了！":st===2?"做得很好！":"再練習一下！";
+    $("endText").textContent=`${S.total} 題裡面，有 ${S.first} 題第一次就答對。`;
+    $("end").hidden=false;say(`${$("endTitle").textContent}${S.total}題裡面，有${S.first}題第一次就答對`);
+  }
+  $("go").addEventListener("click",start);$("replay").addEventListener("click",start);
+  $("again").addEventListener("click",()=>{if(S.q)say(S.q.say)});
+  S.q=newQ();show();S.phase="start";try{synth&&synth.cancel()}catch(e){}upd();
+})();
+</script>
+</body>
+</html>
