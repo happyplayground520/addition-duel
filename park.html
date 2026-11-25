@@ -151,15 +151,24 @@ h1 .star{font-size:.7em;text-shadow:none}
     .zsign{font-size:clamp(13px,2.4cqw,26px)}
   }
 }
-/* 手機橫放：標題縮小，讓地圖大一點 */
-@media (max-height:500px){
+/* 手機橫放、矮的電腦螢幕：標題縮小，讓地圖大一點 */
+@media (max-height:500px),(max-height:680px) and (orientation:landscape){
   h1{font-size:22px;border-width:3px} .sub{display:none}
   .map{width:min(100%,calc((100dvh - 56px) * 1.6))}
 }
+/* 矮又寬的電腦螢幕（例如 1280×600）：地圖改成 16:9，橫向空間用滿 */
+@media (min-height:501px) and (max-height:680px) and (orientation:landscape) and (min-aspect-ratio:3/2){
+  .map{aspect-ratio:16/9;width:min(100%,calc((100dvh - 56px) * 1.78))}
+  @supports (container-type:inline-size){
+    .spot .icon{width:clamp(44px,6.4cqw,140px);font-size:clamp(24px,3.8cqw,84px)}
+    .spot.big .icon{width:clamp(52px,9.2cqw,170px);font-size:clamp(30px,5.7cqw,104px)}
+    .zsign{top:.4%;font-size:clamp(12px,1.8cqw,22px)}
+  }
+}
 </style>
-<script src="zhuyin.js?v=20261125g"></script>
-<script src="rest.js?v=20261125g"></script>
-<script src="warm.js?v=20261125g" defer></script>
+<script src="zhuyin.js?v=20261125h"></script>
+<script src="rest.js?v=20261125h"></script>
+<script src="warm.js?v=20261125h" defer></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
 <style>:root{--text:"Chiron GoRound TC","PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif}
 /* ---- 手機：地圖變成長長的步道，往下捲著逛（一排 2 個，手機橫放一排 4 個） ---- */
@@ -348,7 +357,7 @@ html.phone .bunting{height:36px}
       xs.forEach(x=>{const ys=rows.filter(r=>r.xs.includes(x)).map(r=>r.y);if(ys.length>1)lines.push([[x,P(Math.min(...ys))],[x,P(Math.max(...ys))]])});
     });
     lines.push([[50,104],[50,P(soloRows[0].y)]]);
-    const decos=[];soloRows.concat(lifeRows,duoRows).forEach((r,i)=>{if(i%2===0)decos.push([i%4?96:4,P(r.y+rowH/2),["🌳","🌷","🌲","🌼"][i%4]])});
+    const decos=[];soloRows.concat(lifeRows,duoRows).forEach((r,i)=>{if(i%2===0)decos.push([i%4?(cols>2?97.5:96):(cols>2?2.5:4),P(r.y+rowH*.62),["🌳","🌷","🌲","🌼"][i%4]])});
     return{pos,lines,zone:{left:"2%",width:"96%",top:P(zoneTop)+"%",height:P(zoneBot-zoneTop)+"%"},
       plaza:{left:"2%",right:"2%",top:P(plazaTop)+"%",bottom:"1.2%"},gate:50,
       signs:signs.map(([x,yy])=>[x,P(yy+6)]),decos:decos.map(([x,yy,e])=>[e,x,yy])};

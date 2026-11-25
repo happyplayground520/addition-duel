@@ -111,7 +111,7 @@ body.duo .dhalf.p1{transform:rotate(180deg);border-top-color:var(--pc)}
   body.duo .dhalf{display:grid;grid-template-columns:minmax(0,auto) minmax(0,1fr);grid-template-areas:"hd op" "ask op" "msg op";column-gap:22px;row-gap:4px;align-content:center;justify-content:center;padding:6px 70px}
   body.duo .dhalf .dhd{grid-area:hd;justify-self:center}body.duo .dhalf .dask{grid-area:ask;font-size:clamp(14px,2.3vmin,20px)}body.duo .dhalf .dmsg{grid-area:msg;justify-self:center}
   body.duo .dhalf .dopts{grid-area:op;justify-content:flex-start}}
-@media (max-width:600px) and (orientation:portrait){body.duo{--hh:clamp(208px,27dvh,250px)}body.duo .dhalf .dask{font-size:14px;padding:.2em .6em}body.duo .dhalf .dch{font-size:18px;min-width:52px}body.duo .dhalf .dch.word{font-size:15px}body.duo .dhalf{gap:5px}}
+@media (max-width:600px) and (orientation:portrait){body.duo{--hh:clamp(216px,27dvh,250px)}body.duo .dhalf .dask{font-size:14px;padding:.2em .6em}body.duo .dhalf .dch{font-size:18px;min-width:52px;min-height:44px}body.duo .dhalf .dch.word{font-size:15px}body.duo .dhalf{gap:5px}}
 .dmid{display:none}
 body.duo .dmid{display:block;position:fixed;left:max(8px,env(safe-area-inset-left,0px));top:50%;transform:translateY(-50%);z-index:5}
 body.duo .dmid a,body.duo .dmid button{display:grid;place-items:center;width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.92);text-decoration:none;font-size:22px;border:0;margin:6px 0;box-shadow:0 3px 0 rgba(0,0,0,.1);cursor:pointer}
@@ -123,6 +123,22 @@ body.duo .dmid a,body.duo .dmid button{display:grid;place-items:center;width:44p
   #ask{grid-area:ask;align-self:end} #stage{grid-area:st;width:auto;align-self:center} #choices{grid-area:ch;align-self:center} #msg{grid-area:msg;align-self:start}
   .stage{--jw:clamp(70px,calc((100dvh - 160px) / 1.7),150px);gap:6px}.stage.three{--jw:clamp(60px,calc((100dvh - 160px) / 1.9),120px)}
   .ask{font-size:16px}.ch{font-size:24px;min-width:70px}.ch.word{font-size:18px}.msg{font-size:15px}.tool{font-size:15px;padding:.3em .9em}.jar{padding:2px}
+}
+/* 手機橫放的雙人對戰：兩個人一上一下，答題區矮一點（左邊題目、右邊選項），中間的果汁縮小、杯子排在瓶子旁邊 */
+@media (max-height:500px) and (orientation:landscape){
+  body.duo{--hh:clamp(100px,30dvh,124px)}
+  body.duo main{grid-template-areas:none;grid-template-columns:100%;column-gap:0;row-gap:0;align-content:stretch;justify-content:stretch}
+  body.duo #stage{grid-area:auto;flex-direction:row;align-items:center;gap:10px;max-width:none;padding:2px 0;--jw:clamp(36px,calc((100dvh - 2 * var(--hh) - 34px) / 1.9),90px)}
+  body.duo #stage.three{--jw:clamp(32px,calc((100dvh - 2 * var(--hh) - 34px) / 1.9),80px)}
+  body.duo .dhalf{padding:4px 62px;row-gap:2px;column-gap:16px;grid-template-areas:"hd op" "ask op" "ask msg";grid-template-rows:auto 1fr auto}
+  body.duo .dhalf .dmsg{justify-self:start}
+  body.duo .jarcol{flex-direction:row;align-items:flex-end}body.duo .jars{gap:14px}body.duo .cups{max-width:calc(var(--jw) * 2.2)}
+  body.duo .dhalf .dhd{font-size:14px}body.duo .dhalf .dask{font-size:13px;padding:.15em .6em;line-height:1.45}
+  body.duo .dhalf .dch{font-size:20px;min-width:52px;min-height:44px}body.duo .dhalf .dch.word{font-size:15px}
+  body.duo .dhalf .dopts{min-height:44px;gap:8px}
+  body.duo .dhalf .dmsg{font-size:14px;min-height:1.1em}body.duo .dhalf .wait{font-size:15px}
+  body.duo .note{font-size:12px;margin:0}body.duo .jar .nm{font-size:12px}
+  body.duo .dhalf .dres{flex-direction:row;flex-wrap:wrap;gap:6px 14px}body.duo .dhalf .dres b{font-size:19px}body.duo .dhalf .dres button,body.duo .dhalf .dres a{font-size:16px}
 }
 @media (prefers-reduced-motion:reduce){.liq{transition-duration:.01s}.jar.no,.ch.no,.cups .cup,.arrow.on{animation:none}}
 /* 開始／結束畫面 */
@@ -146,11 +162,11 @@ body.duo .dmid a,body.duo .dmid button{display:grid;place-items:center;width:44p
   main{gap:6px}.ask{font-size:16px}.ch{font-size:26px;min-width:84px}.msg{font-size:15px}}
 @media (prefers-reduced-motion:reduce){.handle circle,.desk .it.no,.ch.no{animation:none}}
 </style>
-<script src="zhuyin.js?v=20261125g"></script>
-<script src="rest.js?v=20261125g"></script>
+<script src="zhuyin.js?v=20261125h"></script>
+<script src="rest.js?v=20261125h"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261125g">
-<script src="park.js?v=20261125g"></script>
+<link rel="stylesheet" href="park.css?v=20261125h">
+<script src="park.js?v=20261125h"></script>
 </head>
 <body data-park>
 <header class="top">
