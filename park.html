@@ -166,9 +166,9 @@ h1 .star{font-size:.7em;text-shadow:none}
   }
 }
 </style>
-<script src="zhuyin.js?v=20261125i"></script>
-<script src="rest.js?v=20261125i"></script>
-<script src="warm.js?v=20261125i" defer></script>
+<script src="zhuyin.js?v=20261125j"></script>
+<script src="rest.js?v=20261125j"></script>
+<script src="warm.js?v=20261125j" defer></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
 <style>:root{--text:"Chiron GoRound TC","PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif}
 /* ---- 手機：地圖變成長長的步道，往下捲著逛（一排 2 個，手機橫放一排 4 個） ---- */
@@ -250,6 +250,9 @@ html.phone .bunting{height:36px}
   <a class="spot open" data-k="dango" href="dango.html" style="--c:#e85d9a">
     <span class="icon">🍡</span><span class="name" data-zy>丸子攤</span><span class="tag">👤 加加減減</span>
   </a>
+  <a class="spot open" data-k="roo" href="roo.html" style="--c:#c2410c">
+    <span class="icon">🦘</span><span class="name" data-zy>袋鼠跳</span><span class="tag">👤 數線、跳著數</span>
+  </a>
   <a class="spot open" data-k="icecream" href="icecream.html" style="--c:#ec4899">
     <span class="icon">🍦</span><span class="name" data-zy>冰淇淋車</span><span class="tag">👤 第幾個、左右</span>
   </a>
@@ -289,8 +292,8 @@ html.phone .bunting{height:36px}
   // ---- 位置（百分比：x 是寬度 %、y 是高度 %）----
   // 左邊「一個人玩」草地區 3×3；右邊「兩個人對戰」磚紅色廣場，馬戲團在正中間；中間一條大街，入口在下方
   const map=document.querySelector(".map");
-  // 三區：「算一算」（加減乘、連加連減、錢）、「數一數・量一量」（位值、長度、容量、面積、時間、日曆、分數、統計、第幾個）、「兩個人對戰」
-  const ZA=["balloon","coaster","fish","ferris","donut","ring","dango","booth","gift"],ZB=["blocks","ruler","carousel","juice","mat","calendar","share","vote","claw","icecream"];
+  // 三區：「算一算」（加減乘、連加連減、錢）、「數一數・量一量」（位值、長度、容量、面積、時間、日曆、分數、統計、第幾個、數線）、「兩個人對戰」
+  const ZA=["balloon","coaster","fish","ferris","donut","ring","dango","booth","gift"],ZB=["blocks","ruler","carousel","juice","mat","calendar","share","vote","claw","icecream","roo"];
   const DUO=["train","bumper","memory","shape"];
   // 橫放：算一算 3 欄×3 排，數一數・量一量 4 欄×3 排，右邊對戰廣場；空出來的位置種花
   function landLayout(){
@@ -298,7 +301,7 @@ html.phone .bunting{height:36px}
     const fill=(keys,cols,flowers)=>{const nc=cols.length;for(let i=0;i<nc*3;i++){const x=cols[i%nc],y=rows[Math.floor(i/nc)];if(keys[i])pos[keys[i]]=[x,y];else decos.push([flowers[i%flowers.length],x,y+2])}};
     fill(ZA,cA,["🌷","🌻"]);
     // 夾娃娃機的說明比較長，兩邊留空位種花
-    fill(["blocks","ruler","carousel","juice","mat","calendar","share","vote","icecream",null,"claw",null],cB,["🌻","🌳"]);
+    fill(["blocks","ruler","carousel","juice","mat","calendar","share","vote","icecream",null,"claw","roo"],cB,["🌻","🌳"]);
     Object.assign(pos,{train:[dc[0],rows[0]],bumper:[dc[1],rows[0]],duel:[dmid,rows[1]],memory:[dc[0],rows[2]],shape:[dc[1],rows[2]]});
     const lines=[];
     rows.forEach(y=>lines.push([[cA[0],y],[dc[1],y]]));
