@@ -140,11 +140,11 @@ body{background:radial-gradient(circle,rgba(192,79,214,.12) 2.5px,transparent 3p
 @media (max-width:600px) and (orientation:portrait){.mid{flex-direction:row}}
 @media (max-height:500px){#modes .opt .mi,#modes .opt small{display:none}}
 </style>
-<script src="zhuyin.js?v=20261125n"></script>
-<script src="rest.js?v=20261125n"></script>
+<script src="zhuyin.js?v=20261125p"></script>
+<script src="rest.js?v=20261125p"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="park.css?v=20261125n">
-<script src="park.js?v=20261125n"></script>
+<link rel="stylesheet" href="park.css?v=20261125p">
+<script src="park.js?v=20261125p"></script>
 </head>
 <body data-park>
 <header class="top">
@@ -445,7 +445,11 @@ body{background:radial-gradient(circle,rgba(192,79,214,.12) 2.5px,transparent 3p
 
   // ---- 時間 ----
   let raf=0;
+  // 休息提醒跳出來時：時間暫停、東西不動；關掉提醒後，把暫停的時間加回去
+  addEventListener("rest:open",()=>{if(!S.pauseAt)S.pauseAt=performance.now()});
+  addEventListener("rest:close",()=>{if(S.pauseAt){const d=performance.now()-S.pauseAt;S.pauseAt=0;if(S.endAt)S.endAt+=d}});
   function tick(now){
+    if(S.pauseAt){raf=requestAnimationFrame(tick);return}
     if(S.phase!=="play")return;
     S.left=Math.max(0,(S.endAt-now)/1000);
     $("timefill").style.transform=`scaleX(${S.left/S.time})`;

@@ -16,6 +16,7 @@
     if(ms>=LIMIT)show();
   }
   function css(){if(document.getElementById("rest-css"))return;const c=document.createElement("style");c.id="rest-css";c.textContent=`
+body.rest-paused>:not(.rest-bg),body.rest-paused>:not(.rest-bg) *{animation-play-state:paused!important}
 .rest-bg{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;background:rgba(30,30,60,.45);padding:16px;animation:rest-in .3s both;
   font-family:"Chiron GoRound TC","PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif}
 @keyframes rest-in{from{opacity:0}}
@@ -43,10 +44,12 @@
       <div class="rest-t" data-zy>休息一下吧！</div>
       <p class="rest-p" data-zy>已經玩了十分鐘囉！<br>看看遠方，<br>喝口水、動一動身體。</p>
       <button type="button" class="rest-ok" data-zy>好，休息一下</button></div>`;
-    const close=()=>{if(!box)return;box.remove();box=null;st={ms:0,last:Date.now()};save(st);tick=Date.now();try{speechSynthesis.cancel()}catch(e){}};
+    const close=()=>{if(!box)return;box.remove();box=null;document.body.classList.remove("rest-paused");try{dispatchEvent(new Event("rest:close"))}catch(e){}st={ms:0,last:Date.now()};save(st);tick=Date.now();try{speechSynthesis.cancel()}catch(e){}};
     box.querySelector(".rest-x").onclick=close;box.querySelector(".rest-ok").onclick=close;
     box.addEventListener("keydown",e=>{if(e.key==="Escape")close()});
     document.body.appendChild(box);box.querySelector(".rest-ok").focus({preventScroll:true});
+    // 告訴計時的小遊戲先暫停（時間不要跑、東西不要動），按「好」或 ✕ 之後再繼續
+    document.body.classList.add("rest-paused");try{dispatchEvent(new Event("rest:open"))}catch(e){}
     try{const u=new SpeechSynthesisUtterance("已經玩了十分鐘囉，休息一下，看看遠方吧！");u.lang="zh-TW";u.rate=.95;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}
   }
   // 測試用：網址加 #rest 馬上跳出來
