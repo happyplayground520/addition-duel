@@ -7,7 +7,7 @@
 <title>港口聊天</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@600;800&family=Chiron+GoRound+TC:wght@400;700;900&display=swap">
-<link rel="stylesheet" href="en.css?v=20261125q">
+<link rel="stylesheet" href="en.css?v=20261126a">
 <style>
 /* 港口聊天：鸚鵡在港口攤子前連續問小朋友三個問題（心情、天氣、幾歲），從對話泡泡裡選出要回答的話 */
 body{background:linear-gradient(#bfeaff,#e9f8ff 55%,#7fd0ea 55.1%,#4fb8dc)}
@@ -56,11 +56,11 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
 }
 @media (prefers-reduced-motion:reduce){.rbtn.glow{animation:none}}
 </style>
-<script src="zhuyin.js?v=20261125q"></script>
-<script src="rest.js?v=20261125q"></script>
-<link rel="stylesheet" href="park.css?v=20261125q">
-<script src="park.js?v=20261125q"></script>
-<script src="en.js?v=20261125q"></script>
+<script src="zhuyin.js?v=20261126a"></script>
+<script src="rest.js?v=20261126a"></script>
+<link rel="stylesheet" href="park.css?v=20261126a">
+<script src="park.js?v=20261126a"></script>
+<script src="en.js?v=20261126a"></script>
 <style>body{font-family:var(--text)}</style>
 </head>
 <body data-game="chat">
@@ -237,7 +237,7 @@ main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;al
     $("start").hidden=true;$("end").hidden=true;nextQ();
   }
   function finish(){
-    S.phase="end";
+    S.phase="end";try{window.parkRec&&parkRec({ok:S.score,n:S.total})}catch(e){}
     const r=S.score/S.total,st=r>=.9?3:r>=.6?2:1;
     $("stars").textContent="⭐".repeat(st)+"☆".repeat(3-st);$("result").textContent=`${S.score} / ${S.total}`;
     sfx.end();say(st===3?"Excellent!":st===2?"Great job!":"Good try!");$("end").hidden=false;

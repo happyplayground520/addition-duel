@@ -24,6 +24,8 @@ h1{margin:0;font-size:clamp(24px,4vmin,34px);font-weight:900;flex:1;min-width:0}
 .range button{font:inherit;font-weight:800;font-size:16px;border:0;background:none;border-radius:999px;padding:8px 14px;cursor:pointer;color:var(--muted);min-height:44px}
 .range button[aria-pressed="true"]{background:var(--accent);color:#fff}
 .range button[aria-pressed="true"] .zy-b{color:#fff}
+.areas{align-self:flex-start;max-width:100%}
+@media (max-width:440px){.areas{align-self:stretch}.areas button{flex:1;padding:8px 4px}.areas .ae{display:none}}
 .note{margin:0;font-size:15px;color:var(--muted);font-weight:700;line-height:1.9}
 .card{background:#fff;border-radius:22px;padding:16px clamp(14px,2.4vw,22px);box-shadow:0 4px 0 #dbe8f0}
 .card h2{margin:0 0 10px;font-size:clamp(19px,2.8vmin,24px);font-weight:900;display:flex;align-items:center;gap:8px}
@@ -86,7 +88,7 @@ details.gm .row .pct{font-size:18px}
   .recent .it{flex-wrap:wrap;row-gap:0}.recent .tx{flex:1 1 0}.recent .res{flex-basis:100%;padding-left:calc(5.4em + 48px)}}
 @media (max-width:420px){.range button{padding:8px 10px;font-size:15px}.recent .when{width:5.4em;font-size:13px}.go{padding:6px 10px}details.gm .rows{padding-left:12px}}
 </style>
-<script src="zhuyin.js?v=20261125q"></script>
+<script src="zhuyin.js?v=20261126a"></script>
 </head>
 <body>
 <div class="wrap" data-zy>
@@ -99,7 +101,13 @@ details.gm .row .pct{font-size:18px}
       <button type="button" data-d="0">全部</button>
     </div>
   </header>
-  <p class="note" data-zy>數學遊樂園和天空島的單人關卡，每玩完一回就會記下來。「答對率」是第一次就答對的題數比例。紀錄只存在這台裝置上。</p>
+  <div class="range areas" id="area" role="group" aria-label="科目">
+    <button type="button" data-a="all">全部</button>
+    <button type="button" data-a="m"><span class="ae">🎡 </span>數學</button>
+    <button type="button" data-a="c"><span class="ae">🍰 </span>國語</button>
+    <button type="button" data-a="e"><span class="ae">🏴‍☠️ </span>英文</button>
+  </div>
+  <p class="note" data-zy>數學遊樂園、謎題星空、甜點小鎮和海盜灣的單人關卡，每玩完一回就會記下來。「答對率」是第一次就答對的題數比例。紀錄只存在這台裝置上。</p>
 
   <div class="sum" id="sum"></div>
 
@@ -128,6 +136,9 @@ details.gm .row .pct{font-size:18px}
   const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
   const DAY=864e5,day0=t=>{const d=new Date(t);d.setHours(0,0,0,0);return d.getTime()};
   const isQuiz=r=>r.n!=null;
+  // 哪一區：甜點小鎮（國語）是 town-*，海盜灣（英文）是這幾關，其他都是數學（遊樂園、謎題星空）
+  const ENG=["abc","chat","chest","dock","spell","story","home"];
+  const areaOf=g=>/^town-/.test(g)?"c":ENG.includes(g)?"e":"m";
   // 關卡名稱前面的圖示（存的名字像「🍡 丸子攤」）
   const split=name=>{const m=String(name||"").match(/^(\p{Extended_Pictographic}[️‍\p{Extended_Pictographic}]*)\s*(.*)$/u);return m?{ic:m[1],nm:m[2]}:{ic:"🎮",nm:name||"?"}};
   const cls=p=>p>=.9?"g":p>=.7?"m":"l",col=p=>p>=.9?"#1f9d61":p>=.7?"#f0b429":"#e0455a";
@@ -141,9 +152,14 @@ details.gm .row .pct{font-size:18px}
   const btns=[...$("range").querySelectorAll("button")];
   const sync=()=>btns.forEach(b=>b.setAttribute("aria-pressed",+b.dataset.d===range));
   btns.forEach(b=>b.addEventListener("click",()=>{range=+b.dataset.d;pref(PK,range);sync();render()}));
+  let area=(v=>["all","m","c","e"].includes(v)?v:"all")(pref("rec-area"));
+  const abtns=[...$("area").querySelectorAll("button")];
+  const asyncA=()=>abtns.forEach(b=>b.setAttribute("aria-pressed",b.dataset.a===area));
+  abtns.forEach(b=>b.addEventListener("click",()=>{area=b.dataset.a;pref("rec-area",area);asyncA();render()}));
+  const inArea=r=>area==="all"||areaOf(r.g)===area;
 
   function render(){
-    const all=load(),from=range?day0(Date.now())-(range-1)*DAY:0,L=all.filter(r=>r.t>=from);
+    const every=load(),all=every.filter(inArea),from=range?day0(Date.now())-(range-1)*DAY:0,L=all.filter(r=>r.t>=from);
     // ---- 總覽 ----
     const Q=L.filter(isQuiz),qn=Q.reduce((a,r)=>a+r.n,0),qok=Q.reduce((a,r)=>a+r.ok,0),sec=L.reduce((a,r)=>a+(r.d||0),0);
     const mins=Math.round(sec/60);
@@ -192,14 +208,14 @@ details.gm .row .pct{font-size:18px}
       return`<li class="it"><span class="when">${when(r.t)}</span><span class="ic" style="font-size:22px;width:28px">${ic}</span><span class="tx"><div class="nm" data-zy style="font-size:16px">${esc(nm)}</div><div class="sub" data-zy>${esc(r.s||"")}</div></span>
         <span class="res ${p==null?"":"pct "+cls(p)}" data-zy style="font-size:15px">${res(r)}</span></li>`}).join("")
       :`<li class="empty" data-zy>這段時間還沒有玩過。</li>`;
-    $("clear").hidden=!all.length;
+    $("clear").hidden=!every.length;
   }
   $("clear").addEventListener("click",()=>{$("ov").hidden=false});
   $("cNo").addEventListener("click",()=>{$("ov").hidden=true});
   $("cYes").addEventListener("click",()=>{try{localStorage.removeItem(KEY)}catch(e){}$("ov").hidden=true;render()});
   addEventListener("storage",e=>{if(e.key===KEY)render()});
   addEventListener("pageshow",render);
-  sync();render();
+  sync();asyncA();render();
   window.recDebug={render};
 })();
 </script>

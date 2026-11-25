@@ -89,17 +89,20 @@
   function settings(){
     const out=[];
     document.querySelectorAll('#start [aria-pressed="true"]').forEach(b=>{
-      if(b.closest("#counts"))return;
+      if(b.closest("#counts,#totals"))return;
       for(let e=b.parentElement;e&&e.id!=="start";e=e.parentElement)if(e.hidden)return;
       const st=b.querySelector(".lvst"),sm=b.querySelector("small");
-      let t=st||sm?[plain(st),plain(sm)].filter(Boolean).join(" "):plain(b);
+      // 說明只有圖示（例如「💬 💬」）就不記，只記星星
+      const ss=plain(sm),sx=/[\p{L}\p{N}]/u.test(ss)?ss:"";
+      let t=st||sm?[plain(st),sx].filter(Boolean).join(" "):plain(b);
       if(!t)t=b.getAttribute("aria-label")||"";if(t&&!/^👤/.test(t))out.push(t);
     });
+    // 國語小鎮：記下練的是哪幾課（例如「康軒 版・第1課～第3課」）
+    try{if(document.querySelector("#start .scopeTag")&&window.TZ&&TZ.rangeLabel)out.push(TZ.rangeLabel())}catch(e){}
     return out.join("・");
   }
   window.parkRec=function(o){
     try{
-      if(!isPark())return;
       const h=document.querySelector("#start h2"),g=location.pathname.split("/").pop().replace(/\.html$/,"")||"?";
       const r={g,name:plain(h)||document.title,s:settings(),t:Date.now()};
       if(t0)r.d=Math.max(1,Math.round((Date.now()-t0)/1000));
